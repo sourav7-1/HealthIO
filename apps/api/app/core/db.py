@@ -1,5 +1,6 @@
 from collections.abc import AsyncIterator
 
+from fastapi import Request
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -31,3 +32,11 @@ class Database:
 
     async def dispose(self) -> None:
         await self.engine.dispose()
+
+
+async def get_session(request: Request) -> AsyncIterator[AsyncSession]:
+    """One session per request. Services commit explicitly; anything uncommitted is
+    rolled back when the request ends."""
+    db: Database = request.app.state.db
+    async with db.sessionmaker() as session:
+        yield session

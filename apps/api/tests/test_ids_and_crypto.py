@@ -117,13 +117,25 @@ def test_dev_keyring_loads() -> None:
 
 
 def test_dev_keys_are_refused_outside_dev() -> None:
-    with pytest.raises(ValueError, match="development encryption keys"):
+    with pytest.raises(ValueError, match="development keys"):
         Settings(env=Environment.PRODUCTION)
-    real = SecretStr(base64.b64encode(_key()).decode())
+
+    def real() -> SecretStr:
+        return SecretStr(base64.b64encode(_key()).decode())
+
+    with pytest.raises(ValueError, match="development keys"):  # dev JWT key alone is enough
+        Settings(
+            env=Environment.PRODUCTION,
+            encryption_keys={"p1": real()},
+            encryption_active_key_id="p1",
+            blind_index_key=real(),
+        )
     ok = Settings(
         env=Environment.PRODUCTION,
-        encryption_keys={"p1": real},
+        encryption_keys={"p1": real()},
         encryption_active_key_id="p1",
-        blind_index_key=SecretStr(base64.b64encode(_key()).decode()),
+        blind_index_key=real(),
+        jwt_signing_keys={"j1": real()},
+        jwt_active_key_id="j1",
     )
     assert ok.encryption_active_key_id == "p1"

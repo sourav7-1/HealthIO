@@ -44,16 +44,22 @@ class CaregiverStatus(StrEnum):
 
 
 class CaregiverPermissionScope(StrEnum):
-    """Scopes from ARCHITECTURE.md §7. Least privilege: grant only what is needed."""
+    """What a caregiver may do for a patient. Least privilege: grant only what is needed.
+
+    Deliberately absent: editing clinical records, changing a doctor's prescription and
+    deleting medical records. Those can never be granted to a caregiver
+    (app/modules/access/permissions.py enforces this again at decision time).
+    """
 
     VIEW_PROFILE = "view_profile"
+    VIEW_MEDICAL_HISTORY = "view_medical_history"  # conditions, allergies, history
     VIEW_MEDICATIONS = "view_medications"
-    MANAGE_MEDICATIONS = "manage_medications"
     LOG_DOSES = "log_doses"
-    VIEW_RECORDS = "view_records"
-    UPLOAD_RECORDS = "upload_records"
-    VIEW_LABS = "view_labs"
+    MANAGE_REMINDERS = "manage_reminders"  # reminder times and preferences, not doses
+    VIEW_APPOINTMENTS = "view_appointments"
     MANAGE_APPOINTMENTS = "manage_appointments"
+    VIEW_REPORTS = "view_reports"  # test reports and health documents
+    UPLOAD_REPORTS = "upload_reports"
     RECEIVE_ALERTS = "receive_alerts"
     USE_AI_ASSISTANT = "use_ai_assistant"
     MANAGE_EMERGENCY_INFO = "manage_emergency_info"

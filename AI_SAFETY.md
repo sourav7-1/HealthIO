@@ -36,7 +36,7 @@ queued ─► running ─► proposed ─► needs_review ─┬─► verified 
 ```
 
 - `proposed` and `needs_review` data are **never** used by reminders, safety checks, the doctor's chart, summaries, or other AI features as if they were facts.
-- **Who can verify:** the patient; a caregiver with `manage_medications` (or `upload_records` for documents); or a doctor with an active relationship. The UI records **who** verified, when, and every field they changed.
+- **Who can verify:** the patient; a caregiver with `upload_reports` (for documents they are allowed to add) and `manage_reminders` (to confirm a schedule); or a doctor with an active relationship. A caregiver's verification can never change a doctor-issued prescription (`change_doctor_prescription` is never grantable to caregivers). The UI records **who** verified, when, and every field they changed.
 - Verification by a patient or caregiver is labelled **"patient-verified"**, which is different from **"doctor-verified"**. Doctors see this label.
 - Applying verified data runs the **safety engine** (§6) before a medication becomes active.
 

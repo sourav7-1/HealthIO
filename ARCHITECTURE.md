@@ -217,6 +217,8 @@ The AI module is a set of **pipelines behind a gateway**. Every AI output lands 
 
 ## 6. Authentication architecture
 
+> **Implemented** in Phase 3 (email + password): see [docs/auth.md](docs/auth.md). Mobile OTP login, TOTP MFA and step-up authentication are the next increments.
+
 | Actor | Primary login | Second factor |
 |---|---|---|
 | Patient, caregiver | Mobile OTP (SMS) or email + password | Optional TOTP; required for caregivers managing three or more dependants |
@@ -235,6 +237,8 @@ The AI module is a set of **pipelines behind a gateway**. Every AI output lands 
 
 ## 7. RBAC architecture
 
+> **Implemented** in Phase 3: `app/modules/access/` (permission catalogue, decision service, reusable dependencies). See [docs/auth.md](docs/auth.md).
+
 Access = **role permission ∧ relationship ∧ consent ∧ state checks**. Evaluated by a single policy engine (`access` module) on every request. Denied by default.
 
 **1. Roles → permissions (static, in code, versioned)**
@@ -250,7 +254,8 @@ Access = **role permission ∧ relationship ∧ consent ∧ state checks**. Eval
 - **Self:** the principal is the patient.
 - **Doctor:** there is an `active` `care_relationship(doctor, patient)`, created when the patient accepts a doctor or the doctor adds the patient and the patient consents.
 - **Caregiver:** there is an `active`, unexpired `caregiver_link(caregiver, patient)` with the needed **scope**:
-  `view_profile`, `view_medications`, `manage_medications`, `log_doses`, `view_records`, `upload_records`, `view_labs`, `manage_appointments`, `receive_alerts`, `use_ai_assistant`, `manage_emergency_info`, `manage_caregivers` (guardians only).
+  `view_profile`, `view_medical_history`, `view_medications`, `log_doses`, `manage_reminders`, `view_appointments`, `manage_appointments`, `view_reports`, `upload_reports`, `receive_alerts`, `use_ai_assistant`, `manage_emergency_info`, `manage_caregivers` (guardians only).
+  **Never grantable to caregivers:** `edit_clinical_records`, `change_doctor_prescription`, `delete_medical_records` (and `edit_profile`, `manage_consent`). The catalogue lives in `app/modules/access/permissions.py`.
 - **Guardian:** a caregiver link with `is_guardian=true` (parent of a minor, legal representative of a dependent adult) may give consent on the patient's behalf.
 
 **3. Consent** (§8): a data category can be withheld from a doctor or caregiver even when a relationship exists.
@@ -608,8 +613,8 @@ outbox_events · failed_jobs · feature_flags · privacy_notices · dpdp_request
 1. **Invitation:** a patient invites the caregiver (or, for a new dependant, the caregiver creates the dependant profile as a guardian after a declaration and, for minors, verifiable parental consent).
 2. **Accept:** the caregiver signs up or logs in → sees the granted scopes and expiry → accepts.
 3. **Switch dependants:** the header switcher chooses which patient they are acting for. The UI always shows "Acting for: Name", and every action is audited as "on behalf of".
-4. **Daily care (within scopes):** today's doses for each dependant, log doses, refill alerts, missed-dose alerts, upload records or prescription photos, verify OCR (if they hold `manage_medications`), manage appointments.
-5. **Alerts:** missed-dose escalations, SOS alerts with location, abnormal lab flags (only with `view_labs` and `receive_alerts`).
+4. **Daily care (within scopes):** today's doses for each dependant, log doses, refill alerts, missed-dose alerts, upload records or prescription photos, verify uploads (with `upload_reports`), manage reminders and appointments (with `manage_reminders` / `manage_appointments`).
+5. **Alerts:** missed-dose escalations, SOS alerts with location, abnormal lab flags (only with `view_reports` and `receive_alerts`).
 6. **Guardian-only:** manage consents and other caregivers for a dependant; perform the handover when a minor turns 18.
 7. **Lifecycle:** access ends automatically at expiry, or immediately when the patient or guardian revokes it. The caregiver sees clearly when access has ended.
 

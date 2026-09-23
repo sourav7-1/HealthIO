@@ -17,7 +17,13 @@ from app.modules.clinical.models import (
 )
 from app.modules.consent.models import ConsentRecord
 from app.modules.emergency.models import EmergencyContact, EmergencyProfile
-from app.modules.identity.models import User, UserRole
+from app.modules.identity.models import (
+    AuthSession,
+    RefreshToken,
+    User,
+    UserActionToken,
+    UserRole,
+)
 from app.modules.labs.models import Test, TestOrder, TestOrderItem, TestReport, TestResult
 from app.modules.medications.models import (
     Medication,
@@ -34,6 +40,7 @@ __all__ = [
     "Allergy",
     "Appointment",
     "AuditLog",
+    "AuthSession",
     "Base",
     "CaregiverPermission",
     "CaregiverRelationship",
@@ -56,11 +63,13 @@ __all__ = [
     "PatientProfile",
     "Prescription",
     "PrescriptionItem",
+    "RefreshToken",
     "Test",
     "TestOrder",
     "TestOrderItem",
     "TestReport",
     "TestResult",
     "User",
+    "UserActionToken",
     "UserRole",
 ]

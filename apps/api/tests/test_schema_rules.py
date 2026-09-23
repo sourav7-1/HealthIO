@@ -11,7 +11,16 @@ from app.core.crypto import EncryptedString
 from app.models import Base
 
 TABLES: dict[str, Table] = dict(Base.metadata.tables)
-NOT_PATIENT_SCOPED = {"users", "user_roles", "doctor_profiles", "patient_profiles", "tests"}
+NOT_PATIENT_SCOPED = {
+    "users",
+    "user_roles",
+    "auth_sessions",
+    "refresh_tokens",
+    "user_action_tokens",
+    "doctor_profiles",
+    "patient_profiles",
+    "tests",
+}
 MIGRATIONS = Path(__file__).resolve().parents[1] / "alembic" / "versions"
 
 
@@ -26,7 +35,7 @@ def _load_migration(name: str) -> ModuleType:
 
 def test_mappers_configure() -> None:
     configure_mappers()
-    assert len(TABLES) == 31
+    assert len(TABLES) == 34
 
 
 def test_every_table_has_uuid_primary_key_named_id() -> None:
@@ -99,7 +108,9 @@ def test_free_text_clinical_columns_are_encrypted() -> None:
 
 
 def test_updated_at_trigger_covers_every_table() -> None:
-    touch = set(_load_migration("0002_integrity_triggers").TOUCH_TABLES)
+    touch: set[str] = set()
+    for path in sorted(MIGRATIONS.glob("[0-9]*.py")):
+        touch |= set(getattr(_load_migration(path.stem), "TOUCH_TABLES", ()))
     with_updated_at = {n for n, t in TABLES.items() if "updated_at" in t.c}
     assert touch == with_updated_at
 

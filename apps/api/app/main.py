@@ -9,12 +9,26 @@ from app.core.config import Settings, get_settings
 from app.core.db import Database
 from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging, get_logger
+from app.core.mail import create_mailer
 from app.core.middleware import (
     REQUEST_ID_HEADER,
     RequestContextMiddleware,
     SecurityHeadersMiddleware,
 )
 from app.core.storage import Storage
+from app.modules.access.router import router as access_router
+from app.modules.appointments.router import router as appointments_router
+from app.modules.care_team.router import router as care_team_router
+from app.modules.caregivers.router import router as caregivers_router
+from app.modules.chart.router import router as chart_router
+from app.modules.clinical.router import router as clinical_router
+from app.modules.identity.router import me_router
+from app.modules.identity.router import router as auth_router
+from app.modules.identity.security import Passwords, TokenSigner
+from app.modules.labs.router import router as labs_router
+from app.modules.medications.router import router as medications_router
+from app.modules.prescriptions.router import router as prescriptions_router
+from app.modules.records.router import router as records_router
 from app.modules.system.router import router as system_router
 
 log = get_logger(__name__)
@@ -50,6 +64,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         openapi_url="/openapi.json" if settings.docs_enabled else None,
     )
     app.state.settings = settings
+    app.state.passwords = Passwords(settings)
+    app.state.token_signer = TokenSigner(settings)
+    app.state.mailer = create_mailer(settings)
 
     register_error_handlers(app)
 
@@ -59,7 +76,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         allow_origins=settings.cors_origins,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
-        allow_headers=["authorization", "content-type", REQUEST_ID_HEADER],
+        allow_headers=["authorization", "content-type", "x-requested-with", REQUEST_ID_HEADER],
         expose_headers=[REQUEST_ID_HEADER],
     )
     app.add_middleware(SecurityHeadersMiddleware, hsts=settings.is_production)
@@ -68,7 +85,21 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(system_router)
 
     api = APIRouter(prefix=settings.api_prefix)
-    # Domain module routers are mounted here from Phase 3 onwards.
+    for module_router in (
+        auth_router,
+        me_router,
+        access_router,
+        caregivers_router,
+        care_team_router,
+        chart_router,
+        clinical_router,
+        prescriptions_router,
+        medications_router,
+        labs_router,
+        records_router,
+        appointments_router,
+    ):
+        api.include_router(module_router)
     app.include_router(api)
 
     return app

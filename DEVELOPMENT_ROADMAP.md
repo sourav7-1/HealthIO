@@ -9,9 +9,11 @@ Related: [ARCHITECTURE.md](ARCHITECTURE.md) · [SECURITY_MODEL.md](SECURITY_MODE
 |---|---|---|
 | 0 | Project architecture and rules | ✅ Done (architecture docs v1.0 added 2026-09-24) |
 | 1 | Backend foundation | ✅ Done (see [docs/phases/00-01.md](docs/phases/00-01.md)) |
-| 1b | Frontend foundation and compose split | ⏭ Next |
+| 1b | Frontend foundation and compose split | 🟡 Vite SPA, UI primitives and portal shell done ([docs/phases/04-doctor-portal.md](docs/phases/04-doctor-portal.md)); compose split, web Dockerfile, PWA and i18n remain |
 | 2 | Database and medical data model | ✅ Done: schema, migrations, triggers, encryption, audit chain ([docs/data-model.md](docs/data-model.md)). Drug catalogue and synthetic seed deferred to Phases 14 and 1b |
-| 3–25 | | Planned |
+| 3 | Authentication and RBAC | ✅ Core done ([docs/auth.md](docs/auth.md)): registration, login, lockout, JWT + rotating refresh, logout, email verification, password reset, RBAC + relationship + consent checks, caregiver scopes. **Remaining:** phone OTP, TOTP MFA + step-up, breached-password check, SPA screens (with Phase 1b) |
+| 4 | Doctor portal | ✅ Done ([docs/phases/04-doctor-portal.md](docs/phases/04-doctor-portal.md)); Playwright E2E pending |
+| 5–25 | | Planned |
 
 ## Milestones
 | Milestone | Phases | Outcome |

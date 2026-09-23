@@ -25,15 +25,22 @@ async def hit(redis: Redis, key: str, limit: int, window_seconds: int) -> tuple[
 
 
 class RateLimit:
-    def __init__(self, scope: str, *, per_minute: int) -> None:
+    """`per_minute` is a number, or the name of a Settings field (read per request)."""
+
+    def __init__(self, scope: str, *, per_minute: int | str) -> None:
         self.scope = scope
         self.per_minute = per_minute
 
     async def __call__(self, request: Request) -> None:
         redis: Redis = request.app.state.redis
+        limit = (
+            getattr(request.app.state.settings, self.per_minute)
+            if isinstance(self.per_minute, str)
+            else self.per_minute
+        )
         subject = getattr(request.state, "subject_id", None) or (
             request.client.host if request.client else "unknown"
         )
-        allowed, reset = await hit(redis, f"{self.scope}:{subject}", self.per_minute, 60)
+        allowed, reset = await hit(redis, f"{self.scope}:{subject}", int(limit), 60)
         if not allowed:
             raise RateLimitedError(headers={"Retry-After": str(reset)})

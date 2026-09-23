@@ -20,6 +20,7 @@ from typing import Any
 from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.client import ClientInfo
 from app.core.ids import uuid7
 from app.modules.audit.models import AuditLog, AuditOutcome
 
@@ -120,6 +121,66 @@ async def record_event(session: AsyncSession, event: AuditEvent) -> AuditLog:
     session.add(row)
     await session.flush()
     return row
+
+
+async def record_client_event(
+    session: AsyncSession,
+    client: ClientInfo,
+    *,
+    action: str,
+    actor_user_id: uuid.UUID | None,
+    outcome: AuditOutcome = AuditOutcome.ALLOWED,
+    patient_id: uuid.UUID | None = None,
+    resource_type: str | None = None,
+    resource_id: uuid.UUID | None = None,
+    reason_code: str | None = None,
+    changed_fields: list[str] | None = None,
+    context: dict[str, Any] | None = None,
+) -> AuditLog:
+    """Convenience wrapper that fills request details from `ClientInfo`."""
+    return await record_event(
+        session,
+        AuditEvent(
+            action=action,
+            outcome=outcome,
+            actor_user_id=actor_user_id,
+            patient_id=patient_id,
+            resource_type=resource_type,
+            resource_id=resource_id,
+            reason_code=reason_code,
+            changed_fields=changed_fields or [],
+            request_id=client.request_id,
+            ip_address=client.ip,
+            user_agent=client.user_agent,
+            context=context or {},
+        ),
+    )
+
+
+async def record_patient_event(
+    session: AsyncSession,
+    client: ClientInfo,
+    *,
+    actor_user_id: uuid.UUID | None,
+    patient_id: uuid.UUID,
+    action: str,
+    resource_type: str | None = None,
+    resource_id: uuid.UUID | None = None,
+    changed_fields: list[str] | None = None,
+    context: dict[str, Any] | None = None,
+) -> AuditLog:
+    """Every read or write of a patient's clinical data (PROJECT_RULES.md §4)."""
+    return await record_client_event(
+        session,
+        client,
+        action=action,
+        actor_user_id=actor_user_id,
+        patient_id=patient_id,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        changed_fields=changed_fields,
+        context=context,
+    )
 
 
 @dataclass(frozen=True)

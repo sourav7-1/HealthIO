@@ -52,6 +52,7 @@ from app.core.models import (
 class MedicationSource(StrEnum):
     PRESCRIPTION = "prescription"  # from a prescription item (issued or recorded)
     SELF_REPORTED = "self_reported"  # e.g. over-the-counter, entered by patient/caregiver
+    CLINICIAN_RECORDED = "clinician_recorded"  # an existing medicine recorded by a doctor
     INTEGRATION = "integration"
 
 

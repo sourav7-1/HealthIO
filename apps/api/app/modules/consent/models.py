@@ -28,6 +28,10 @@ class GrantorCapacity(StrEnum):
     SELF = "self"
     GUARDIAN = "guardian"  # parent of a minor / legal representative (DPDP s.9)
     NOMINEE = "nominee"  # acting under a DPDP nomination (s.14)
+    # The patient consented in person (e.g. at the clinic) and the treating clinician
+    # recorded it, with the notice version shown. `granted_by` is the recording clinician.
+    # The patient can review and withdraw it once they have an account.
+    CLINICIAN_RECORDED = "clinician_recorded"
 
 
 class GranteeType(StrEnum):

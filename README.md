@@ -15,7 +15,7 @@
 ## Layout
 ```
 apps/api        FastAPI modular monolith + Celery workers   (Python 3.12, uv)
-apps/web        Web frontend, all four portals              (Next.js skeleton → React + Vite SPA in Phase 1b)
+apps/web        React + Vite SPA: doctor portal built; other portals to come
 packages/       generated API client, design tokens, shared TS config
 infra/          Dockerfiles (compose split and production config come in Phases 1b and 24)
 docs/           ADRs, API conventions, threat model, DPDP register, phase notes
@@ -34,7 +34,7 @@ curl http://localhost:8000/ready        # {"status":"ok","checks":{...}}
 cd apps/api && cp .env.example .env && uv sync && uv run uvicorn app.main:app --reload
 
 # Web
-pnpm install && pnpm dev
+pnpm install && pnpm --filter @health-io/web dev   # http://localhost:5173 (proxies /api to :8000)
 ```
 API docs: http://localhost:8000/docs · MinIO console: http://localhost:9001 · Mailpit: http://localhost:8025 · Postgres on host port 5433.
 

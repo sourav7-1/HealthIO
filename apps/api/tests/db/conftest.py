@@ -134,7 +134,7 @@ def make_user(session: AsyncSession) -> Builder:
         n = uuid.uuid4().hex[:8]
         user = User(
             display_name=f"User {n}",
-            email=f"user-{n}@example.test",
+            email=f"user-{n}@example.com",
             email_bidx=n.ljust(64, "0"),
             status=UserStatus.ACTIVE,
             **overrides,
@@ -181,3 +181,88 @@ def make_doctor(session: AsyncSession, make_user: Builder) -> Builder:
         return doctor
 
     return build
+
+
+# --- HTTP-level fixtures -------------------------------------------------------------
+
+TEST_PASSWORD = "correct horse battery staple"
+
+
+@pytest.fixture
+def api_settings(test_db_url: str) -> Settings:
+    from app.core.config import Environment
+
+    return Settings(
+        env=Environment.TEST,
+        database_url=test_db_url,
+        mail_backend="memory",
+        # Cheap Argon2 for tests; production cost is set in Settings defaults.
+        argon2_time_cost=1,
+        argon2_memory_kib=1024,
+    )
+
+
+@pytest.fixture
+async def api_app(api_settings: Settings, session: AsyncSession) -> AsyncIterator[Any]:
+    import fakeredis
+
+    from app.core.db import get_session
+    from app.main import create_app
+    from tests.conftest import FakeProbe
+
+    app = create_app(api_settings)
+    app.state.db = FakeProbe()
+    app.state.redis = fakeredis.FakeAsyncRedis(decode_responses=True)
+    app.state.storage = FakeProbe()
+
+    async def _session() -> AsyncIterator[AsyncSession]:
+        yield session  # every request shares the test's rolled-back transaction
+
+    app.dependency_overrides[get_session] = _session
+    async with app.router.lifespan_context(app):
+        yield app
+
+
+@pytest.fixture
+async def api(api_app: Any) -> AsyncIterator[Any]:
+    from httpx import ASGITransport, AsyncClient
+
+    transport = ASGITransport(app=api_app, raise_app_exceptions=False)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        yield client
+
+
+@pytest.fixture
+def make_account(session: AsyncSession, api_app: Any) -> Builder:
+    """A verified, active account with a password, created directly (fast path)."""
+    from app.core.crypto import email_index
+    from app.core.enums import Role
+    from app.modules.identity.models import UserRole
+
+    async def build(*roles: Role, email: str | None = None, dependant_profile: bool = False) -> Any:
+        email = email or f"acct-{uuid.uuid4().hex[:10]}@example.com"
+        user = User(
+            display_name="Placeholder Account",
+            email=email,
+            email_bidx=email_index(email),
+            password_hash=api_app.state.passwords.hash(TEST_PASSWORD),
+            status=UserStatus.ACTIVE,
+            email_verified_at=datetime.now(UTC),
+        )
+        session.add(user)
+        await session.flush()
+        for role in roles:
+            session.add(UserRole(user_id=user.id, role=role))
+        if Role.PATIENT in roles:
+            session.add(PatientProfile(user_id=user.id, given_name="Placeholder"))
+        await session.flush()
+        user.test_email = email  # type: ignore[attr-defined]
+        return user
+
+    return build
+
+
+async def login(api: Any, email: str, password: str = TEST_PASSWORD) -> dict[str, str]:
+    resp = await api.post("/api/v1/auth/login", json={"email": email, "password": password})
+    assert resp.status_code == 200, resp.text
+    return {"Authorization": f"Bearer {resp.json()['access_token']}"}

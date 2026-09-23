@@ -25,7 +25,13 @@ class FakeProbe:
 
 @pytest.fixture
 def settings() -> Settings:
-    return Settings(env=Environment.TEST, cors_origins=["http://localhost:3000"])
+    return Settings(
+        env=Environment.TEST,
+        cors_origins=["http://localhost:3000"],
+        mail_backend="memory",
+        argon2_time_cost=1,
+        argon2_memory_kib=1024,
+    )
 
 
 @pytest.fixture

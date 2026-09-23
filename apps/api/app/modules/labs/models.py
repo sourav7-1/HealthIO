@@ -154,12 +154,15 @@ class TestOrderItem(Base, Entity, PatientOwned):
         patient_scope_key(),
         patient_scoped_fk(["order_id"], "test_orders", ondelete="CASCADE"),
         UniqueConstraint("order_id", "test_id"),
+        UniqueConstraint("order_id", "test_name"),
     )
 
     order_id: Mapped[uuid.UUID] = mapped_column(nullable=False, index=True)
-    test_id: Mapped[uuid.UUID] = mapped_column(
-        Uuid, ForeignKey("tests.id", ondelete="RESTRICT"), nullable=False
+    # Catalogue link when the test is in `tests`; the name as ordered is always kept.
+    test_id: Mapped[uuid.UUID | None] = mapped_column(
+        Uuid, ForeignKey("tests.id", ondelete="RESTRICT")
     )
+    test_name: Mapped[str] = mapped_column(String(200), nullable=False)
     instructions: Mapped[str | None] = mapped_column(String(300))
 
 

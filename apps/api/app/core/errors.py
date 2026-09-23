@@ -11,6 +11,8 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from sqlalchemy.exc import DBAPIError
+from sqlalchemy.orm.exc import StaleDataError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.logging import get_logger
@@ -66,10 +68,53 @@ class ForbiddenError(AppError):
     title = "Access denied"
 
 
+class InvalidCredentialsError(AppError):
+    """Deliberately vague: never reveals whether the account exists or is locked."""
+
+    status = HTTPStatus.UNAUTHORIZED
+    code = "invalid-credentials"
+    title = "Invalid email or password"
+
+
+class InvalidTokenError(AppError):
+    status = HTTPStatus.UNAUTHORIZED
+    code = "invalid-token"
+    title = "Authentication token is invalid or expired"
+
+    def __init__(self, detail: str | None = None) -> None:
+        super().__init__(detail, headers={"WWW-Authenticate": 'Bearer error="invalid_token"'})
+
+
+class AccountDisabledError(AppError):
+    """Only returned after the correct password was given (no enumeration)."""
+
+    status = HTTPStatus.FORBIDDEN
+    code = "account-disabled"
+    title = "This account is not active"
+
+
+class EmailUnverifiedError(AppError):
+    status = HTTPStatus.FORBIDDEN
+    code = "email-unverified"
+    title = "Verify your email address to continue"
+
+
+class InvalidActionTokenError(AppError):
+    status = HTTPStatus.BAD_REQUEST
+    code = "invalid-action-token"
+    title = "This link is invalid or has expired"
+
+
 class RateLimitedError(AppError):
     status = HTTPStatus.TOO_MANY_REQUESTS
     code = "rate-limited"
     title = "Too many requests"
+
+
+class ValidationFailedError(AppError):
+    status = HTTPStatus.UNPROCESSABLE_ENTITY
+    code = "validation-error"
+    title = "Request validation failed"
 
 
 class ServiceUnavailableError(AppError):
@@ -152,6 +197,41 @@ async def _validation_error_handler(request: Request, exc: Exception) -> JSONRes
     )
 
 
+# SQLSTATEs raised by our integrity triggers (migration 0002) and core constraints.
+_DB_CONFLICTS: dict[str, tuple[str, str]] = {
+    "HI001": ("record-immutable", "This record can no longer be changed"),
+    "HI002": ("invalid-transition", "This status change is not allowed"),
+    "23505": ("conflict", "Conflict"),
+    "23P01": ("conflict", "Conflict"),
+}
+
+
+def _sqlstate(exc: DBAPIError) -> str | None:
+    orig: Any = exc.orig
+    return getattr(orig, "sqlstate", None) or getattr(
+        getattr(orig, "__cause__", None), "sqlstate", None
+    )
+
+
+async def _db_error_handler(request: Request, exc: Exception) -> JSONResponse:
+    assert isinstance(exc, DBAPIError)
+    known = _DB_CONFLICTS.get(_sqlstate(exc) or "")
+    if known is None:
+        return await _unhandled_error_handler(request, exc)
+    code, title = known
+    # The database message may name columns or values: never forward it to the client.
+    return problem_response(request, status=HTTPStatus.CONFLICT, code=code, title=title)
+
+
+async def _stale_data_handler(request: Request, exc: Exception) -> JSONResponse:
+    return problem_response(
+        request,
+        status=HTTPStatus.CONFLICT,
+        code="version-conflict",
+        title="This record was changed by someone else; reload and try again",
+    )
+
+
 async def _unhandled_error_handler(request: Request, exc: Exception) -> JSONResponse:
     log.error("unhandled_error", exc_info=exc)
     return problem_response(
@@ -166,4 +246,6 @@ def register_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(AppError, _app_error_handler)
     app.add_exception_handler(StarletteHTTPException, _http_error_handler)
     app.add_exception_handler(RequestValidationError, _validation_error_handler)
+    app.add_exception_handler(DBAPIError, _db_error_handler)
+    app.add_exception_handler(StaleDataError, _stale_data_handler)
     app.add_exception_handler(Exception, _unhandled_error_handler)
