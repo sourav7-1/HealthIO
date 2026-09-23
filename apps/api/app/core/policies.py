@@ -1,4 +1,4 @@
-"""Access policies. Every route must declare exactly one (rule 2 in docs/RULES.md).
+"""Access policies. Every route must declare exactly one (PROJECT_RULES.md §3).
 
 Phase 1 ships only `public`. Phase 3 adds `require(permission, relationship=...)`,
 which authenticates the caller and checks RBAC plus care relationships.

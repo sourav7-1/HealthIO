@@ -1,6 +1,6 @@
 # ADR 0001: Technology stack
 
-- **Status:** accepted
+- **Status:** accepted; web and mobile rows superseded by [ADR 0002](0002-frontend-vite-spa.md)
 - **Date:** 2026-09-24
 
 ## Context

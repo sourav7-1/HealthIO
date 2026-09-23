@@ -36,8 +36,7 @@ Every error, including validation failures and crashes, returns `Content-Type: a
 - Rate-limited responses (`429`) include `Retry-After`.
 
 ## Authentication (Phase 3)
-- Web: short-lived access token plus a rotating refresh token in an `httpOnly`, `Secure`, `SameSite=Lax` cookie.
-- Mobile: `Authorization: Bearer <access>`; the refresh token is kept in SecureStore.
+- Web SPA: the access token (10 min) is held in memory; the rotating refresh token is an `httpOnly`, `Secure`, `SameSite=Strict` cookie scoped to `/api/v1/auth`. See SECURITY_MODEL.md §4.
 
 ## Idempotency
 Endpoints that create something with side effects (SOS, dose logging, prescription issue) accept an `Idempotency-Key` header. A repeated key within 24 hours returns the original result.

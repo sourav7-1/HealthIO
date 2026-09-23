@@ -1,15 +1,24 @@
 # Health Io
 
-A care platform that connects doctors, patients, caregivers and admins around prescriptions, medicines, reminders, records and AI assistance. Built for India (DPDP Act 2023, ABDM).
+**AI-Powered Personal Health Record & Medication Management Platform.** It connects doctors, patients, caregivers and admins around visits, records, tests, prescriptions, medicines, reminders, adherence and follow-ups, with AI that is advisory only. Built for India (DPDP Act 2023, ABDM).
+
+## Start here
+| Document | What it covers |
+|---|---|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System design, modules, data model, AI, security, deployment, user journeys |
+| [PROJECT_RULES.md](PROJECT_RULES.md) | Binding engineering rules and the definition of done |
+| [SECURITY_MODEL.md](SECURITY_MODEL.md) | Data classification, authentication and authorisation, cryptography, DPDP controls, incident response |
+| [AI_SAFETY.md](AI_SAFETY.md) | What AI may and must not do, verification, guardrails, eval gates |
+| [DEVELOPMENT_ROADMAP.md](DEVELOPMENT_ROADMAP.md) | 25 phases with exit criteria, and current status |
+| [docs/](docs/) | ADRs, API conventions, threat model, DPDP register, phase notes |
 
 ## Layout
 ```
-apps/api        FastAPI backend, Celery workers        (Python 3.12, uv)
-apps/web        Next.js 16 web app, all four portals   (pnpm)
-apps/mobile     Expo app for patients and caregivers   (Phase 5)
-packages/       generated API client, design tokens, shared config
-infra/          Dockerfiles; Terraform comes later
-docs/           rules, ADRs, API conventions, threat model, DPDP register, phase notes
+apps/api        FastAPI modular monolith + Celery workers   (Python 3.12, uv)
+apps/web        Web frontend, all four portals              (Next.js skeleton → React + Vite SPA in Phase 1b)
+packages/       generated API client, design tokens, shared TS config
+infra/          Dockerfiles (compose split and production config come in Phases 1b and 24)
+docs/           ADRs, API conventions, threat model, DPDP register, phase notes
 ```
 
 ## Prerequisites
@@ -25,15 +34,14 @@ curl http://localhost:8000/ready        # {"status":"ok","checks":{...}}
 cd apps/api && cp .env.example .env && uv sync && uv run uvicorn app.main:app --reload
 
 # Web
-pnpm install && pnpm dev               # http://localhost:3000
+pnpm install && pnpm dev
 ```
-API docs: http://localhost:8000/docs · MinIO console: http://localhost:9001 · Mailpit: http://localhost:8025
+API docs: http://localhost:8000/docs · MinIO console: http://localhost:9001 · Mailpit: http://localhost:8025 · Postgres on host port 5433.
 
 ## Checks
 ```bash
 cd apps/api && uv run ruff check . && uv run mypy app tests scripts && uv run pytest
+HIO_INTEGRATION=1 uv run pytest -m integration     # needs the compose services
 pnpm turbo run lint typecheck test build
-pnpm api:client                         # regenerate the TS client after API changes
+pnpm api:client                                    # regenerate the TS client after API changes
 ```
-
-Read [docs/RULES.md](docs/RULES.md) before contributing.
