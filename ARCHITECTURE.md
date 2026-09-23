@@ -515,6 +515,8 @@ apps/api/
 
 ## 21. Entity relationship overview
 
+> **Implemented** in Phase 2. The authoritative model, with a Mermaid ER diagram, constraints, immutability rules and encrypted columns, is in [docs/data-model.md](docs/data-model.md). Implemented names differ slightly from this overview: `encounters` → `doctor_visits`, `lab_orders/lab_reports/lab_results` → `test_orders/test_reports/test_results`, `files` + `medical_records` → `health_documents`, `consents` → `consent_records`, `audit_events` → `audit_logs`. Drug catalogue, AI and outbox tables arrive with their phases.
+
 ```
 users ─┬─< user_roles >── roles ──< role_permissions
        ├─< sessions, mfa_factors, devices(push subscriptions)

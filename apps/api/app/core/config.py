@@ -1,7 +1,9 @@
+import base64
 from enum import StrEnum
 from functools import lru_cache
+from typing import Self
 
-from pydantic import Field, PostgresDsn, RedisDsn, SecretStr
+from pydantic import Field, PostgresDsn, RedisDsn, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,6 +12,11 @@ class Environment(StrEnum):
     TEST = "test"
     STAGING = "staging"
     PRODUCTION = "production"
+
+
+# Development-only keys. The validator below refuses them outside local/test.
+_DEV_ENCRYPTION_KEY = base64.b64encode(b"dev-only-key-do-not-use-in-prod!").decode()
+_DEV_BLIND_INDEX_KEY = base64.b64encode(b"dev-only-blind-index-key-32bytes").decode()
 
 
 class Settings(BaseSettings):
@@ -48,6 +55,24 @@ class Settings(BaseSettings):
     s3_presign_ttl_seconds: int = 300
 
     rate_limit_default_per_minute: int = 120
+
+    # Field-level encryption keyring: {key_id: base64(32-byte key)}; see app/core/crypto.py.
+    encryption_keys: dict[str, SecretStr] = Field(
+        default_factory=lambda: {"dev1": SecretStr(_DEV_ENCRYPTION_KEY)}
+    )
+    encryption_active_key_id: str = "dev1"
+    blind_index_key: SecretStr = SecretStr(_DEV_BLIND_INDEX_KEY)
+
+    @model_validator(mode="after")
+    def _no_dev_keys_outside_dev(self) -> Self:
+        if self.env in (Environment.LOCAL, Environment.TEST):
+            return self
+        dev_values = {_DEV_ENCRYPTION_KEY, _DEV_BLIND_INDEX_KEY}
+        used = {v.get_secret_value() for v in self.encryption_keys.values()}
+        used.add(self.blind_index_key.get_secret_value())
+        if used & dev_values:
+            raise ValueError("development encryption keys must not be used in " + self.env)
+        return self
 
     @property
     def is_production(self) -> bool:

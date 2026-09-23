@@ -88,6 +88,10 @@ jobs:
         run: |
           cp .env.example .env
           uv sync --frozen
+          uv run alembic upgrade head
+          uv run alembic check          # models and migrations must not drift
+          uv run alembic downgrade base # every migration must be reversible
+          uv run alembic upgrade head
           HIO_INTEGRATION=1 uv run pytest -m integration
       - if: always()
         run: docker compose -f docker-compose.dev.yml down -v

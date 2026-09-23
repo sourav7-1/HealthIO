@@ -10,7 +10,8 @@ Related: [ARCHITECTURE.md](ARCHITECTURE.md) · [SECURITY_MODEL.md](SECURITY_MODE
 | 0 | Project architecture and rules | ✅ Done (architecture docs v1.0 added 2026-09-24) |
 | 1 | Backend foundation | ✅ Done (see [docs/phases/00-01.md](docs/phases/00-01.md)) |
 | 1b | Frontend foundation and compose split | ⏭ Next |
-| 2–25 | | Planned |
+| 2 | Database and medical data model | ✅ Done: schema, migrations, triggers, encryption, audit chain ([docs/data-model.md](docs/data-model.md)). Drug catalogue and synthetic seed deferred to Phases 14 and 1b |
+| 3–25 | | Planned |
 
 ## Milestones
 | Milestone | Phases | Outcome |
@@ -37,12 +38,14 @@ Settings, async DB, Redis, S3 storage (presigned, SSE enforced), PHI-redacting s
 - Split compose into `compose.yml` + `compose.dev.yml` + `compose.prod.yml`; switch Postgres to `pgvector/pgvector:pg16`; add ClamAV.
 - **Exit:** `pnpm turbo run lint typecheck test build` passes; `docker compose up` serves the SPA at `/` and the API at `/api` from one origin; a Playwright smoke test loads the landing page.
 
-### Phase 2: Database and medical data model
-- `core/ids.py` (UUIDv7), base model mixins (timestamps, soft delete, version), `core/crypto.py` (envelope encryption, `EncryptedString`, blind index), `core/audit.py` (hash-chained writer), `core/outbox.py`.
-- Models for identity, patients (including dependants without a login), care relationships, caregiver links, consents, clinical (encounters, notes, conditions, allergies, vitals), prescriptions and versions, drugs, medications, schedules, dose events, records and files, labs, appointments, emergency, AI jobs and extractions, notifications, audit, outbox.
-- Alembic baseline; restricted DB roles (the app cannot UPDATE or DELETE `audit_events`).
-- Drug catalogue seed pipeline (licences checked); synthetic seed script (doctor, patient, child dependant with a guardian, elderly dependant with two caregivers, admin).
-- **Exit:** migrations up and down clean in CI; model and constraint tests pass; the audit chain verifier passes on seeded data.
+### Phase 2: Database and medical data model ✅
+**Delivered** (see [docs/data-model.md](docs/data-model.md)):
+- `core/ids.py` (UUIDv7), `core/models.py` (base, mixins, patient-scoped composite keys), `core/crypto.py` (AES-256-GCM column encryption with a rotatable keyring, blind indexes), `modules/audit/service.py` (hash-chained writer and verifier).
+- 31 tables across 14 modules: users and roles, patient profiles (including dependants without a login), doctor profiles, doctor–patient relationships, caregiver relationships and per-scope permissions, consent records, conditions, allergies, medical history, visits, clinical notes, prescriptions and items, medications, schedules, doses, adherence, test catalogue, orders, reports and results, appointments, follow-ups, health documents, emergency profiles and contacts, notifications, audit logs.
+- Migrations `0001` (baseline) and `0002` (triggers: immutable signed notes, issued prescriptions, verified reports and consents; append-only audit; guarded deletes; `updated_at`).
+- Tests: schema-convention unit tests, and integration tests for ownership boundaries, immutability, double booking, dose idempotency, encryption at rest and audit tamper detection. CI checks migration reversibility and model/migration drift.
+
+**Moved to later phases:** vitals (Phase 4), drug catalogue and interaction tables (Phase 14), AI jobs and extractions (Phase 8), outbox (Phase 3), separate DB roles for migrations, app and read-only use (Phase 20), and a synthetic dev seed script (Phase 1b; placeholders only, no realistic medical data).
 
 ### Phase 3: Authentication and RBAC
 - Identity module: OTP (stub SMS adapter in development), email + password (Argon2id), TOTP MFA (required for doctors and admins), EdDSA access JWT, rotating refresh tokens with reuse detection, sessions and devices, step-up, lockout, breached-password check.

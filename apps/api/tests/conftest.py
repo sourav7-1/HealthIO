@@ -1,3 +1,4 @@
+import os
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -48,3 +49,13 @@ def problem(resp: Any) -> dict[str, Any]:
     assert resp.headers["content-type"] == "application/problem+json"
     body: dict[str, Any] = resp.json()
     return body
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    """Integration tests need the compose services; run them with HIO_INTEGRATION=1."""
+    if os.getenv("HIO_INTEGRATION") == "1":
+        return
+    skip = pytest.mark.skip(reason="set HIO_INTEGRATION=1 (needs docker compose services)")
+    for item in items:
+        if "integration" in item.keywords:
+            item.add_marker(skip)
