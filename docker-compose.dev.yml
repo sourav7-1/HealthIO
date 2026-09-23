@@ -1,0 +1,93 @@
+# Local development stack. Credentials here are for local use only.
+#   docker compose -f docker-compose.dev.yml up -d --build
+name: healthio
+
+x-api-env: &api-env
+  HIO_ENV: local
+  HIO_LOG_JSON: "false"
+  HIO_DATABASE_URL: postgresql+asyncpg://healthio:healthio@postgres:5432/healthio
+  HIO_REDIS_URL: redis://redis:6379/0
+  HIO_CELERY_BROKER_URL: redis://redis:6379/1
+  HIO_CELERY_RESULT_BACKEND: redis://redis:6379/2
+  HIO_S3_ENDPOINT_URL: http://minio:9000
+  HIO_S3_BUCKET: healthio-local
+  HIO_S3_ACCESS_KEY_ID: healthio
+  HIO_S3_SECRET_ACCESS_KEY: healthio-secret
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: healthio
+      POSTGRES_PASSWORD: healthio
+      POSTGRES_DB: healthio
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U healthio"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: healthio
+      MINIO_ROOT_PASSWORD: healthio-secret
+    ports: ["9000:9000", "9001:9001"]
+    volumes: [miniodata:/data]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      retries: 10
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio: { condition: service_healthy }
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 healthio healthio-secret &&
+      mc mb --ignore-existing local/healthio-local &&
+      mc anonymous set none local/healthio-local"
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["8025:8025", "1025:1025"]
+
+  api:
+    build: { context: ., dockerfile: infra/docker/api.Dockerfile }
+    environment: *api-env
+    ports: ["8000:8000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      minio-init: { condition: service_completed_successfully }
+
+  worker:
+    build: { context: ., dockerfile: infra/docker/api.Dockerfile }
+    environment: *api-env
+    command: ["celery", "-A", "app.workers.celery_app", "worker", "-l", "info", "--concurrency", "2"]
+    healthcheck: { disable: true }
+    depends_on:
+      redis: { condition: service_healthy }
+
+  beat:
+    build: { context: ., dockerfile: infra/docker/api.Dockerfile }
+    environment: *api-env
+    command: ["celery", "-A", "app.workers.celery_app", "beat", "-l", "info", "-s", "/tmp/celerybeat-schedule"]
+    healthcheck: { disable: true }
+    depends_on:
+      redis: { condition: service_healthy }
+
+volumes:
+  pgdata:
+  miniodata:

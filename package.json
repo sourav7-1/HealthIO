@@ -1,0 +1,18 @@
+{
+  "name": "health-io",
+  "private": true,
+  "packageManager": "pnpm@10.18.0",
+  "scripts": {
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "api:openapi": "cd apps/api && uv run python -m scripts.export_openapi ../../packages/api-client/openapi.json",
+    "api:client": "pnpm api:openapi && pnpm --filter @health-io/api-client generate"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "turbo": "^2.11.3"
+  }
+}

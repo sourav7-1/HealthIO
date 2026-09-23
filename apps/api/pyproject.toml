@@ -1,0 +1,70 @@
+[project]
+name = "health-io-api"
+version = "0.1.0"
+description = "Health Io backend API"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "fastapi>=0.118",
+    "uvicorn[standard]>=0.37",
+    "pydantic>=2.11",
+    "pydantic-settings>=2.11",
+    "sqlalchemy[asyncio]>=2.0.43",
+    "asyncpg>=0.30",
+    "alembic>=1.16",
+    "redis>=6.4",
+    "celery[redis]>=5.5",
+    "boto3>=1.40",
+    "structlog>=25.4",
+    "httpx>=0.28",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4",
+    "pytest-asyncio>=1.2",
+    "pytest-cov>=7.0",
+    "ruff>=0.13",
+    "mypy>=1.18",
+    "boto3-stubs[s3]>=1.40",
+    "celery-types>=0.23",
+    "fakeredis>=2.38.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "S", "ASYNC", "C4", "SIM", "RUF", "PT", "TID"]
+ignore = ["S101"]  # allow assert (tests)
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+exclude = ["alembic/"]
+
+[[tool.mypy.overrides]]
+module = ["celery.*", "kombu.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = ["integration: requires running postgres/redis/minio"]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/workers/*"]

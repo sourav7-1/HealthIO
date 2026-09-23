@@ -1,0 +1,1 @@
+{ "name": "@health-io/config", "version": "0.1.0", "private": true, "files": ["tsconfig.base.json"] }
