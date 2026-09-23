@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:3000"])
 
     database_url: PostgresDsn = PostgresDsn(
-        "postgresql+asyncpg://healthio:healthio@localhost:5432/healthio"
+        "postgresql+asyncpg://healthio:healthio@localhost:5433/healthio"
     )
     database_pool_size: int = 10
     database_echo: bool = False
