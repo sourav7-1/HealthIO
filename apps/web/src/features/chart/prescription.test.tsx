@@ -61,6 +61,9 @@ function doc(partial: Partial<PrescriptionDocument> = {}): PrescriptionDocument 
       },
     ],
     versions: [],
+    source: "doctor_issued",
+    verification_status: "unverified",
+    provenance: null,
     ...partial,
   };
 }

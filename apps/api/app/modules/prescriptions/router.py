@@ -6,6 +6,7 @@ prescriber. Patients and permitted caregivers can read and export, never write.
 """
 
 import uuid
+from dataclasses import asdict
 from datetime import UTC, date, datetime
 from decimal import Decimal
 
@@ -27,6 +28,7 @@ from app.modules.prescriptions.document import (
     PrescriberInfo,
     PrescriptionDocument,
     VersionRef,
+    provenance_note,
 )
 from app.modules.prescriptions.models import Prescription, PrescriptionSource, PrescriptionStatus
 from app.modules.prescriptions.pdf import RENDERERS
@@ -499,6 +501,9 @@ class PrescriptionDocumentOut(BaseModel):
     patient: PatientInfoOut | None
     items: list[DocumentItemOut]
     versions: list[VersionOut]
+    source: str
+    verification_status: str
+    provenance: str | None
 
 
 def _dose_text(amount: Decimal | None, unit: str | None) -> str | None:
@@ -598,6 +603,8 @@ async def _build_document(
             )
             for v in chain
         ],
+        source=rx.source.value,
+        verification_status=rx.verification_status.value,
     )
 
 
@@ -616,7 +623,10 @@ async def get_prescription_document(
     document = await _build_document(ctx, row)
     await ctx.audit("prescription.read", resource_type="prescription", resource_id=prescription_id)
     await ctx.session.commit()
-    return PrescriptionDocumentOut.model_validate(document, from_attributes=True)
+    out = PrescriptionDocumentOut.model_validate(
+        {**asdict(document), "provenance": provenance_note(document)}
+    )
+    return out
 
 
 @router.get(

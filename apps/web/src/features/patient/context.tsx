@@ -10,7 +10,7 @@ import { ErrorState, Spinner } from "@/components/ui";
 import { keys } from "@/features/chart/api";
 import { api, errorMessage, unwrap } from "@/lib/api";
 
-export type Mode = "self" | "caregiver";
+export type Mode = "self" | "caregiver" | "doctor";
 
 export interface ActivePatient {
   patientId: string;

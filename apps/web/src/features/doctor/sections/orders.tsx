@@ -20,6 +20,7 @@ import {
   type Overview,
   type Prescription,
 } from "@/features/chart/api";
+import { useScans } from "@/features/scans/api";
 import { PrescriptionDialog, RecordMedicationDialog } from "../forms/prescription";
 import { QueryState, SourceLabel, StatusBadge } from "@/features/chart/shared";
 
@@ -312,9 +313,36 @@ function PrescriptionCard({ rx, patientId, canWrite }: { rx: Prescription; patie
   );
 }
 
+function ScansToCheck({ patientId }: { patientId: string }) {
+  const scans = useScans(patientId);
+  const waiting = (scans.data ?? []).filter((s) => s.status === "needs_review");
+  if (waiting.length === 0) return null;
+  return (
+    <Card title="Paper prescriptions waiting to be checked" className="mb-6">
+      <p className="mb-3 text-sm text-muted">
+        Uploaded by the patient or their family and not yet checked. If you check one, it is saved as doctor-verified.
+      </p>
+      <ul className="divide-y divide-line">
+        {waiting.map((s) => (
+          <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0">
+            <span className="text-sm">
+              Added {formatDateTime(s.created_at)} · {s.mode === "ai" ? "read by AI" : "being typed in"}
+            </span>
+            <Link to={`/doctor/patients/${patientId}/prescriptions/scan/${s.id}`} className="text-sm font-semibold text-accent underline">
+              Review
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
 export function PrescriptionsSection({ patientId, canWrite, onNew }: { patientId: string; canWrite: boolean; onNew: () => void }) {
   const rxs = usePrescriptions(patientId);
   return (
+    <>
+    <ScansToCheck patientId={patientId} />
     <Card title="Prescriptions" bodyClassName="p-0" action={canWrite && <Button size="sm" variant="secondary" onClick={onNew}>New prescription</Button>}>
       <QueryState
         query={rxs}
@@ -350,6 +378,7 @@ export function PrescriptionsSection({ patientId, canWrite, onNew }: { patientId
         }}
       </QueryState>
     </Card>
+    </>
   );
 }
 

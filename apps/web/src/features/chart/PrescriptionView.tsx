@@ -24,7 +24,7 @@ const MEAL: Record<string, string | null> = {
 };
 
 function Banner({ doc, hrefFor }: { doc: PrescriptionDocument; hrefFor: (id: string) => string }) {
-  if (doc.status === "issued") return null;
+  if (doc.status === "issued" || doc.status === "recorded") return null;
   const latest = doc.versions.at(-1);
   return (
     <div className="mb-4">
@@ -55,7 +55,7 @@ function Banner({ doc, hrefFor }: { doc: PrescriptionDocument; hrefFor: (id: str
 export function PrescriptionPaper({ doc }: { doc: PrescriptionDocument }) {
   const p = doc.prescriber;
   const pt = doc.patient;
-  const current = doc.status === "issued";
+  const current = doc.status === "issued" || doc.status === "recorded";
   return (
     <article
       aria-label="Prescription"
@@ -166,6 +166,12 @@ export function PrescriptionPaper({ doc }: { doc: PrescriptionDocument }) {
         )}
       </section>
 
+      {doc.provenance && (
+        <p className="mt-4 rounded-lg bg-surface-2 px-3 py-2 text-xs text-muted" role="note">
+          {doc.provenance}
+        </p>
+      )}
+
       <footer className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         {doc.content_sha256 ? (
           <p className="flex items-center gap-1 text-xs text-muted" title={`SHA-256 ${doc.content_sha256}`}>
@@ -175,7 +181,13 @@ export function PrescriptionPaper({ doc }: { doc: PrescriptionDocument }) {
           <span />
         )}
         <div className="text-sm sm:text-right">
-          <p className="text-muted">{doc.issued_at ? `Electronically issued ${formatDateTime(doc.issued_at)}` : "Not issued"}</p>
+          <p className="text-muted">
+            {doc.issued_at
+              ? `Electronically issued ${formatDateTime(doc.issued_at)}`
+              : doc.source === "doctor_issued"
+                ? "Not issued"
+                : "Paper prescription"}
+          </p>
           {p && <p className="font-semibold">{p.name}</p>}
         </div>
       </footer>
@@ -261,7 +273,7 @@ export function PrescriptionView({
             </Button>
           </div>
           <PrescriptionPaper doc={doc} />
-          {doc.status !== "issued" && doc.status !== "draft" && (
+          {doc.status !== "issued" && doc.status !== "recorded" && doc.status !== "draft" && (
             <p className="mt-3 flex items-center gap-2 text-sm text-danger">
               <AlertTriangle className="size-4" aria-hidden /> Do not use this version to buy or take medicines.
             </p>

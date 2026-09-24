@@ -87,6 +87,8 @@ class PrescriptionDocument:
     patient: PatientInfo | None  # None when the viewer may not see demographics
     items: list[DocumentItem]
     versions: list[VersionRef] = field(default_factory=list)
+    source: str = "doctor_issued"
+    verification_status: str = "unverified"
 
     @property
     def is_current(self) -> bool:
@@ -116,6 +118,22 @@ def meal_words(value: str | None) -> str | None:
     return MEAL_WORDS.get(value, value.replace("_", " "))
 
 
+def provenance_note(document: PrescriptionDocument) -> str | None:
+    """How a prescription that was not issued on the platform got into the record."""
+    if document.source == "uploaded":
+        who = {
+            "doctor_verified": "checked by a doctor",
+            "patient_verified": "checked by the patient or their caregiver",
+        }.get(document.verification_status, "not yet checked")
+        return (
+            f"Transcribed from an uploaded prescription photo and {who}. "
+            "This is a record of a paper prescription, not a prescription issued on Health Io."
+        )
+    if document.source == "manual_entry":
+        return "Typed in by the patient or their caregiver; not issued on Health Io."
+    return None
+
+
 def status_banner(document: PrescriptionDocument) -> str | None:
     """Wording shown prominently on any rendering of a non-current version."""
     if document.status == "draft":
@@ -126,4 +144,6 @@ def status_banner(document: PrescriptionDocument) -> str | None:
         return "CANCELLED by the prescriber - not valid for dispensing"
     if document.status == "entered_in_error":
         return "ENTERED IN ERROR - not valid"
+    if document.source != "doctor_issued":
+        return "RECORD OF A PAPER PRESCRIPTION - not issued on Health Io"
     return None

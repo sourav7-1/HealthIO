@@ -16,7 +16,8 @@ Related: [ARCHITECTURE.md](ARCHITECTURE.md) · [SECURITY_MODEL.md](SECURITY_MODE
 | 5 | Patient portal | 🟡 Web portal done ([docs/phases/05-patient-portal.md](docs/phases/05-patient-portal.md)); consent centre, access log, data export, onboarding, PWA/Web Push and Playwright E2E remain |
 | 6 | Caregiver / family system | ✅ Core done ([docs/phases/06-caregivers.md](docs/phases/06-caregivers.md)): dependants, invitations, granular scopes, dashboard, switcher, activity log. Handover at 18, missed-dose alerts and E2E remain |
 | 7 | Prescription management | ✅ Core done ([docs/phases/07-prescriptions.md](docs/phases/07-prescriptions.md)): full fields, immutable versions with corrections, document view, PDF export, audit. Signed PDF and step-up MFA remain |
-| 8–25 | | Planned |
+| 8 | AI prescription OCR | ✅ Core done ([docs/phases/08-ai-prescription-reading.md](docs/phases/08-ai-prescription-reading.md)): consented AI reading, per-field confidence and regions, review and correction, conversion, audit. Drug catalogue matching (Phase 14), live eval run and Tesseract in the image remain |
+| 9–25 | | Planned |
 
 ## Milestones
 | Milestone | Phases | Outcome |

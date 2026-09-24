@@ -100,12 +100,18 @@ async def test_parent_creates_and_manages_a_child_but_never_clinical_records(
     access = (await api.get(f"{API}/patients/{child}/access", headers=headers)).json()
     assert access["via"] == ["caregiver"]
     perms = set(access["permissions"])
-    assert {"view_prescriptions", "view_visits", "manage_caregivers", "edit_profile"} <= perms
+    # A guardian also consents on the dependant's behalf (DPDP s.9), e.g. to AI reading.
+    assert {
+        "view_prescriptions",
+        "view_visits",
+        "manage_caregivers",
+        "edit_profile",
+        "manage_consent",
+    } <= perms
     assert not perms & {
         "edit_clinical_records",
         "change_doctor_prescription",
         "delete_medical_records",
-        "manage_consent",
     }
 
     # Reads work; the child's demographics can be corrected by the guardian.

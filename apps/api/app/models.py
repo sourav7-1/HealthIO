@@ -17,6 +17,7 @@ from app.modules.clinical.models import (
 )
 from app.modules.consent.models import ConsentRecord
 from app.modules.emergency.models import EmergencyContact, EmergencyProfile
+from app.modules.extraction.models import PrescriptionScan
 from app.modules.identity.models import (
     AuthSession,
     RefreshToken,
@@ -64,6 +65,7 @@ __all__ = [
     "PatientProfile",
     "Prescription",
     "PrescriptionItem",
+    "PrescriptionScan",
     "RefreshToken",
     "ReminderPreference",
     "Test",

@@ -35,6 +35,7 @@ from reportlab.platypus import (
 from app.modules.prescriptions.document import (
     PrescriptionDocument,
     meal_words,
+    provenance_note,
     status_banner,
 )
 
@@ -207,6 +208,10 @@ class ReportLabPdfRenderer:
                     body,
                 )
             )
+        provenance = provenance_note(document)
+        if provenance:
+            story.append(Spacer(1, 2 * mm))
+            story.append(Paragraph(f"<i>{t(provenance)}</i>", small))
         if document.status == "cancelled" and document.cancel_reason:
             story.append(Paragraph(f"<b>Cancelled:</b> {t(document.cancel_reason)}", body))
 
@@ -234,7 +239,8 @@ class ReportLabPdfRenderer:
                 canvas.setFont(bold, 60)
                 canvas.translate(width / 2, height / 2)
                 canvas.rotate(35)
-                canvas.drawCentredString(0, 0, document.status.replace("_", " ").upper())
+                mark = "TRANSCRIBED" if document.status == "recorded" else document.status
+                canvas.drawCentredString(0, 0, mark.replace("_", " ").upper())
                 canvas.rotate(-35)
                 canvas.translate(-width / 2, -height / 2)
             canvas.setFillColor(colors.grey)

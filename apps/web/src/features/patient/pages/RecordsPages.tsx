@@ -1,5 +1,5 @@
 /** Read-only views of what doctors recorded, plus the patient's own additions. */
-import { ArrowLeft, Download, FileText, Lock, Plus, Stethoscope, Upload } from "lucide-react";
+import { ArrowLeft, Camera, Download, FileText, Lock, Plus, ScanLine, Stethoscope, Upload } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 
@@ -19,6 +19,8 @@ import {
   useVisits,
 } from "@/features/chart/api";
 import { PrescriptionView } from "@/features/chart/PrescriptionView";
+import { useScans } from "@/features/scans/api";
+import { AddPrescriptionPhoto } from "@/features/scans/AddPrescriptionPhoto";
 import { QueryState, StatusBadge } from "@/features/chart/shared";
 import { errorMessage, type Schemas } from "@/lib/api";
 import { bytes, formatDate, formatDateTime, humanize, isInPast, todayIso } from "@/lib/format";
@@ -322,16 +324,59 @@ export function VisitDetailPage() {
 
 // --- Prescriptions ------------------------------------------------------------------------------
 
+function PendingScans() {
+  const { patientId, base, can } = useActivePatient();
+  const scans = useScans(patientId, can("view_reports"));
+  const open = (scans.data ?? []).filter((s) => ["queued", "running", "needs_review", "failed"].includes(s.status));
+  if (open.length === 0) return null;
+  return (
+    <Card title="Paper prescriptions to check" className="mb-6">
+      <ul className="divide-y divide-line">
+        {open.map((s) => (
+          <li key={s.id} className="flex flex-wrap items-center justify-between gap-2 py-3 first:pt-0 last:pb-0">
+            <span className="flex items-center gap-2 text-sm">
+              <ScanLine className="size-4 text-muted" aria-hidden />
+              Photo added {formatDateTime(s.created_at)} ·{" "}
+              {s.status === "needs_review" ? "waiting for your check" : s.status === "failed" ? "could not be read" : "being read…"}
+            </span>
+            <Link to={`${base}/prescriptions/scan/${s.id}`} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 text-sm font-semibold hover:bg-surface-2">
+              {s.status === "needs_review" ? "Check it" : "Open"}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+function VerificationBadge({ status }: { status: string }) {
+  return (
+    <Badge tone="neutral">
+      Paper prescription · {status === "doctor_verified" ? "checked by a doctor" : "checked by patient or family"}
+    </Badge>
+  );
+}
+
 export function PrescriptionsPage() {
-  const { patientId: pid, base, mode } = useActivePatient();
+  const { patientId: pid, base, mode, can } = useActivePatient();
   const rxs = usePrescriptions(pid);
   const self = mode === "self";
+  const [adding, setAdding] = useState(false);
   return (
     <>
       <PageHeader
         title="Prescriptions"
         description={self ? "Prescriptions written for you by your doctors. Open one to see it in full or download it." : "Prescriptions written by their doctors. Open one to see it in full or download it."}
+        actions={
+          can("upload_reports") && (
+            <Button icon={<Camera className="size-4" />} onClick={() => setAdding(true)}>
+              Add a paper prescription
+            </Button>
+          )
+        }
       />
+      <PendingScans />
+      {adding && <AddPrescriptionPhoto onClose={() => setAdding(false)} />}
       <QueryState
         query={rxs}
         what="Prescriptions"
@@ -357,8 +402,14 @@ export function PrescriptionsPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <SourceBadge source="prescription" />
-                      <StatusBadge status={rx.status} />
+                      {rx.source === "uploaded" ? (
+                        <VerificationBadge status={rx.verification_status} />
+                      ) : (
+                        <>
+                          <SourceBadge source="prescription" />
+                          <StatusBadge status={rx.status} />
+                        </>
+                      )}
                     </div>
                   </div>
                   {rx.diagnosis_as_written && <p className="mt-3 text-sm"><span className="text-muted">Diagnosis / assessment: </span>{rx.diagnosis_as_written}</p>}

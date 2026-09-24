@@ -71,9 +71,11 @@ NEVER_FOR_CAREGIVERS: frozenset[Permission] = frozenset(
 )
 
 # A guardian of a dependant (a profile with no login of its own: a child, or an adult
-# the guardian represents) also keeps the dependant's demographics up to date. Nobody
-# else can do that for them.
-DEPENDANT_GUARDIAN_EXTRA: frozenset[Permission] = frozenset({Permission.EDIT_PROFILE})
+# the guardian represents) also keeps the dependant's demographics up to date and gives
+# consents on their behalf. Nobody else can do that for them.
+DEPENDANT_GUARDIAN_EXTRA: frozenset[Permission] = frozenset(
+    {Permission.EDIT_PROFILE, Permission.MANAGE_CONSENT}  # consents as guardian (DPDP s.9)
+)
 
 # Scopes that only a guardian (parent of a minor, legal representative) may hold.
 GUARDIAN_ONLY: frozenset[Permission] = frozenset({Permission.MANAGE_CAREGIVERS})

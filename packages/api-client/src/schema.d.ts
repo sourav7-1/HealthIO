@@ -495,6 +495,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/patients/{patient_id}/ai-consent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Ai Consent */
+        get: operations["get_ai_consent_api_v1_patients__patient_id__ai_consent_get"];
+        /**
+         * Set Ai Consent
+         * @description The patient (or a dependant's guardian) allows or stops AI reading of documents.
+         */
+        put: operations["set_ai_consent_api_v1_patients__patient_id__ai_consent_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/patients/{patient_id}/appointments": {
         parameters: {
             query?: never;
@@ -1023,6 +1044,103 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/patients/{patient_id}/prescription-scans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Scans */
+        get: operations["list_scans_api_v1_patients__patient_id__prescription_scans_get"];
+        put?: never;
+        /**
+         * Start Scan
+         * @description Start reading an uploaded prescription photo. `mode=manual` opens the same review
+         *     screen empty, to type it in next to the photo (no AI involved).
+         */
+        post: operations["start_scan_api_v1_patients__patient_id__prescription_scans_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/prescription-scans/{scan_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Scan */
+        get: operations["get_scan_api_v1_patients__patient_id__prescription_scans__scan_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/prescription-scans/{scan_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Scan
+         * @description Save the reviewed prescription. It is labelled patient-verified (or doctor-verified),
+         *     and its medicines wait for the patient to confirm reminder times.
+         */
+        post: operations["confirm_scan_api_v1_patients__patient_id__prescription_scans__scan_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/prescription-scans/{scan_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reject Scan
+         * @description Discard the reading (for example, the wrong photo). Nothing is saved to the record.
+         */
+        post: operations["reject_scan_api_v1_patients__patient_id__prescription_scans__scan_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/prescription-scans/{scan_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Review Scan */
+        post: operations["review_scan_api_v1_patients__patient_id__prescription_scans__scan_id__review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/patients/{patient_id}/prescriptions": {
         parameters: {
             query?: never;
@@ -1475,6 +1593,52 @@ export interface components {
             /** Total Recorded */
             total_recorded: number;
         };
+        /** AiConsentIn */
+        AiConsentIn: {
+            /** Granted */
+            granted: boolean;
+        };
+        /** AiConsentOut */
+        AiConsentOut: {
+            /** Ai Available */
+            ai_available: boolean;
+            /** Granted */
+            granted: boolean;
+            /** Granted At */
+            granted_at: string | null;
+            /** Notice */
+            notice: string;
+            /** Notice Version */
+            notice_version: string;
+        };
+        /** AiReadingOut */
+        AiReadingOut: {
+            /**
+             * Band
+             * @enum {string}
+             */
+            band: "high" | "medium" | "low" | "absent";
+            /** Confidence */
+            confidence: number;
+            /** Evidence */
+            evidence: string | null;
+            /** Flags */
+            flags: string[];
+            /** Legibility */
+            legibility: string;
+            /** Message */
+            message: string | null;
+            /** Model Confidence */
+            model_confidence: number;
+            /** Region */
+            region: {
+                [key: string]: number;
+            } | null;
+            /** Region Source */
+            region_source: string | null;
+            /** Value */
+            value: string | null;
+        };
         /**
          * AllergenCategory
          * @enum {string}
@@ -1732,6 +1896,15 @@ export interface components {
          * @enum {string}
          */
         ConditionVerificationStatus: "unconfirmed" | "provisional" | "confirmed" | "refuted" | "entered_in_error";
+        /** ConfirmOut */
+        ConfirmOut: {
+            /**
+             * Prescription Id
+             * Format: uuid
+             */
+            prescription_id: string;
+            scan: components["schemas"]["ScanOut"];
+        };
         /** ConnectIn */
         ConnectIn: {
             /**
@@ -2741,10 +2914,14 @@ export interface components {
             /** Prescribed On */
             prescribed_on: string | null;
             prescriber: components["schemas"]["PrescriberOut"] | null;
+            /** Provenance */
+            provenance: string | null;
             /** Revision */
             revision: number;
             /** Revision Reason */
             revision_reason: string | null;
+            /** Source */
+            source: string;
             /** Status */
             status: string;
             /** Superseded By Id */
@@ -2753,6 +2930,8 @@ export interface components {
             supersedes_prescription_id: string | null;
             /** Valid Until */
             valid_until: string | null;
+            /** Verification Status */
+            verification_status: string;
             /** Versions */
             versions: components["schemas"]["VersionOut"][];
         };
@@ -2826,6 +3005,16 @@ export interface components {
             /** Visit Id */
             visit_id: string | null;
         };
+        /**
+         * PrescriptionScanMode
+         * @enum {string}
+         */
+        PrescriptionScanMode: "ai" | "manual";
+        /**
+         * PrescriptionScanStatus
+         * @enum {string}
+         */
+        PrescriptionScanStatus: "queued" | "running" | "needs_review" | "verified" | "rejected" | "failed";
         /**
          * PrescriptionSource
          * @enum {string}
@@ -2952,6 +3141,11 @@ export interface components {
          * @enum {string}
          */
         RegistrationRole: "patient" | "caregiver" | "doctor";
+        /** RejectIn */
+        RejectIn: {
+            /** Reason */
+            reason: string;
+        };
         /** ReminderTimesIn */
         ReminderTimesIn: {
             meal_relation?: components["schemas"]["MealRelation"] | null;
@@ -3114,6 +3308,39 @@ export interface components {
             /** Value Text */
             value_text?: string | null;
         };
+        /** ReviewIn */
+        ReviewIn: {
+            /** Ops */
+            ops: components["schemas"]["ReviewOpIn"][];
+        };
+        /** ReviewOpIn */
+        ReviewOpIn: {
+            /** Action */
+            action?: ("set" | "confirm" | "not_on_prescription" | "reset") | null;
+            /** Field */
+            field?: string | null;
+            /** Item Key */
+            item_key?: string | null;
+            /**
+             * Op
+             * @enum {string}
+             */
+            op: "set_field" | "add_item" | "remove_item" | "restore_item";
+            /** Value */
+            value?: string | null;
+        };
+        /** ReviewStateOut */
+        ReviewStateOut: {
+            /** At */
+            at: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "unverified" | "confirmed" | "corrected" | "not_on_prescription";
+            /** Value */
+            value: string | null;
+        };
         /** RevisionIn */
         RevisionIn: {
             /** Advice */
@@ -3136,12 +3363,130 @@ export interface components {
          * @enum {string}
          */
         Role: "admin" | "doctor" | "patient" | "caregiver";
+        /** ScanFieldOut */
+        ScanFieldOut: {
+            ai: components["schemas"]["AiReadingOut"] | null;
+            /** Critical */
+            critical: boolean;
+            /** Interpretation */
+            interpretation: string | null;
+            /** Requires Confirmation */
+            requires_confirmation: boolean;
+            review: components["schemas"]["ReviewStateOut"];
+        };
+        /** ScanIn */
+        ScanIn: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** @default ai */
+            mode: components["schemas"]["PrescriptionScanMode"];
+        };
+        /** ScanIssueOut */
+        ScanIssueOut: {
+            /** Path */
+            path: string;
+            /** Problem */
+            problem: string;
+        };
+        /** ScanItemOut */
+        ScanItemOut: {
+            /** Fields */
+            fields: {
+                [key: string]: components["schemas"]["ScanFieldOut"];
+            };
+            /** From Ai */
+            from_ai: boolean;
+            /** Key */
+            key: string;
+            /** Removed */
+            removed: boolean;
+        };
+        /** ScanOut */
+        ScanOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Discarded Keys */
+            discarded_keys: string[];
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Error Code */
+            error_code: string | null;
+            /** Error Message */
+            error_message: string | null;
+            /** Handwritten */
+            handwritten: boolean | null;
+            /** Header */
+            header: {
+                [key: string]: components["schemas"]["ScanFieldOut"];
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Is Prescription */
+            is_prescription: boolean | null;
+            /** Issues */
+            issues: components["schemas"]["ScanIssueOut"][];
+            /** Items */
+            items: components["schemas"]["ScanItemOut"][];
+            mode: components["schemas"]["PrescriptionScanMode"];
+            /** Model Metadata */
+            model_metadata: {
+                [key: string]: unknown;
+            };
+            /** Prescription Id */
+            prescription_id: string | null;
+            /** Reading Notes */
+            reading_notes: string[];
+            /** Rejected Reason */
+            rejected_reason: string | null;
+            status: components["schemas"]["PrescriptionScanStatus"];
+            /** Verification Level */
+            verification_level: string | null;
+            /** Verified At */
+            verified_at: string | null;
+            verifier_role: components["schemas"]["VerifierRole"] | null;
+        };
         /**
          * ScanStatus
          * @description Files are unusable until the antivirus scan marks them CLEAN.
          * @enum {string}
          */
         ScanStatus: "pending_upload" | "pending_scan" | "clean" | "quarantined" | "failed";
+        /** ScanSummaryOut */
+        ScanSummaryOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Error Message */
+            error_message: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            mode: components["schemas"]["PrescriptionScanMode"];
+            /** Prescription Id */
+            prescription_id: string | null;
+            status: components["schemas"]["PrescriptionScanStatus"];
+        };
         /** ScheduleOut */
         ScheduleOut: {
             meal_relation: components["schemas"]["MealRelation"] | null;
@@ -3337,6 +3682,11 @@ export interface components {
          * @enum {string}
          */
         VerificationStatus: "unverified" | "patient_verified" | "doctor_verified" | "rejected";
+        /**
+         * VerifierRole
+         * @enum {string}
+         */
+        VerifierRole: "patient" | "caregiver" | "doctor";
         /** VerifyDoctor */
         VerifyDoctor: {
             /** Notes */
@@ -4209,6 +4559,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AdherenceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_ai_consent_api_v1_patients__patient_id__ai_consent_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiConsentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    set_ai_consent_api_v1_patients__patient_id__ai_consent_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AiConsentIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AiConsentOut"];
                 };
             };
             /** @description Validation Error */
@@ -5377,6 +5793,208 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["OverviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_scans_api_v1_patients__patient_id__prescription_scans_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScanSummaryOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_scan_api_v1_patients__patient_id__prescription_scans_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScanIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_scan_api_v1_patients__patient_id__prescription_scans__scan_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                scan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_scan_api_v1_patients__patient_id__prescription_scans__scan_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                scan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConfirmOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_scan_api_v1_patients__patient_id__prescription_scans__scan_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                scan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RejectIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScanOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_scan_api_v1_patients__patient_id__prescription_scans__scan_id__review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                scan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ScanOut"];
                 };
             };
             /** @description Validation Error */

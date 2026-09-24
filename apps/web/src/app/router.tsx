@@ -84,6 +84,7 @@ const records = () => import("@/features/patient/pages/RecordsPages");
 const profile = () => import("@/features/patient/pages/ProfilePages");
 const medications = () => import("@/features/patient/pages/MedicationsPage");
 const care = () => import("@/features/care/pages");
+const scans = () => import("@/features/scans/ScanReviewPage");
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage />, errorElement: <RouteError /> },
@@ -98,6 +99,10 @@ export const router = createBrowserRouter([
       {
         path: "patients/:patientId/visits/:visitId",
         lazy: async () => ({ Component: (await import("@/features/doctor/VisitPage")).VisitPage }),
+      },
+      {
+        path: "patients/:patientId/prescriptions/scan/:scanId",
+        lazy: async () => ({ Component: (await import("@/features/doctor/ScanPage")).DoctorScanPage }),
       },
       {
         path: "patients/:patientId/prescriptions/:prescriptionId",
@@ -121,6 +126,7 @@ export const router = createBrowserRouter([
       { path: "visits", lazy: async () => ({ Component: (await records()).VisitsPage }) },
       { path: "visits/:visitId", lazy: async () => ({ Component: (await records()).VisitDetailPage }) },
       { path: "prescriptions", lazy: async () => ({ Component: (await records()).PrescriptionsPage }) },
+      { path: "prescriptions/scan/:scanId", lazy: async () => ({ Component: (await scans()).ScanReviewPage }) },
       { path: "prescriptions/:prescriptionId", lazy: async () => ({ Component: (await records()).PrescriptionDetailPage }) },
       { path: "tests", lazy: async () => ({ Component: (await records()).TestsPage }) },
       { path: "appointments", lazy: async () => ({ Component: (await records()).AppointmentsPage }) },
@@ -144,7 +150,8 @@ export const router = createBrowserRouter([
           { path: "health", lazy: async () => ({ Component: (await profile()).MyHealthPage }) },
           { path: "medications", lazy: async () => ({ Component: (await medications()).MedicationsPage }) },
           { path: "prescriptions", lazy: async () => ({ Component: (await records()).PrescriptionsPage }) },
-          { path: "prescriptions/:prescriptionId", lazy: async () => ({ Component: (await records()).PrescriptionDetailPage }) },
+          { path: "prescriptions/scan/:scanId", lazy: async () => ({ Component: (await scans()).ScanReviewPage }) },
+      { path: "prescriptions/:prescriptionId", lazy: async () => ({ Component: (await records()).PrescriptionDetailPage }) },
           { path: "history", lazy: async () => ({ Component: (await records()).HistoryPage }) },
           { path: "visits", lazy: async () => ({ Component: (await records()).VisitsPage }) },
           { path: "visits/:visitId", lazy: async () => ({ Component: (await records()).VisitDetailPage }) },

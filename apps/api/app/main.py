@@ -24,6 +24,7 @@ from app.modules.caregivers.router import router as caregivers_router
 from app.modules.chart.router import router as chart_router
 from app.modules.clinical.router import router as clinical_router
 from app.modules.emergency.router import router as emergency_router
+from app.modules.extraction.router import router as extraction_router
 from app.modules.identity.router import me_router
 from app.modules.identity.router import router as auth_router
 from app.modules.identity.security import Passwords, TokenSigner
@@ -103,6 +104,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         records_router,
         appointments_router,
         emergency_router,
+        extraction_router,
         reminders_router,
     ):
         api.include_router(module_router)

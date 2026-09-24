@@ -1,0 +1,101 @@
+{
+  "_about": "Synthetic prescription eval cases (placeholder names only; no real patients, doctors or clinics). Each case gives the text on the page, the truth, and a simulated model reading with typical mistakes. The gates check that the confidence layer never lets a wrong or unsupported critical value through as 'high'. Run live against the configured provider with: uv run python -m scripts.eval_prescriptions_live (see docs/phases/08-ai-prescription-reading.md).",
+  "cases": [
+    {
+      "id": "printed-clean",
+      "handwritten": false,
+      "ocr": "Tab. Samplemycin 500 mg 1 tab 1-0-1 x 5 days after food",
+      "truth": {"medicine_name": "Tab. Samplemycin", "strength": "500 mg", "dose": "1 tab", "frequency": "1-0-1"},
+      "reading": {
+        "medicine_name": ["Tab. Samplemycin", 0.98, "Tab. Samplemycin"],
+        "strength": ["500 mg", 0.97, "500 mg"],
+        "dose": ["1 tab", 0.96, "1 tab"],
+        "frequency": ["1-0-1", 0.97, "1-0-1"]
+      }
+    },
+    {
+      "id": "guessed-dose",
+      "handwritten": false,
+      "ocr": "Tab. Samplemycin 500 mg 1-0-1",
+      "truth": {"medicine_name": "Tab. Samplemycin", "strength": "500 mg", "dose": null, "frequency": "1-0-1"},
+      "reading": {
+        "medicine_name": ["Tab. Samplemycin", 0.98, "Tab. Samplemycin"],
+        "strength": ["500 mg", 0.97, "500 mg"],
+        "dose": ["1 tab", 0.93, null],
+        "frequency": ["1-0-1", 0.97, "1-0-1"]
+      }
+    },
+    {
+      "id": "digit-misread-against-evidence",
+      "handwritten": false,
+      "ocr": "Tab. Samplemycin 250 mg 1 tab BD",
+      "truth": {"medicine_name": "Tab. Samplemycin", "strength": "250 mg", "dose": "1 tab", "frequency": "BD"},
+      "reading": {
+        "medicine_name": ["Tab. Samplemycin", 0.97, "Tab. Samplemycin"],
+        "strength": ["500 mg", 0.95, "250 mg"],
+        "dose": ["1 tab", 0.95, "1 tab"],
+        "frequency": ["BD", 0.96, "BD"]
+      }
+    },
+    {
+      "id": "ocr-disagrees-on-name",
+      "handwritten": false,
+      "ocr": "Tab. Exampledol 650 mg 1 tab SOS",
+      "truth": {"medicine_name": "Tab. Exampledol", "strength": "650 mg", "dose": "1 tab", "frequency": "SOS"},
+      "reading": {
+        "medicine_name": ["Tab. Exampledal", 0.94, "Tab. Exampledal"],
+        "strength": ["650 mg", 0.95, "650 mg"],
+        "dose": ["1 tab", 0.95, "1 tab"],
+        "frequency": ["SOS", 0.95, "SOS"]
+      }
+    },
+    {
+      "id": "handwritten-correct",
+      "handwritten": true,
+      "ocr": "",
+      "truth": {"medicine_name": "Cap. Placeholdrin", "strength": "20 mg", "dose": "1 cap", "frequency": "OD"},
+      "reading": {
+        "medicine_name": ["Cap. Placeholdrin", 0.95, "Cap. Placeholdrin"],
+        "strength": ["20 mg", 0.94, "20 mg"],
+        "dose": ["1 cap", 0.93, "1 cap"],
+        "frequency": ["OD", 0.95, "OD"]
+      }
+    },
+    {
+      "id": "handwritten-wrong-frequency",
+      "handwritten": true,
+      "ocr": "",
+      "truth": {"medicine_name": "Cap. Placeholdrin", "strength": "20 mg", "dose": "1 cap", "frequency": "BD"},
+      "reading": {
+        "medicine_name": ["Cap. Placeholdrin", 0.95, "Cap. Placeholdrin"],
+        "strength": ["20 mg", 0.94, "20 mg"],
+        "dose": ["1 cap", 0.93, "1 cap"],
+        "frequency": ["OD", 0.92, "OD"]
+      }
+    },
+    {
+      "id": "expanded-abbreviation",
+      "handwritten": false,
+      "ocr": "Syp. Exampledryl 5 ml TDS",
+      "truth": {"medicine_name": "Syp. Exampledryl", "strength": null, "dose": "5 ml", "frequency": "TDS"},
+      "reading": {
+        "medicine_name": ["Syp. Exampledryl", 0.96, "Syp. Exampledryl"],
+        "strength": [null, 0.95, null],
+        "dose": ["5 ml", 0.95, "5 ml"],
+        "frequency": ["three times a day", 0.95, "TDS"]
+      }
+    },
+    {
+      "id": "illegible-strength",
+      "handwritten": false,
+      "ocr": "Tab. Samplemycin 1 tab 0-0-1",
+      "truth": {"medicine_name": "Tab. Samplemycin", "strength": null, "dose": "1 tab", "frequency": "0-0-1"},
+      "reading": {
+        "medicine_name": ["Tab. Samplemycin", 0.97, "Tab. Samplemycin"],
+        "strength": ["5 mg", 0.4, "5?g"],
+        "dose": ["1 tab", 0.95, "1 tab"],
+        "frequency": ["0-0-1", 0.96, "0-0-1"]
+      }
+    }
+  ]
+}

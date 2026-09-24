@@ -21,6 +21,8 @@ dependencies = [
     "pyjwt[crypto]>=2.10",
     "email-validator>=2.2",
     "reportlab>=4.2",
+    "anthropic>=0.70",
+    "pytesseract>=0.3.13",
 ]
 
 [dependency-groups]
@@ -76,7 +78,7 @@ plugins = ["pydantic.mypy"]
 exclude = ["alembic/"]
 
 [[tool.mypy.overrides]]
-module = ["celery.*", "kombu.*", "asyncpg.*"]
+module = ["celery.*", "kombu.*", "asyncpg.*", "pytesseract.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

@@ -1,7 +1,7 @@
 import base64
 from enum import StrEnum
 from functools import lru_cache
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import Field, PostgresDsn, RedisDsn, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -69,6 +69,18 @@ class Settings(BaseSettings):
     )
     encryption_active_key_id: str = "dev1"
     blind_index_key: SecretStr = SecretStr(_DEV_BLIND_INDEX_KEY)
+
+    # --- AI document reading (app/ai, app/modules/extraction; AI_SAFETY.md §4) ---
+    # "disabled": no model is called; uploads open the review screen for manual entry.
+    # "anthropic": Claude reads the image (needs anthropic_api_key).
+    ai_provider: Literal["disabled", "anthropic"] = "disabled"
+    anthropic_api_key: SecretStr | None = None
+    ai_vision_model: str = "claude-sonnet-5"
+    ai_request_timeout_seconds: float = 60.0
+    # OCR engine used alongside the vision model: "none", or "tesseract" (binary required).
+    ai_ocr_engine: Literal["none", "tesseract"] = "none"
+    # Run extraction inside the request (local dev without a worker) or on Celery.
+    ai_jobs_inline: bool = True
 
     # --- authentication (app/modules/identity) ---
     # Ed25519 signing keys for access tokens: {key_id: base64(32-byte seed)}. Old key IDs

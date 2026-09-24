@@ -34,6 +34,8 @@ import {
   type ReminderPreferences,
 } from "../api";
 import { useActivePatient, usePatientId } from "../context";
+import { useAiConsent, useSetAiConsent } from "@/features/scans/api";
+
 import { setLargeText, useLargeText } from "../largeText";
 import { DEPENDANT_BASES, SCOPES, type Scope } from "../scopes";
 
@@ -608,6 +610,7 @@ export function SettingsPage() {
         <AccountCard />
         <ReminderCard patientId={pid} />
         <DisplayCard />
+        <AiReadingCard patientId={pid} />
         <PasswordCard />
         <SessionsCard />
       </div>
@@ -716,6 +719,36 @@ export function ReminderCard({ patientId }: { patientId: string }) {
             </div>
           )
         }
+      </QueryState>
+    </Card>
+  );
+}
+
+function AiReadingCard({ patientId }: { patientId: string }) {
+  const consent = useAiConsent(patientId);
+  const set = useSetAiConsent(patientId);
+  const toast = useToast();
+  if (consent.data && !consent.data.ai_available && !consent.data.granted) return null;
+  return (
+    <Card title="AI reading of prescriptions">
+      <QueryState query={consent} what="AI setting">
+        {(c) => (
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-muted">{c.notice}</p>
+            <Checkbox
+              label="Allow AI to read prescription photos I upload"
+              description={c.granted && c.granted_at ? `Allowed since ${formatDateTime(c.granted_at)}` : "Off: you can still type prescriptions in yourself."}
+              checked={c.granted}
+              disabled={set.isPending}
+              onChange={(e) =>
+                set.mutate(e.target.checked, {
+                  onSuccess: (r) => toast.success(r.granted ? "AI reading allowed" : "AI reading turned off"),
+                  onError: (err) => toast.error(errorMessage(err)),
+                })
+              }
+            />
+          </div>
+        )}
       </QueryState>
     </Card>
   );
