@@ -1,11 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { HeartPulse } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Navigate, useLocation } from "react-router";
 import { z } from "zod";
 
-import { Alert, Button, Field, Input } from "@/components/ui";
+import { Alert, Button, Field, Input, Logo } from "@/components/ui";
 import { errorMessage } from "@/lib/api";
 
 import { homeFor } from "./guards";
@@ -44,9 +43,8 @@ export function LoginPage() {
   return (
     <main className="flex min-h-dvh items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
-        <div className="mb-8 flex items-center justify-center gap-2 text-xl font-semibold">
-          <HeartPulse className="size-7 text-accent" aria-hidden />
-          Health Io
+        <div className="mb-8 flex justify-center">
+          <Logo size="lg" showTagline />
         </div>
         <div className="rounded-2xl border border-line bg-surface p-6">
           <h1 className="text-lg font-semibold">Sign in</h1>

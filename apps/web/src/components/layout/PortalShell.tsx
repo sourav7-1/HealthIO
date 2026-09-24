@@ -1,8 +1,8 @@
-import { HeartPulse, LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { NavLink } from "react-router";
 
-import { cn } from "@/components/ui";
+import { Logo, cn } from "@/components/ui";
 import { useMe, useSession } from "@/features/auth/session";
 import { initials } from "@/lib/format";
 
@@ -80,9 +80,8 @@ export function PortalShell({
   );
 
   const brand = (
-    <div className="flex items-center gap-2 px-1 font-semibold">
-      <HeartPulse className="size-6 text-accent" aria-hidden />
-      <span>Health Io</span>
+    <div className="flex items-center px-1">
+      <Logo size="md" />
     </div>
   );
 

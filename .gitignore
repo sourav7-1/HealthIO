@@ -29,3 +29,13 @@ Thumbs.db
 !.vscode/extensions.json
 # next
 next-env.d.ts
+# logs / test output
+*.log
+test-results/
+playwright-report/
+.vite/
+# local data (never commit uploads, dumps or keys)
+*.sqlite
+*.dump
+uploads/
+.minio/
