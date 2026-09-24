@@ -500,3 +500,4 @@ export function HealthIOSplash({
     </div>
   );
 }
+

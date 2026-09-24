@@ -98,3 +98,4 @@ describe("HealthIOSplash", () => {
     ).not.toBeInTheDocument();
   });
 });
+
