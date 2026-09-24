@@ -39,3 +39,4 @@ playwright-report/
 *.dump
 uploads/
 .minio/
+scratch/
