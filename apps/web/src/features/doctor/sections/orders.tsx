@@ -1,5 +1,6 @@
 import { ClipboardPlus, Download, FileText, FlaskConical, Pill, TestTube } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router";
 
 import { Alert, Badge, Button, Card, Dialog, EmptyState, Field, Textarea, useToast } from "@/components/ui";
 import { errorMessage } from "@/lib/api";
@@ -18,9 +19,9 @@ import {
   useTestOrders,
   type Overview,
   type Prescription,
-} from "../api";
+} from "@/features/chart/api";
 import { PrescriptionDialog, RecordMedicationDialog } from "../forms/prescription";
-import { QueryState, SourceLabel, StatusBadge } from "../shared";
+import { QueryState, SourceLabel, StatusBadge } from "@/features/chart/shared";
 
 // --- Reason / confirm dialog -------------------------------------------------------------------
 
@@ -202,8 +203,9 @@ function PrescriptionCard({ rx, patientId, canWrite }: { rx: Prescription; patie
   const issue = useIssuePrescription(patientId);
   const cancel = useCancelPrescription(patientId);
   const toast = useToast();
-  const [dialog, setDialog] = useState<"edit" | "issue" | "cancel" | null>(null);
+  const [dialog, setDialog] = useState<"edit" | "issue" | "cancel" | "correct" | null>(null);
   const mine = rx.prescribed_by_me && canWrite;
+  const correctionPending = rx.superseded_by_id !== null && rx.status === "issued";
 
   return (
     <li className="px-4 py-4">
@@ -214,8 +216,20 @@ function PrescriptionCard({ rx, patientId, canWrite }: { rx: Prescription; patie
             {rx.prescribed_by_me && <span className="font-normal text-muted"> (you)</span>}
           </p>
           {rx.diagnosis_as_written && <p className="text-sm text-muted">Diagnosis: {rx.diagnosis_as_written}</p>}
+          {rx.revision > 1 && (
+            <p className="text-sm text-muted">
+              {rx.status === "draft" ? "Correction draft" : "Corrected"} · version {rx.revision}
+              {rx.revision_reason ? ` · ${rx.revision_reason}` : ""}
+            </p>
+          )}
+          {correctionPending && <p className="text-sm text-warning">A correction draft exists for this prescription.</p>}
         </div>
-        <StatusBadge status={rx.status} />
+        <div className="flex items-center gap-2">
+          <StatusBadge status={rx.status} />
+          <Link to={`/doctor/patients/${patientId}/prescriptions/${rx.id}`} className="text-sm font-medium text-accent underline">
+            View
+          </Link>
+        </div>
       </div>
       <ol className="mt-3 flex flex-col gap-2">
         {rx.items.map((i) => (
@@ -251,15 +265,25 @@ function PrescriptionCard({ rx, patientId, canWrite }: { rx: Prescription; patie
               <Button size="sm" variant="ghost" onClick={() => setDialog("cancel")}>Discard</Button>
             </>
           ) : (
-            <Button size="sm" variant="secondary" onClick={() => setDialog("cancel")}>Cancel prescription</Button>
+            <>
+              {!correctionPending && (
+                <Button size="sm" variant="secondary" onClick={() => setDialog("correct")}>Correct</Button>
+              )}
+              <Button size="sm" variant="ghost" onClick={() => setDialog("cancel")}>Cancel prescription</Button>
+            </>
           )}
         </div>
       )}
       <PrescriptionDialog patientId={patientId} draft={rx} open={dialog === "edit"} onClose={() => setDialog(null)} />
+      <PrescriptionDialog patientId={patientId} correcting={rx} open={dialog === "correct"} onClose={() => setDialog(null)} />
       <ReasonDialog
         open={dialog === "issue"}
         title="Issue this prescription?"
-        description="Once issued it cannot be edited. Its medicines are added to the patient's list, and nothing starts until the patient confirms the schedule."
+        description={
+          rx.revision > 1
+            ? `This correction becomes version ${rx.revision} and replaces the current version, which stays in the record marked as superseded. Medicines from the previous version stop, and the patient confirms the corrected ones.`
+            : "Once issued it cannot be edited (only corrected as a new version). Its medicines are added to the patient's list, and nothing starts until the patient confirms the schedule."
+        }
         confirmLabel="Issue prescription"
         requireReason={false}
         onConfirm={async () => {
@@ -305,13 +329,25 @@ export function PrescriptionsSection({ patientId, canWrite, onNew }: { patientId
           />
         }
       >
-        {(r) => (
-          <ul className="divide-y divide-line">
-            {r.map((rx) => (
-              <PrescriptionCard key={rx.id} rx={rx} patientId={patientId} canWrite={canWrite} />
-            ))}
-          </ul>
-        )}
+        {(r) => {
+          // Earlier versions stay reachable from each prescription's version history.
+          const shown = r.filter((rx) => rx.status !== "superseded");
+          const hidden = r.length - shown.length;
+          return (
+            <>
+              <ul className="divide-y divide-line">
+                {shown.map((rx) => (
+                  <PrescriptionCard key={rx.id} rx={rx} patientId={patientId} canWrite={canWrite} />
+                ))}
+              </ul>
+              {hidden > 0 && (
+                <p className="border-t border-line px-4 py-3 text-sm text-muted">
+                  {hidden} earlier {hidden === 1 ? "version is" : "versions are"} kept in the history of the corrected prescriptions.
+                </p>
+              )}
+            </>
+          );
+        }}
       </QueryState>
     </Card>
   );

@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.client import ClientInfo, client_info
 from app.core.db import get_session
+from app.core.enums import RecordSource
 from app.modules.access.dependencies import RequirePatientPermission
 from app.modules.access.permissions import Permission
 from app.modules.access.service import PatientAccess
@@ -45,6 +46,11 @@ class PatientRequest:
 
     def allows(self, permission: Permission) -> bool:
         return self.access.allows(permission)
+
+    @property
+    def reporter_source(self) -> RecordSource:
+        """Who is reporting information here: the patient, or a caregiver on their behalf."""
+        return RecordSource.PATIENT if "self" in self.access.via else RecordSource.CAREGIVER
 
     async def audit(
         self,

@@ -6,8 +6,8 @@ import { z } from "zod";
 import { Alert, Button, Dialog, Field, Input, Select, Textarea } from "@/components/ui";
 import { todayIso } from "@/lib/format";
 
-import { useDocumentCondition, useRecordVisit } from "../api";
-import { useSubmit } from "../useSubmit";
+import { useDocumentCondition, useRecordVisit } from "@/features/chart/api";
+import { useSubmit } from "@/features/chart/useSubmit";
 
 // --- Record visit --------------------------------------------------------------------------
 

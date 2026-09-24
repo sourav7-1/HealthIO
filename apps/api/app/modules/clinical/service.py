@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.enums import DatePrecision, RecordSource
 from app.core.errors import ConflictError, ForbiddenError, NotFoundError, ValidationFailedError
 from app.modules.clinical.models import (
+    AllergenCategory,
     Allergy,
     ClinicalNote,
     ConditionClinicalStatus,
@@ -26,6 +27,7 @@ from app.modules.clinical.models import (
     MedicalHistoryEntry,
     NoteStatus,
     NoteType,
+    ReactionSeverity,
     Severity,
     VisitStatus,
     VisitType,
@@ -342,3 +344,105 @@ async def recent_visits_by_doctor(
         .limit(limit)
     )
     return [(pid, when) for pid, when in rows]
+
+
+# --- patient-reported entries --------------------------------------------------------------
+
+
+async def report_allergy(
+    session: AsyncSession,
+    *,
+    patient_id: uuid.UUID,
+    actor: uuid.UUID,
+    substance: str,
+    category: AllergenCategory,
+    reaction: str | None,
+    severity: ReactionSeverity | None,
+    source: RecordSource = RecordSource.PATIENT,
+) -> Allergy:
+    """Recorded as patient- or caregiver-reported, unconfirmed until a doctor confirms it."""
+    allergy = Allergy(
+        patient_id=patient_id,
+        substance=substance.strip(),
+        category=category,
+        reaction=reaction,
+        severity=severity,
+        verification_status=ConditionVerificationStatus.UNCONFIRMED,
+        source=source,
+        created_by=actor,
+        updated_by=actor,
+    )
+    session.add(allergy)
+    await session.flush()
+    return allergy
+
+
+async def report_condition(
+    session: AsyncSession,
+    *,
+    patient_id: uuid.UUID,
+    actor: uuid.UUID,
+    name: str,
+    onset_date: date | None,
+    notes: str | None,
+    source: RecordSource = RecordSource.PATIENT,
+) -> MedicalCondition:
+    condition = MedicalCondition(
+        patient_id=patient_id,
+        name=name.strip(),
+        clinical_status=ConditionClinicalStatus.ACTIVE,
+        verification_status=ConditionVerificationStatus.UNCONFIRMED,
+        onset_date=onset_date,
+        onset_precision=DatePrecision.DAY if onset_date else None,
+        source=source,
+        notes=notes,
+        created_by=actor,
+        updated_by=actor,
+    )
+    session.add(condition)
+    await session.flush()
+    return condition
+
+
+async def remove_self_reported(
+    session: AsyncSession,
+    *,
+    patient_id: uuid.UUID,
+    kind: str,
+    entry_id: uuid.UUID,
+    actor: uuid.UUID,
+) -> None:
+    """Patients (and caregivers allowed to report) may remove patient- or caregiver-
+    reported entries, never a doctor's entry.
+    The row is kept (soft delete) so the history stays auditable."""
+    row: Allergy | MedicalCondition | None
+    if kind == "allergies":
+        row = await session.scalar(
+            select(Allergy)
+            .where(
+                Allergy.id == entry_id,
+                Allergy.patient_id == patient_id,
+                Allergy.deleted_at.is_(None),
+            )
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+    else:
+        row = await session.scalar(
+            select(MedicalCondition)
+            .where(
+                MedicalCondition.id == entry_id,
+                MedicalCondition.patient_id == patient_id,
+                MedicalCondition.deleted_at.is_(None),
+            )
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+    if row is None:
+        raise NotFoundError()
+    if row.source not in (RecordSource.PATIENT, RecordSource.CAREGIVER):
+        raise ForbiddenError("Entries made by a doctor can only be changed by that doctor.")
+    row.deleted_at = datetime.now(UTC)
+    row.deleted_by = actor
+    row.updated_by = actor
+    await session.flush()

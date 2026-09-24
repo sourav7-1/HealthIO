@@ -46,13 +46,19 @@ class CaregiverStatus(StrEnum):
 class CaregiverPermissionScope(StrEnum):
     """What a caregiver may do for a patient. Least privilege: grant only what is needed.
 
-    Deliberately absent: editing clinical records, changing a doctor's prescription and
-    deleting medical records. Those can never be granted to a caregiver
+    Every scope is read-only or writes only information labelled as the caregiver's own
+    (dose confirmations, reminder times, uploads, reported allergies). Deliberately
+    absent: editing clinical records, changing a doctor's prescription and deleting
+    medical records. Those can never be granted to a caregiver
     (app/modules/access/permissions.py enforces this again at decision time).
     """
 
     VIEW_PROFILE = "view_profile"
     VIEW_MEDICAL_HISTORY = "view_medical_history"  # conditions, allergies, history
+    VIEW_PRESCRIPTIONS = "view_prescriptions"  # read-only
+    VIEW_VISITS = "view_visits"  # visits and signed clinical notes, read-only
+    VIEW_ADHERENCE = "view_adherence"
+    REPORT_HEALTH_INFO = "report_health_info"  # add medicines/allergies, labelled as caregiver's
     VIEW_MEDICATIONS = "view_medications"
     LOG_DOSES = "log_doses"
     MANAGE_REMINDERS = "manage_reminders"  # reminder times and preferences, not doses

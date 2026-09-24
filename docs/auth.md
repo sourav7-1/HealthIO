@@ -22,7 +22,10 @@ Related: [SECURITY_MODEL.md](../SECURITY_MODEL.md) §4–5 · [ARCHITECTURE.md](
 | `GET /api/v1/patients/{id}/access` | any relationship with the patient | The caller's effective permissions for that patient |
 | `GET/POST /api/v1/patients/{id}/caregivers` | `manage_caregivers` | List or invite caregivers (with scopes) |
 | `PUT …/caregivers/{rel}/scopes` · `DELETE …/caregivers/{rel}` | `manage_caregivers` | Change scopes or revoke |
-| `POST /api/v1/caregiver-invitations/{rel}/accept` | authenticated (the invited user) | Accept; grants the caregiver role |
+| `POST /api/v1/caregiver-invitations/{rel}/accept` · `…/decline` | authenticated (the invited user) | Accept (grants the caregiver role) or decline |
+| `POST /api/v1/me/dependants` | authenticated | Create a dependant profile (child or represented adult); the caller becomes its guardian ([phase 6](phases/06-caregivers.md)) |
+| `GET /api/v1/me/caregiving` · `…/dashboard` · `POST …/{rel}/leave` | authenticated | People I care for, the caregiver dashboard, stop caring |
+| `GET /api/v1/patients/{id}/caregivers/activity` | `manage_caregivers` | What caregivers opened or did, from the audit log |
 | `GET /api/v1/me/caregiving` | authenticated | Patients I care for, and pending invitations |
 | `GET /api/v1/doctor/patients` | `list_own_patients` (doctor role) | Only patients linked to this verified doctor |
 | `POST /api/v1/admin/doctors/{id}/verify` | role `admin` | Verify a doctor's registration |
@@ -71,7 +74,7 @@ A caller's permissions **for one patient** are the union of their relationships 
 
 Doctor permission → consent category: `view_profile`→demographics, `view_medical_history`→conditions, `view_medications`→medications, `view/manage_appointments`→appointments, `view/upload_reports`→tests_and_reports, `edit_clinical_records`→visits_and_notes, `change_doctor_prescription`→prescriptions.
 
-**Caregiver scopes** (grantable): `view_profile`, `view_medical_history`, `view_medications`, `log_doses`, `manage_reminders`, `view_appointments`, `manage_appointments`, `view_reports`, `upload_reports`, `receive_alerts`, `use_ai_assistant`, `manage_emergency_info`, `manage_caregivers` (guardians only).
+**Caregiver scopes** (grantable): `view_profile`, `view_medical_history`, `view_medications`, `view_prescriptions`, `view_visits`, `view_adherence`, `log_doses`, `manage_reminders`, `report_health_info` (entries labelled as the caregiver's), `view_appointments`, `manage_appointments`, `view_reports`, `upload_reports`, `receive_alerts`, `use_ai_assistant`, `manage_emergency_info`, `manage_caregivers` (guardians only). A guardian of a dependant (a profile with no login) also gets `edit_profile` for that dependant.
 
 **Never for caregivers:** `edit_clinical_records`, `change_doctor_prescription`, `delete_medical_records` (also `edit_profile`, `manage_consent`). This is enforced in three places:
 1. The request schema, which accepts only grantable scopes (422).
@@ -105,7 +108,7 @@ async def admin_only(principal: Principal = Depends(require_roles(Role.ADMIN))):
 
 ## 7. Audit events
 
-`auth.register`, `auth.login` (allowed/denied with reason), `auth.lockout`, `auth.refresh_reuse_detected`, `auth.logout`, `auth.logout_all`, `auth.session_revoked`, `auth.email_verified`, `auth.password_reset_requested`, `auth.password_reset_completed`, `access.denied`, `caregiver.invited`, `caregiver.accepted`, `caregiver.scopes_changed`, `caregiver.revoked`, `doctor.verified`, `admin.created`. No passwords, tokens or email addresses are written to audit rows or logs; the tests and the smoke run check this.
+`auth.register`, `auth.login` (allowed/denied with reason), `auth.lockout`, `auth.refresh_reuse_detected`, `auth.logout`, `auth.logout_all`, `auth.session_revoked`, `auth.email_verified`, `auth.password_reset_requested`, `auth.password_reset_completed`, `access.denied`, `caregiver.invited`, `caregiver.accepted`, `caregiver.declined`, `caregiver.scopes_changed`, `caregiver.revoked`, `caregiver.left`, `caregiver.dependant_created`, `caregiver.dashboard_view`, `doctor.verified`, `admin.created`. No passwords, tokens or email addresses are written to audit rows or logs; the tests and the smoke run check this.
 
 ## 8. Configuration
 

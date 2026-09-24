@@ -19,9 +19,11 @@ from app.core.storage import Storage
 from app.modules.access.router import router as access_router
 from app.modules.appointments.router import router as appointments_router
 from app.modules.care_team.router import router as care_team_router
+from app.modules.caregivers.dashboard import router as caregiver_dashboard_router
 from app.modules.caregivers.router import router as caregivers_router
 from app.modules.chart.router import router as chart_router
 from app.modules.clinical.router import router as clinical_router
+from app.modules.emergency.router import router as emergency_router
 from app.modules.identity.router import me_router
 from app.modules.identity.router import router as auth_router
 from app.modules.identity.security import Passwords, TokenSigner
@@ -29,6 +31,7 @@ from app.modules.labs.router import router as labs_router
 from app.modules.medications.router import router as medications_router
 from app.modules.prescriptions.router import router as prescriptions_router
 from app.modules.records.router import router as records_router
+from app.modules.reminders.router import router as reminders_router
 from app.modules.system.router import router as system_router
 
 log = get_logger(__name__)
@@ -89,6 +92,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         auth_router,
         me_router,
         access_router,
+        caregiver_dashboard_router,
         caregivers_router,
         care_team_router,
         chart_router,
@@ -98,6 +102,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         labs_router,
         records_router,
         appointments_router,
+        emergency_router,
+        reminders_router,
     ):
         api.include_router(module_router)
     app.include_router(api)

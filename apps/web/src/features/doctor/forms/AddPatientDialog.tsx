@@ -7,9 +7,9 @@ import { Alert, Button, Checkbox, Dialog, Field, Input, Select } from "@/compone
 import type { Schemas } from "@/lib/api";
 import { todayIso } from "@/lib/format";
 
-import { useAddPatient } from "../api";
-import { DATA_CATEGORIES, PRIVACY_NOTICE_VERSION } from "../consent";
-import { useSubmit } from "../useSubmit";
+import { useAddPatient } from "@/features/chart/api";
+import { DATA_CATEGORIES, PRIVACY_NOTICE_VERSION } from "@/features/chart/consent";
+import { useSubmit } from "@/features/chart/useSubmit";
 
 const schema = z.object({
   given_name: z.string().trim().min(1, "Enter the patient's first name").max(100),

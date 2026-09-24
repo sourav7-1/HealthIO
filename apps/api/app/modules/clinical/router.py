@@ -2,8 +2,9 @@
 
 import uuid
 from datetime import date, datetime
+from typing import Literal
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Response, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.modules.access.context import PatientRequest, patient_request
@@ -11,6 +12,7 @@ from app.modules.access.permissions import Permission
 from app.modules.care_team import service as care_team
 from app.modules.clinical import service
 from app.modules.clinical.models import (
+    AllergenCategory,
     ClinicalNote,
     ConditionClinicalStatus,
     ConditionVerificationStatus,
@@ -18,6 +20,7 @@ from app.modules.clinical.models import (
     MedicalCondition,
     NoteStatus,
     NoteType,
+    ReactionSeverity,
     Severity,
     VisitStatus,
     VisitType,
@@ -452,3 +455,95 @@ async def document_condition(
     )
     await ctx.session.commit()
     return _condition_out(condition)
+
+
+# --- patient-reported entries ----------------------------------------------------------------
+
+_self_report = patient_request(Permission.REPORT_HEALTH_INFO)
+
+
+class ReportedAllergyIn(_In):
+    substance: str = Field(min_length=1, max_length=200)
+    category: AllergenCategory = AllergenCategory.MEDICATION
+    reaction: str | None = Field(default=None, max_length=300)
+    severity: ReactionSeverity | None = None
+
+
+class ReportedConditionIn(_In):
+    name: str = Field(min_length=1, max_length=300)
+    onset_date: date | None = None
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+@router.post(
+    "/patients/{patient_id}/self-reported/allergies",
+    response_model=AllergyOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def report_allergy(
+    patient_id: uuid.UUID, body: ReportedAllergyIn, ctx: PatientRequest = _self_report
+) -> AllergyOut:
+    """Stored as patient-reported and unconfirmed; doctors see it labelled that way."""
+    a = await service.report_allergy(
+        ctx.session,
+        patient_id=ctx.patient_id,
+        actor=ctx.actor_id,
+        substance=body.substance,
+        category=body.category,
+        reaction=body.reaction,
+        severity=body.severity,
+        source=ctx.reporter_source,
+    )
+    await ctx.audit("allergy.self_reported", resource_type="allergy", resource_id=a.id)
+    await ctx.session.commit()
+    return AllergyOut(
+        id=a.id,
+        substance=a.substance,
+        category=a.category.value,
+        reaction=a.reaction,
+        severity=a.severity.value if a.severity else None,
+        clinical_status=a.clinical_status.value,
+        verification_status=a.verification_status.value,
+        source=a.source.value,
+    )
+
+
+@router.post(
+    "/patients/{patient_id}/self-reported/conditions",
+    response_model=ConditionOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def report_condition(
+    patient_id: uuid.UUID, body: ReportedConditionIn, ctx: PatientRequest = _self_report
+) -> ConditionOut:
+    c = await service.report_condition(
+        ctx.session,
+        patient_id=ctx.patient_id,
+        actor=ctx.actor_id,
+        name=body.name,
+        onset_date=body.onset_date,
+        notes=body.notes,
+        source=ctx.reporter_source,
+    )
+    await ctx.audit("condition.self_reported", resource_type="medical_condition", resource_id=c.id)
+    await ctx.session.commit()
+    return _condition_out(c)
+
+
+@router.delete(
+    "/patients/{patient_id}/self-reported/{kind}/{entry_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def remove_self_reported(
+    patient_id: uuid.UUID,
+    kind: Literal["allergies", "conditions"],
+    entry_id: uuid.UUID,
+    ctx: PatientRequest = _self_report,
+) -> Response:
+    """Only entries the patient reported; a doctor's entries cannot be removed here."""
+    await service.remove_self_reported(
+        ctx.session, patient_id=ctx.patient_id, kind=kind, entry_id=entry_id, actor=ctx.actor_id
+    )
+    await ctx.audit(f"{kind}.self_reported_removed", resource_type=kind, resource_id=entry_id)
+    await ctx.session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

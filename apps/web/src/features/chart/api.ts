@@ -381,3 +381,55 @@ export async function documentDownloadUrl(pid: string, document_id: string): Pro
   );
   return res.url;
 }
+
+// --- prescription documents and versions --------------------------------------------------------
+
+export type PrescriptionDocument = Schemas["PrescriptionDocumentOut"];
+
+export function usePrescriptionDocument(pid: string, prescription_id: string) {
+  return useQuery({
+    queryKey: [...keys.section(pid, "prescriptions"), prescription_id, "document"],
+    queryFn: () =>
+      unwrap(
+        api.GET("/api/v1/patients/{patient_id}/prescriptions/{prescription_id}", {
+          params: { path: { patient_id: pid, prescription_id } },
+        }),
+      ),
+  });
+}
+
+/** Correct an issued prescription: creates a new draft version; the issued one is kept. */
+export function useStartRevision(pid: string) {
+  return useChartMutation(
+    pid,
+    ({ prescription_id, ...body }: Schemas["RevisionIn"] & { prescription_id: string }) =>
+      unwrap(
+        api.POST("/api/v1/patients/{patient_id}/prescriptions/{prescription_id}/revisions", {
+          params: { path: { patient_id: pid, prescription_id } },
+          body,
+        }),
+      ),
+  );
+}
+
+/** Fetch the PDF with the session token and hand it to the browser as a download. */
+export async function downloadPrescriptionPdf(pid: string, prescription_id: string, filename: string): Promise<void> {
+  const { data, error, response } = await api.GET("/api/v1/patients/{patient_id}/prescriptions/{prescription_id}/pdf", {
+    params: { path: { patient_id: pid, prescription_id } },
+    parseAs: "blob",
+  });
+  if (error !== undefined || !data) {
+    throw new Error(response.status === 403 ? "You do not have access to this prescription." : "The PDF could not be downloaded. Please try again.");
+  }
+  const url = URL.createObjectURL(data as Blob);
+  try {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } finally {
+    setTimeout(() => URL.revokeObjectURL(url), 10_000);
+  }
+}

@@ -87,3 +87,8 @@ dialog::backdrop {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* "Larger text" setting: Tailwind sizes are in rem, so this scales text, spacing and targets together. */
+html.large-text {
+  font-size: 118.75%;
+}

@@ -35,7 +35,7 @@ def _load_migration(name: str) -> ModuleType:
 
 def test_mappers_configure() -> None:
     configure_mappers()
-    assert len(TABLES) == 34
+    assert len(TABLES) == 35
 
 
 def test_every_table_has_uuid_primary_key_named_id() -> None:

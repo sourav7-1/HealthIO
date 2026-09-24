@@ -9,7 +9,7 @@ import { ToastProvider } from "@/components/ui";
 import { ApiError } from "@/lib/api";
 
 import { AddPatientDialog } from "./forms/AddPatientDialog";
-import { PatientName, QueryState } from "./shared";
+import { PatientName, QueryState } from "@/features/chart/shared";
 
 function wrap(ui: ReactNode) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });

@@ -14,6 +14,53 @@
         "title": "Accepted",
         "type": "object"
       },
+      "AccountUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "display_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "preferred_language": {
+            "anyOf": [
+              {
+                "enum": [
+                  "en",
+                  "hi"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferred Language"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "title": "AccountUpdate",
+        "type": "object"
+      },
       "AdherenceLineOut": {
         "properties": {
           "medication_id": {
@@ -95,6 +142,17 @@
         ],
         "title": "AdherenceOut",
         "type": "object"
+      },
+      "AllergenCategory": {
+        "enum": [
+          "medication",
+          "food",
+          "environment",
+          "biologic",
+          "other"
+        ],
+        "title": "AllergenCategory",
+        "type": "string"
       },
       "AllergyOut": {
         "properties": {
@@ -355,6 +413,40 @@
         "title": "AppointmentStatus",
         "type": "string"
       },
+      "AsNeededIn": {
+        "additionalProperties": false,
+        "properties": {
+          "taken_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taken At"
+          }
+        },
+        "title": "AsNeededIn",
+        "type": "object"
+      },
+      "BloodGroup": {
+        "enum": [
+          "A+",
+          "A-",
+          "B+",
+          "B-",
+          "AB+",
+          "AB-",
+          "O+",
+          "O-",
+          "unknown"
+        ],
+        "title": "BloodGroup",
+        "type": "string"
+      },
       "CancelIn": {
         "additionalProperties": false,
         "properties": {
@@ -371,8 +463,89 @@
         "title": "CancelIn",
         "type": "object"
       },
+      "CaregiverActivityOut": {
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "caregiver_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caregiver Name"
+          },
+          "caregiver_user_id": {
+            "format": "uuid",
+            "title": "Caregiver User Id",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "outcome": {
+            "title": "Outcome",
+            "type": "string"
+          },
+          "resource_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resource Type"
+          }
+        },
+        "required": [
+          "occurred_at",
+          "caregiver_user_id",
+          "caregiver_name",
+          "action",
+          "outcome",
+          "resource_type"
+        ],
+        "title": "CaregiverActivityOut",
+        "type": "object"
+      },
+      "CaregiverDashboard": {
+        "properties": {
+          "people": {
+            "items": {
+              "$ref": "#/components/schemas/DependantSummary"
+            },
+            "title": "People",
+            "type": "array"
+          }
+        },
+        "required": [
+          "people"
+        ],
+        "title": "CaregiverDashboard",
+        "type": "object"
+      },
       "CaregiverLinkOut": {
         "properties": {
+          "caregiver_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caregiver Name"
+          },
           "caregiver_user_id": {
             "format": "uuid",
             "title": "Caregiver User Id",
@@ -390,6 +563,22 @@
             ],
             "title": "Expires At"
           },
+          "guardian_basis": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Guardian Basis"
+          },
+          "is_dependant": {
+            "default": false,
+            "title": "Is Dependant",
+            "type": "boolean"
+          },
           "is_guardian": {
             "title": "Is Guardian",
             "type": "boolean"
@@ -398,6 +587,17 @@
             "format": "uuid",
             "title": "Patient Id",
             "type": "string"
+          },
+          "patient_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patient Name"
           },
           "relationship_id": {
             "format": "uuid",
@@ -432,10 +632,14 @@
         "type": "object"
       },
       "CaregiverPermissionScope": {
-        "description": "What a caregiver may do for a patient. Least privilege: grant only what is needed.\n\nDeliberately absent: editing clinical records, changing a doctor's prescription and\ndeleting medical records. Those can never be granted to a caregiver\n(app/modules/access/permissions.py enforces this again at decision time).",
+        "description": "What a caregiver may do for a patient. Least privilege: grant only what is needed.\n\nEvery scope is read-only or writes only information labelled as the caregiver's own\n(dose confirmations, reminder times, uploads, reported allergies). Deliberately\nabsent: editing clinical records, changing a doctor's prescription and deleting\nmedical records. Those can never be granted to a caregiver\n(app/modules/access/permissions.py enforces this again at decision time).",
         "enum": [
           "view_profile",
           "view_medical_history",
+          "view_prescriptions",
+          "view_visits",
+          "view_adherence",
+          "report_health_info",
           "view_medications",
           "log_doses",
           "manage_reminders",
@@ -737,6 +941,92 @@
         "title": "ConnectionRequestOut",
         "type": "object"
       },
+      "ContactIn": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "notify_on_sos": {
+            "default": true,
+            "title": "Notify On Sos",
+            "type": "boolean"
+          },
+          "phone": {
+            "maxLength": 20,
+            "minLength": 7,
+            "title": "Phone",
+            "type": "string"
+          },
+          "relationship_label": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship Label"
+          }
+        },
+        "required": [
+          "name",
+          "phone"
+        ],
+        "title": "ContactIn",
+        "type": "object"
+      },
+      "ContactOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "notify_on_sos": {
+            "title": "Notify On Sos",
+            "type": "boolean"
+          },
+          "phone": {
+            "title": "Phone",
+            "type": "string"
+          },
+          "priority": {
+            "title": "Priority",
+            "type": "integer"
+          },
+          "relationship_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship Label"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "phone",
+          "relationship_label",
+          "priority",
+          "notify_on_sos"
+        ],
+        "title": "ContactOut",
+        "type": "object"
+      },
       "DashboardAppointment": {
         "properties": {
           "ends_at": {
@@ -957,6 +1247,196 @@
         "title": "DataCategory",
         "type": "string"
       },
+      "DependantBasis": {
+        "description": "Why someone may manage another person's health record (their declaration).\n\nMinors: a parent or legal guardian consents for them (DPDP Act s.9).\nAdults: a lawful guardian or attorney, or the person's own agreement to be helped.",
+        "enum": [
+          "parent_of_minor",
+          "legal_guardian_of_minor",
+          "court_appointed_guardian",
+          "power_of_attorney",
+          "adult_consented"
+        ],
+        "title": "DependantBasis",
+        "type": "string"
+      },
+      "DependantIn": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "$ref": "#/components/schemas/DependantBasis"
+          },
+          "date_of_birth": {
+            "format": "date",
+            "title": "Date Of Birth",
+            "type": "string"
+          },
+          "declaration_accepted": {
+            "title": "Declaration Accepted",
+            "type": "boolean"
+          },
+          "family_name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Name"
+          },
+          "given_name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Given Name",
+            "type": "string"
+          },
+          "relationship_type": {
+            "$ref": "#/components/schemas/CaregiverRelationshipType"
+          },
+          "sex_at_birth": {
+            "$ref": "#/components/schemas/SexAtBirth"
+          },
+          "timezone": {
+            "default": "Asia/Kolkata",
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "given_name",
+          "date_of_birth",
+          "sex_at_birth",
+          "relationship_type",
+          "basis",
+          "declaration_accepted"
+        ],
+        "title": "DependantIn",
+        "type": "object"
+      },
+      "DependantSummary": {
+        "properties": {
+          "appointments": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/AppointmentOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Appointments"
+          },
+          "follow_ups": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FollowUpOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Ups"
+          },
+          "is_dependant": {
+            "title": "Is Dependant",
+            "type": "boolean"
+          },
+          "is_guardian": {
+            "title": "Is Guardian",
+            "type": "boolean"
+          },
+          "missed_doses": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/DoseOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Missed Doses"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "patient_id": {
+            "format": "uuid",
+            "title": "Patient Id",
+            "type": "string"
+          },
+          "permissions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Permissions",
+            "type": "array"
+          },
+          "recent_reports": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ReportSummary"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recent Reports"
+          },
+          "relationship_id": {
+            "format": "uuid",
+            "title": "Relationship Id",
+            "type": "string"
+          },
+          "relationship_type": {
+            "$ref": "#/components/schemas/CaregiverRelationshipType"
+          },
+          "today_doses": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/DoseOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Today Doses"
+          }
+        },
+        "required": [
+          "patient_id",
+          "relationship_id",
+          "name",
+          "relationship_type",
+          "is_guardian",
+          "is_dependant",
+          "permissions",
+          "today_doses",
+          "missed_doses",
+          "appointments",
+          "follow_ups",
+          "recent_reports"
+        ],
+        "title": "DependantSummary",
+        "type": "object"
+      },
       "DoctorVerificationOut": {
         "properties": {
           "doctor_profile_id": {
@@ -987,6 +1467,149 @@
           "verified_at"
         ],
         "title": "DoctorVerificationOut",
+        "type": "object"
+      },
+      "DocumentItemOut": {
+        "properties": {
+          "dosage_form": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dosage Form"
+          },
+          "dose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose"
+          },
+          "duration_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Days"
+          },
+          "frequency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frequency"
+          },
+          "generic_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generic Name"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "is_prn": {
+            "title": "Is Prn",
+            "type": "boolean"
+          },
+          "meal_relation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meal Relation"
+          },
+          "medicine": {
+            "title": "Medicine",
+            "type": "string"
+          },
+          "prn_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prn Reason"
+          },
+          "route": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Route"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "strength": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strength"
+          }
+        },
+        "required": [
+          "sequence",
+          "medicine",
+          "generic_name",
+          "strength",
+          "dosage_form",
+          "route",
+          "dose",
+          "frequency",
+          "meal_relation",
+          "duration_days",
+          "is_prn",
+          "prn_reason",
+          "instructions"
+        ],
+        "title": "DocumentItemOut",
         "type": "object"
       },
       "DocumentOut": {
@@ -1092,6 +1715,184 @@
         "title": "DocumentType",
         "type": "string"
       },
+      "DoseActionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "minutes": {
+            "anyOf": [
+              {
+                "enum": [
+                  5,
+                  10,
+                  15,
+                  30,
+                  60
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minutes"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "title": "DoseActionIn",
+        "type": "object"
+      },
+      "DoseOut": {
+        "properties": {
+          "as_needed": {
+            "title": "As Needed",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "meal_relation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MealRelation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "medication_id": {
+            "format": "uuid",
+            "title": "Medication Id",
+            "type": "string"
+          },
+          "medication_name": {
+            "title": "Medication Name",
+            "type": "string"
+          },
+          "scheduled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled At"
+          },
+          "skip_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Skip Reason"
+          },
+          "snooze_count": {
+            "title": "Snooze Count",
+            "type": "integer"
+          },
+          "snoozed_until": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snoozed Until"
+          },
+          "source": {
+            "$ref": "#/components/schemas/MedicationSource"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DoseStatus"
+          },
+          "strength": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strength"
+          },
+          "taken_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Taken At"
+          }
+        },
+        "required": [
+          "id",
+          "medication_id",
+          "medication_name",
+          "strength",
+          "instructions",
+          "meal_relation",
+          "source",
+          "scheduled_at",
+          "status",
+          "snoozed_until",
+          "snooze_count",
+          "taken_at",
+          "skip_reason",
+          "as_needed"
+        ],
+        "title": "DoseOut",
+        "type": "object"
+      },
+      "DoseStatus": {
+        "enum": [
+          "scheduled",
+          "snoozed",
+          "taken",
+          "skipped",
+          "missed",
+          "cancelled"
+        ],
+        "title": "DoseStatus",
+        "type": "string"
+      },
       "DownloadOut": {
         "properties": {
           "expires_in": {
@@ -1123,6 +1924,140 @@
           "email"
         ],
         "title": "EmailRequest",
+        "type": "object"
+      },
+      "EmergencyProfileModel": {
+        "additionalProperties": false,
+        "properties": {
+          "advance_directive": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Advance Directive"
+          },
+          "critical_information": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Critical Information"
+          },
+          "organ_donor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OrganDonorStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "show_allergies": {
+            "default": true,
+            "title": "Show Allergies",
+            "type": "boolean"
+          },
+          "show_blood_group": {
+            "default": true,
+            "title": "Show Blood Group",
+            "type": "boolean"
+          },
+          "show_conditions": {
+            "default": false,
+            "title": "Show Conditions",
+            "type": "boolean"
+          },
+          "show_medications": {
+            "default": false,
+            "title": "Show Medications",
+            "type": "boolean"
+          }
+        },
+        "title": "EmergencyProfileModel",
+        "type": "object"
+      },
+      "EmergencyProfileOut": {
+        "additionalProperties": false,
+        "properties": {
+          "advance_directive": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Advance Directive"
+          },
+          "critical_information": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Critical Information"
+          },
+          "last_reviewed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Reviewed At"
+          },
+          "organ_donor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OrganDonorStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "show_allergies": {
+            "default": true,
+            "title": "Show Allergies",
+            "type": "boolean"
+          },
+          "show_blood_group": {
+            "default": true,
+            "title": "Show Blood Group",
+            "type": "boolean"
+          },
+          "show_conditions": {
+            "default": false,
+            "title": "Show Conditions",
+            "type": "boolean"
+          },
+          "show_medications": {
+            "default": false,
+            "title": "Show Medications",
+            "type": "boolean"
+          }
+        },
+        "title": "EmergencyProfileOut",
         "type": "object"
       },
       "ExistingMedicationIn": {
@@ -1982,6 +2917,10 @@
             "title": "Platform Permissions",
             "type": "array"
           },
+          "preferred_language": {
+            "title": "Preferred Language",
+            "type": "string"
+          },
           "roles": {
             "items": {
               "$ref": "#/components/schemas/Role"
@@ -1991,6 +2930,10 @@
           },
           "status": {
             "$ref": "#/components/schemas/UserStatus"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
           }
         },
         "required": [
@@ -2003,7 +2946,9 @@
           "platform_permissions",
           "patient_profile_id",
           "doctor_profile_id",
-          "doctor_verification_status"
+          "doctor_verification_status",
+          "timezone",
+          "preferred_language"
         ],
         "title": "MeResponse",
         "type": "object"
@@ -2124,6 +3069,18 @@
             "title": "Name",
             "type": "string"
           },
+          "prescribed_directions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "The prescription line exactly as the doctor wrote it",
+            "title": "Prescribed Directions"
+          },
           "prescription_item_id": {
             "anyOf": [
               {
@@ -2146,6 +3103,16 @@
               }
             ],
             "title": "Route"
+          },
+          "schedule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScheduleOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "source": {
             "$ref": "#/components/schemas/MedicationSource"
@@ -2623,6 +3590,15 @@
         "title": "OrderOut",
         "type": "object"
       },
+      "OrganDonorStatus": {
+        "enum": [
+          "yes",
+          "no",
+          "undecided"
+        ],
+        "title": "OrganDonorStatus",
+        "type": "string"
+      },
       "OverviewOut": {
         "properties": {
           "active_conditions": {
@@ -2757,6 +3733,46 @@
         "title": "OverviewOut",
         "type": "object"
       },
+      "PasswordChange": {
+        "additionalProperties": false,
+        "properties": {
+          "current_password": {
+            "format": "password",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Current Password",
+            "type": "string",
+            "writeOnly": true
+          },
+          "new_password": {
+            "format": "password",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "New Password",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "current_password",
+          "new_password"
+        ],
+        "title": "PasswordChange",
+        "type": "object"
+      },
+      "PasswordChanged": {
+        "properties": {
+          "other_sessions_signed_out": {
+            "title": "Other Sessions Signed Out",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "other_sessions_signed_out"
+        ],
+        "title": "PasswordChanged",
+        "type": "object"
+      },
       "PasswordResetConfirm": {
         "additionalProperties": false,
         "properties": {
@@ -2810,6 +3826,43 @@
           "permissions"
         ],
         "title": "PatientAccessOut",
+        "type": "object"
+      },
+      "PatientInfoOut": {
+        "properties": {
+          "age_years": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Years"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "sex": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sex"
+          }
+        },
+        "required": [
+          "name",
+          "age_years",
+          "sex"
+        ],
+        "title": "PatientInfoOut",
         "type": "object"
       },
       "PatientListItem": {
@@ -2890,6 +3943,394 @@
         "title": "PatientListItem",
         "type": "object"
       },
+      "PreferencesModel": {
+        "additionalProperties": false,
+        "properties": {
+          "channel_email": {
+            "title": "Channel Email",
+            "type": "boolean"
+          },
+          "channel_push": {
+            "title": "Channel Push",
+            "type": "boolean"
+          },
+          "channel_sms": {
+            "title": "Channel Sms",
+            "type": "boolean"
+          },
+          "default_snooze_minutes": {
+            "enum": [
+              5,
+              10,
+              15,
+              30,
+              60
+            ],
+            "title": "Default Snooze Minutes",
+            "type": "integer"
+          },
+          "missed_after_minutes": {
+            "title": "Missed After Minutes",
+            "type": "integer"
+          },
+          "notify_caregivers_on_missed": {
+            "title": "Notify Caregivers On Missed",
+            "type": "boolean"
+          },
+          "quiet_hours_end": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiet Hours End"
+          },
+          "quiet_hours_start": {
+            "anyOf": [
+              {
+                "format": "time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quiet Hours Start"
+          },
+          "reminders_enabled": {
+            "title": "Reminders Enabled",
+            "type": "boolean"
+          },
+          "show_medicine_names": {
+            "title": "Show Medicine Names",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "reminders_enabled",
+          "channel_push",
+          "channel_sms",
+          "channel_email",
+          "show_medicine_names",
+          "quiet_hours_start",
+          "quiet_hours_end",
+          "default_snooze_minutes",
+          "missed_after_minutes",
+          "notify_caregivers_on_missed"
+        ],
+        "title": "PreferencesModel",
+        "type": "object"
+      },
+      "PrescriberOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "practice_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Practice Address"
+          },
+          "practice_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Practice Name"
+          },
+          "qualifications": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Qualifications",
+            "type": "array"
+          },
+          "registration_council": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration Council"
+          },
+          "registration_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Registration Number"
+          },
+          "specialty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialty"
+          }
+        },
+        "required": [
+          "name",
+          "qualifications",
+          "specialty",
+          "registration_council",
+          "registration_number",
+          "practice_name",
+          "practice_address"
+        ],
+        "title": "PrescriberOut",
+        "type": "object"
+      },
+      "PrescriptionDocumentOut": {
+        "properties": {
+          "advice": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Advice"
+          },
+          "cancel_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancel Reason"
+          },
+          "cancelled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancelled At"
+          },
+          "content_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Sha256"
+          },
+          "diagnosis_as_written": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diagnosis As Written"
+          },
+          "follow_up_instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up Instructions"
+          },
+          "follow_up_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up On"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentItemOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "patient": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PatientInfoOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "prescribed_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prescribed On"
+          },
+          "prescriber": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PrescriberOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "revision_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Reason"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "superseded_by_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Superseded By Id"
+          },
+          "supersedes_prescription_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supersedes Prescription Id"
+          },
+          "valid_until": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid Until"
+          },
+          "versions": {
+            "items": {
+              "$ref": "#/components/schemas/VersionOut"
+            },
+            "title": "Versions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "status",
+          "prescribed_on",
+          "issued_at",
+          "valid_until",
+          "diagnosis_as_written",
+          "advice",
+          "follow_up_on",
+          "follow_up_instructions",
+          "revision_reason",
+          "supersedes_prescription_id",
+          "superseded_by_id",
+          "cancelled_at",
+          "cancel_reason",
+          "content_sha256",
+          "prescriber",
+          "patient",
+          "items",
+          "versions"
+        ],
+        "title": "PrescriptionDocumentOut",
+        "type": "object"
+      },
       "PrescriptionIn": {
         "additionalProperties": false,
         "properties": {
@@ -2916,6 +4357,30 @@
               }
             ],
             "title": "Diagnosis As Written"
+          },
+          "follow_up_instructions": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up Instructions"
+          },
+          "follow_up_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up On"
           },
           "items": {
             "items": {
@@ -3005,6 +4470,17 @@
             ],
             "title": "Cancelled At"
           },
+          "content_sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Sha256"
+          },
           "diagnosis_as_written": {
             "anyOf": [
               {
@@ -3026,6 +4502,29 @@
               }
             ],
             "title": "External Prescriber Name"
+          },
+          "follow_up_instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up Instructions"
+          },
+          "follow_up_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up On"
           },
           "id": {
             "format": "uuid",
@@ -3090,11 +4589,50 @@
             ],
             "title": "Prescriber Name"
           },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "revision_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Reason"
+          },
           "source": {
             "$ref": "#/components/schemas/PrescriptionSource"
           },
           "status": {
             "$ref": "#/components/schemas/PrescriptionStatus"
+          },
+          "superseded_by_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Superseded By Id"
+          },
+          "supersedes_prescription_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supersedes Prescription Id"
           },
           "valid_until": {
             "anyOf": [
@@ -3139,6 +4677,13 @@
           "issued_at",
           "diagnosis_as_written",
           "advice",
+          "follow_up_on",
+          "follow_up_instructions",
+          "revision",
+          "revision_reason",
+          "supersedes_prescription_id",
+          "superseded_by_id",
+          "content_sha256",
           "cancelled_at",
           "cancel_reason",
           "items"
@@ -3195,6 +4740,30 @@
             ],
             "title": "Diagnosis As Written"
           },
+          "follow_up_instructions": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up Instructions"
+          },
+          "follow_up_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up On"
+          },
           "items": {
             "items": {
               "$ref": "#/components/schemas/ItemIn"
@@ -3203,6 +4772,18 @@
             "minItems": 1,
             "title": "Items",
             "type": "array"
+          },
+          "revision_reason": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Reason"
           },
           "valid_until": {
             "anyOf": [
@@ -3280,12 +4861,20 @@
             "title": "Id",
             "type": "string"
           },
+          "preferred_language": {
+            "title": "Preferred Language",
+            "type": "string"
+          },
           "sex_at_birth": {
             "title": "Sex At Birth",
             "type": "string"
           },
           "status": {
             "title": "Status",
+            "type": "string"
+          },
+          "timezone": {
+            "title": "Timezone",
             "type": "string"
           }
         },
@@ -3299,10 +4888,113 @@
           "sex_at_birth",
           "blood_group",
           "has_account",
-          "status"
+          "status",
+          "timezone",
+          "preferred_language"
         ],
         "title": "ProfileOut",
         "type": "object"
+      },
+      "ProfileUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "blood_group": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BloodGroup"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "date_of_birth": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date Of Birth"
+          },
+          "family_name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Family Name"
+          },
+          "given_name": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Given Name"
+          },
+          "preferred_language": {
+            "anyOf": [
+              {
+                "enum": [
+                  "en",
+                  "hi"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferred Language"
+          },
+          "sex_at_birth": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SexAtBirth"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "title": "ProfileUpdate",
+        "type": "object"
+      },
+      "ReactionSeverity": {
+        "enum": [
+          "mild",
+          "moderate",
+          "severe",
+          "life_threatening"
+        ],
+        "title": "ReactionSeverity",
+        "type": "string"
       },
       "ReadyResponse": {
         "properties": {
@@ -3439,6 +5131,44 @@
         ],
         "title": "RegistrationRole",
         "type": "string"
+      },
+      "ReminderTimesIn": {
+        "additionalProperties": false,
+        "properties": {
+          "meal_relation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MealRelation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "times_of_day": {
+            "items": {
+              "format": "time",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Times Of Day",
+            "type": "array"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Defaults to the patient's timezone",
+            "title": "Timezone"
+          }
+        },
+        "title": "ReminderTimesIn",
+        "type": "object"
       },
       "ReportIn": {
         "additionalProperties": false,
@@ -3652,6 +5382,143 @@
           "results"
         ],
         "title": "ReportOut",
+        "type": "object"
+      },
+      "ReportSummary": {
+        "properties": {
+          "collected_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collected At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "lab_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lab Name"
+          },
+          "result_count": {
+            "title": "Result Count",
+            "type": "integer"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "lab_name",
+          "source",
+          "collected_at",
+          "created_at",
+          "result_count"
+        ],
+        "title": "ReportSummary",
+        "type": "object"
+      },
+      "ReportedAllergyIn": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/AllergenCategory",
+            "default": "medication"
+          },
+          "reaction": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reaction"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReactionSeverity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "substance": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Substance",
+            "type": "string"
+          }
+        },
+        "required": [
+          "substance"
+        ],
+        "title": "ReportedAllergyIn",
+        "type": "object"
+      },
+      "ReportedConditionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "onset_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onset Date"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "ReportedConditionIn",
         "type": "object"
       },
       "RespondIn": {
@@ -3882,6 +5749,92 @@
         "title": "ResultOut",
         "type": "object"
       },
+      "RevisionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "advice": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Advice"
+          },
+          "diagnosis_as_written": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Diagnosis As Written"
+          },
+          "follow_up_instructions": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up Instructions"
+          },
+          "follow_up_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up On"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ItemIn"
+            },
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Items",
+            "type": "array"
+          },
+          "reason": {
+            "maxLength": 300,
+            "minLength": 5,
+            "title": "Reason",
+            "type": "string"
+          },
+          "valid_until": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid Until"
+          }
+        },
+        "required": [
+          "items",
+          "reason"
+        ],
+        "title": "RevisionIn",
+        "type": "object"
+      },
       "Role": {
         "enum": [
           "admin",
@@ -3903,6 +5856,152 @@
         ],
         "title": "ScanStatus",
         "type": "string"
+      },
+      "ScheduleOut": {
+        "properties": {
+          "meal_relation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MealRelation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "times_of_day": {
+            "items": {
+              "format": "time",
+              "type": "string"
+            },
+            "title": "Times Of Day",
+            "type": "array"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ScheduleType"
+          }
+        },
+        "required": [
+          "type",
+          "times_of_day",
+          "timezone",
+          "meal_relation"
+        ],
+        "title": "ScheduleOut",
+        "type": "object"
+      },
+      "ScheduleType": {
+        "enum": [
+          "fixed_times",
+          "interval",
+          "as_needed"
+        ],
+        "title": "ScheduleType",
+        "type": "string"
+      },
+      "SelfReportedIn": {
+        "additionalProperties": false,
+        "properties": {
+          "dosage_form": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dosage Form"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "is_prn": {
+            "default": false,
+            "title": "Is Prn",
+            "type": "boolean"
+          },
+          "meal_relation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MealRelation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "strength": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strength"
+          },
+          "times_of_day": {
+            "items": {
+              "format": "time",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Times Of Day",
+            "type": "array"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Defaults to the patient's timezone",
+            "title": "Timezone"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "SelfReportedIn",
+        "type": "object"
       },
       "SessionOut": {
         "properties": {
@@ -3978,6 +6077,25 @@
         ],
         "title": "SexAtBirth",
         "type": "string"
+      },
+      "StopIn": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "title": "StopIn",
+        "type": "object"
       },
       "TestOrderStatus": {
         "enum": [
@@ -4296,6 +6414,55 @@
           }
         },
         "title": "VerifyDoctor",
+        "type": "object"
+      },
+      "VersionOut": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "revision_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision Reason"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "revision",
+          "status",
+          "issued_at",
+          "revision_reason"
+        ],
+        "title": "VersionOut",
         "type": "object"
       },
       "VisitDetailOut": {
@@ -4695,6 +6862,53 @@
         ]
       }
     },
+    "/api/v1/auth/password/change": {
+      "post": {
+        "description": "Needs the current password. Every other signed-in device is signed out.",
+        "operationId": "change_password_api_v1_auth_password_change_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordChange"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordChanged"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Change Password",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/v1/auth/password/reset": {
       "post": {
         "operationId": "reset_password_api_v1_auth_password_reset_post",
@@ -4951,6 +7165,47 @@
         ]
       }
     },
+    "/api/v1/caregiver-invitations/{relationship_id}/decline": {
+      "post": {
+        "operationId": "decline_invitation_api_v1_caregiver_invitations__relationship_id__decline_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "relationship_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Relationship Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Decline Invitation",
+        "tags": [
+          "caregivers"
+        ]
+      }
+    },
     "/api/v1/doctor/dashboard": {
       "get": {
         "operationId": "dashboard_api_v1_doctor_dashboard_get",
@@ -5152,11 +7407,55 @@
         "tags": [
           "auth"
         ]
+      },
+      "patch": {
+        "operationId": "update_me_api_v1_me_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Me",
+        "tags": [
+          "auth"
+        ]
       }
     },
     "/api/v1/me/caregiving": {
       "get": {
-        "description": "Patients I care for, and invitations waiting for me.",
+        "description": "People I care for, and invitations waiting for me.",
         "operationId": "my_caregiving_api_v1_me_caregiving_get",
         "responses": {
           "200": {
@@ -5180,6 +7479,121 @@
           }
         ],
         "summary": "My Caregiving",
+        "tags": [
+          "caregivers"
+        ]
+      }
+    },
+    "/api/v1/me/caregiving/dashboard": {
+      "get": {
+        "operationId": "caregiver_dashboard_api_v1_me_caregiving_dashboard_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaregiverDashboard"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Caregiver Dashboard",
+        "tags": [
+          "caregivers"
+        ]
+      }
+    },
+    "/api/v1/me/caregiving/{relationship_id}/leave": {
+      "post": {
+        "description": "Stop being someone's caregiver. Your access ends immediately.",
+        "operationId": "leave_caregiving_api_v1_me_caregiving__relationship_id__leave_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "relationship_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Relationship Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Leave Caregiving",
+        "tags": [
+          "caregivers"
+        ]
+      }
+    },
+    "/api/v1/me/dependants": {
+      "post": {
+        "description": "Add someone you look after who does not use Health Io themselves: your child, or an\nadult you are authorised to represent. You become their guardian on the platform.",
+        "operationId": "create_dependant_api_v1_me_dependants_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DependantIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaregiverLinkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Dependant",
         "tags": [
           "caregivers"
         ]
@@ -5593,6 +8007,58 @@
         ]
       }
     },
+    "/api/v1/patients/{patient_id}/caregivers/activity": {
+      "get": {
+        "operationId": "caregiver_activity_api_v1_patients__patient_id__caregivers_activity_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CaregiverActivityOut"
+                  },
+                  "title": "Response Caregiver Activity Api V1 Patients  Patient Id  Caregivers Activity Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "What caregivers did with this patient's record (from the audit log)",
+        "tags": [
+          "caregivers"
+        ]
+      }
+    },
     "/api/v1/patients/{patient_id}/caregivers/{relationship_id}": {
       "delete": {
         "operationId": "revoke_caregiver_api_v1_patients__patient_id__caregivers__relationship_id__delete",
@@ -5998,6 +8464,431 @@
         ]
       }
     },
+    "/api/v1/patients/{patient_id}/doses": {
+      "get": {
+        "description": "Doses for `days` calendar days from `day` (default: today in the patient's timezone).\nOpening the list also creates upcoming dose rows and records long-unanswered doses as\nmissed; the reminder engine (Phase 10) does the same on a schedule.",
+        "operationId": "list_doses_api_v1_patients__patient_id__doses_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "day",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Day"
+            }
+          },
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DoseOut"
+                  },
+                  "title": "Response List Doses Api V1 Patients  Patient Id  Doses Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Doses",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/doses/{dose_id}/{action}": {
+      "post": {
+        "operationId": "record_dose_api_v1_patients__patient_id__doses__dose_id___action__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "dose_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Dose Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "action",
+            "required": true,
+            "schema": {
+              "enum": [
+                "take",
+                "skip",
+                "snooze"
+              ],
+              "title": "Action",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DoseActionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoseOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Record Dose",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/emergency-contacts": {
+      "get": {
+        "operationId": "list_contacts_api_v1_patients__patient_id__emergency_contacts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ContactOut"
+                  },
+                  "title": "Response List Contacts Api V1 Patients  Patient Id  Emergency Contacts Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Contacts",
+        "tags": [
+          "emergency"
+        ]
+      },
+      "post": {
+        "operationId": "add_contact_api_v1_patients__patient_id__emergency_contacts_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Contact",
+        "tags": [
+          "emergency"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/emergency-contacts/{contact_id}": {
+      "delete": {
+        "operationId": "remove_contact_api_v1_patients__patient_id__emergency_contacts__contact_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "contact_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Contact Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Contact",
+        "tags": [
+          "emergency"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/emergency-profile": {
+      "get": {
+        "operationId": "get_profile_api_v1_patients__patient_id__emergency_profile_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmergencyProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Profile",
+        "tags": [
+          "emergency"
+        ]
+      },
+      "put": {
+        "operationId": "save_profile_api_v1_patients__patient_id__emergency_profile_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmergencyProfileModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmergencyProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Save Profile",
+        "tags": [
+          "emergency"
+        ]
+      }
+    },
     "/api/v1/patients/{patient_id}/follow-ups": {
       "get": {
         "operationId": "list_follow_ups_api_v1_patients__patient_id__follow_ups_get",
@@ -6277,7 +9168,7 @@
         ]
       },
       "post": {
-        "description": "Record a medicine the patient already takes (e.g. started elsewhere), as reported\nto the doctor. New treatment is written as a prescription instead.",
+        "description": "Doctor: record a medicine the patient already takes (e.g. started elsewhere).\nNew treatment is written as a prescription instead.",
         "operationId": "record_existing_medication_api_v1_patients__patient_id__medications_post",
         "parameters": [
           {
@@ -6329,6 +9220,339 @@
           }
         ],
         "summary": "Record Existing Medication",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/medications/self-reported": {
+      "post": {
+        "description": "A medicine the patient takes that no doctor prescribed here. Always labelled\npatient-reported.",
+        "operationId": "add_self_reported_api_v1_patients__patient_id__medications_self_reported_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelfReportedIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Self Reported",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/medications/{medication_id}/as-needed-dose": {
+      "post": {
+        "operationId": "log_as_needed_api_v1_patients__patient_id__medications__medication_id__as_needed_dose_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "medication_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Medication Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AsNeededIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DoseOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Log As Needed",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/medications/{medication_id}/confirm": {
+      "post": {
+        "description": "Start a prescribed medicine by choosing reminder times. The prescription itself\nis not changed.",
+        "operationId": "confirm_medication_api_v1_patients__patient_id__medications__medication_id__confirm_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "medication_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Medication Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReminderTimesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Confirm Medication",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/medications/{medication_id}/reminder-times": {
+      "put": {
+        "operationId": "change_reminder_times_api_v1_patients__patient_id__medications__medication_id__reminder_times_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "medication_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Medication Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReminderTimesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Change Reminder Times",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/medications/{medication_id}/stop": {
+      "post": {
+        "description": "Only self-reported medicines. Prescribed medicines are changed by the doctor.",
+        "operationId": "stop_medication_api_v1_patients__patient_id__medications__medication_id__stop_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "medication_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Medication Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StopIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Stop Medication",
         "tags": [
           "medications"
         ]
@@ -6630,6 +9854,7 @@
     },
     "/api/v1/patients/{patient_id}/prescriptions": {
       "get": {
+        "description": "All versions, newest first. Superseded versions carry `superseded_by_id`.",
         "operationId": "list_prescriptions_api_v1_patients__patient_id__prescriptions_get",
         "parameters": [
           {
@@ -6737,7 +9962,65 @@
       }
     },
     "/api/v1/patients/{patient_id}/prescriptions/{prescription_id}": {
+      "get": {
+        "description": "The prescription as a document: prescriber and patient details, items as written,\nand every version of it (for the history view).",
+        "operationId": "get_prescription_document_api_v1_patients__patient_id__prescriptions__prescription_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "prescription_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Prescription Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrescriptionDocumentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Prescription Document",
+        "tags": [
+          "prescriptions"
+        ]
+      },
       "put": {
+        "description": "Edit a draft. Issued prescriptions are immutable: use /revisions to correct one.",
         "operationId": "update_prescription_api_v1_patients__patient_id__prescriptions__prescription_id__put",
         "parameters": [
           {
@@ -6806,7 +10089,7 @@
     },
     "/api/v1/patients/{patient_id}/prescriptions/{prescription_id}/cancel": {
       "post": {
-        "description": "Cancel an issued prescription (kept as history), or discard an unissued draft.",
+        "description": "Cancel an issued prescription (kept as history; its medicines stop), or discard an\nunissued draft.",
         "operationId": "cancel_prescription_api_v1_patients__patient_id__prescriptions__prescription_id__cancel_post",
         "parameters": [
           {
@@ -6868,7 +10151,7 @@
     },
     "/api/v1/patients/{patient_id}/prescriptions/{prescription_id}/issue": {
       "post": {
-        "description": "Issue (freeze) a draft. Its medicines appear on the patient's list as awaiting the\npatient's confirmation; no reminder starts until they confirm the schedule.",
+        "description": "Issue (freeze) a draft. Its medicines appear on the patient's list as awaiting the\npatient's confirmation; no reminder starts until they confirm the schedule. Issuing a\ncorrection supersedes the previous version and stops the medicines it started.",
         "operationId": "issue_prescription_api_v1_patients__patient_id__prescriptions__prescription_id__issue_post",
         "parameters": [
           {
@@ -6925,6 +10208,130 @@
         ]
       }
     },
+    "/api/v1/patients/{patient_id}/prescriptions/{prescription_id}/pdf": {
+      "get": {
+        "description": "Download the prescription as PDF. Non-current versions are clearly marked.",
+        "operationId": "export_prescription_pdf_api_v1_patients__patient_id__prescriptions__prescription_id__pdf_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "prescription_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Prescription Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/pdf": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Export Prescription Pdf",
+        "tags": [
+          "prescriptions"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/prescriptions/{prescription_id}/revisions": {
+      "post": {
+        "description": "Correct an issued prescription. Creates a new draft version (the issued one is not\ntouched); issuing that draft supersedes the previous version.",
+        "operationId": "start_revision_api_v1_patients__patient_id__prescriptions__prescription_id__revisions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "prescription_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Prescription Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RevisionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PrescriptionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Start Revision",
+        "tags": [
+          "prescriptions"
+        ]
+      }
+    },
     "/api/v1/patients/{patient_id}/profile": {
       "get": {
         "operationId": "get_profile_api_v1_patients__patient_id__profile_get",
@@ -6970,6 +10377,167 @@
         "summary": "Get Profile",
         "tags": [
           "patient chart"
+        ]
+      },
+      "patch": {
+        "description": "Personal details only. Clinical records are never edited through this endpoint.",
+        "operationId": "update_profile_api_v1_patients__patient_id__profile_patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Profile",
+        "tags": [
+          "patient chart"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/reminder-preferences": {
+      "get": {
+        "operationId": "get_preferences_api_v1_patients__patient_id__reminder_preferences_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Preferences",
+        "tags": [
+          "reminders"
+        ]
+      },
+      "put": {
+        "operationId": "save_preferences_api_v1_patients__patient_id__reminder_preferences_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencesModel"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesModel"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Save Preferences",
+        "tags": [
+          "reminders"
         ]
       }
     },
@@ -7079,6 +10647,188 @@
         "summary": "Add Report",
         "tags": [
           "tests and reports"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/self-reported/allergies": {
+      "post": {
+        "description": "Stored as patient-reported and unconfirmed; doctors see it labelled that way.",
+        "operationId": "report_allergy_api_v1_patients__patient_id__self_reported_allergies_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportedAllergyIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AllergyOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Report Allergy",
+        "tags": [
+          "clinical"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/self-reported/conditions": {
+      "post": {
+        "operationId": "report_condition_api_v1_patients__patient_id__self_reported_conditions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportedConditionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConditionOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Report Condition",
+        "tags": [
+          "clinical"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/self-reported/{kind}/{entry_id}": {
+      "delete": {
+        "description": "Only entries the patient reported; a doctor's entries cannot be removed here.",
+        "operationId": "remove_self_reported_api_v1_patients__patient_id__self_reported__kind___entry_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "enum": [
+                "allergies",
+                "conditions"
+              ],
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "entry_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Entry Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Self Reported",
+        "tags": [
+          "clinical"
         ]
       }
     },

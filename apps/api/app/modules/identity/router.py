@@ -20,9 +20,12 @@ from app.modules.access.service import platform_permissions
 from app.modules.care_team import service as care_team
 from app.modules.identity.schemas import (
     Accepted,
+    AccountUpdate,
     EmailRequest,
     LoginRequest,
     MeResponse,
+    PasswordChange,
+    PasswordChanged,
     PasswordResetConfirm,
     RegisterRequest,
     SessionOut,
@@ -239,6 +242,38 @@ async def reset_password(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
+@router.post(
+    "/password/change",
+    response_model=PasswordChanged,
+    dependencies=[_auth_form_limit],
+)
+async def change_password(
+    body: PasswordChange,
+    principal: Principal = Depends(authenticated()),
+    auth: AuthService = Depends(get_auth_service),
+) -> PasswordChanged:
+    """Needs the current password. Every other signed-in device is signed out."""
+    count = await auth.change_password(
+        principal, body.current_password.get_secret_value(), body.new_password.get_secret_value()
+    )
+    return PasswordChanged(other_sessions_signed_out=count)
+
+
+@me_router.patch("/me", response_model=MeResponse)
+async def update_me(
+    body: AccountUpdate,
+    principal: Principal = Depends(authenticated()),
+    auth: AuthService = Depends(get_auth_service),
+) -> MeResponse:
+    await auth.update_account(
+        principal,
+        display_name=body.display_name,
+        timezone=body.timezone,
+        preferred_language=body.preferred_language,
+    )
+    return await me(principal, auth)
+
+
 @me_router.get("/me", response_model=MeResponse)
 async def me(
     principal: Principal = Depends(authenticated(allow_unverified=True)),
@@ -259,4 +294,6 @@ async def me(
         patient_profile_id=await patients.self_profile_id(auth.db, principal.user_id),
         doctor_profile_id=doctor.id if doctor else None,
         doctor_verification_status=doctor.verification_status.value if doctor else None,
+        timezone=user.timezone,
+        preferred_language=user.preferred_language,
     )

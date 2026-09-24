@@ -33,11 +33,15 @@ class Permission(StrEnum):
     USE_AI_ASSISTANT = "use_ai_assistant"
     MANAGE_EMERGENCY_INFO = "manage_emergency_info"
     MANAGE_CAREGIVERS = "manage_caregivers"
+    VIEW_VISITS = "view_visits"  # visits and signed clinical notes (read-only)
+    VIEW_PRESCRIPTIONS = "view_prescriptions"  # read-only
+    VIEW_ADHERENCE = "view_adherence"
+    # Patient- or caregiver-reported information (self-reported medicines, allergies,
+    # conditions), always labelled with who reported it, never mixed with what a doctor
+    # documented, and never able to change a doctor's entry.
+    REPORT_HEALTH_INFO = "report_health_info"
 
     # --- patient-scoped: not grantable to caregivers
-    VIEW_VISITS = "view_visits"  # visits and clinical notes
-    VIEW_PRESCRIPTIONS = "view_prescriptions"
-    VIEW_ADHERENCE = "view_adherence"
     EDIT_PROFILE = "edit_profile"
     MANAGE_CONSENT = "manage_consent"
     EDIT_CLINICAL_RECORDS = "edit_clinical_records"  # visits, notes, problem list
@@ -63,11 +67,13 @@ NEVER_FOR_CAREGIVERS: frozenset[Permission] = frozenset(
         Permission.DELETE_MEDICAL_RECORDS,
         Permission.EDIT_PROFILE,
         Permission.MANAGE_CONSENT,
-        Permission.VIEW_VISITS,
-        Permission.VIEW_PRESCRIPTIONS,
-        Permission.VIEW_ADHERENCE,
     }
 )
+
+# A guardian of a dependant (a profile with no login of its own: a child, or an adult
+# the guardian represents) also keeps the dependant's demographics up to date. Nobody
+# else can do that for them.
+DEPENDANT_GUARDIAN_EXTRA: frozenset[Permission] = frozenset({Permission.EDIT_PROFILE})
 
 # Scopes that only a guardian (parent of a minor, legal representative) may hold.
 GUARDIAN_ONLY: frozenset[Permission] = frozenset({Permission.MANAGE_CAREGIVERS})
@@ -75,9 +81,6 @@ GUARDIAN_ONLY: frozenset[Permission] = frozenset({Permission.MANAGE_CAREGIVERS})
 # What a patient may do with their own record. Clinical records written by doctors
 # are read-only for patients; nobody hard-deletes medical records through the API.
 SELF_PERMISSIONS: frozenset[Permission] = CAREGIVER_GRANTABLE | {
-    Permission.VIEW_VISITS,
-    Permission.VIEW_PRESCRIPTIONS,
-    Permission.VIEW_ADHERENCE,
     Permission.EDIT_PROFILE,
     Permission.MANAGE_CONSENT,
 }

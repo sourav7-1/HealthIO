@@ -3,21 +3,24 @@ simply absent; `permissions` tells the UI which sections to offer."""
 
 import uuid
 from datetime import UTC, date, datetime
+from typing import Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.modules.access.context import PatientRequest, patient_request
 from app.modules.access.permissions import Permission
 from app.modules.care_team import service as care_team
 from app.modules.chart import service
 from app.modules.patients import service as patients
-from app.modules.patients.models import PatientProfile
+from app.modules.patients.models import BloodGroup, PatientProfile, SexAtBirth
 
 router = APIRouter(tags=["patient chart"])
 
 _any = patient_request()
 _profile = patient_request(Permission.VIEW_PROFILE)
+_edit_profile = patient_request(Permission.EDIT_PROFILE)
 
 
 class ProfileOut(BaseModel):
@@ -31,6 +34,8 @@ class ProfileOut(BaseModel):
     blood_group: str
     has_account: bool
     status: str
+    timezone: str
+    preferred_language: str
 
 
 class OverviewOut(BaseModel):
@@ -79,6 +84,8 @@ def profile_out(p: PatientProfile) -> ProfileOut:
         blood_group=p.blood_group.value,
         has_account=p.user_id is not None,
         status=p.status.value,
+        timezone=p.timezone,
+        preferred_language=p.preferred_language,
     )
 
 
@@ -87,6 +94,52 @@ async def get_profile(patient_id: uuid.UUID, ctx: PatientRequest = _profile) -> 
     profile = await patients.get_live_profile(ctx.session, ctx.patient_id)
     assert profile is not None  # the access check already confirmed it exists
     await ctx.audit("patient.profile_view", resource_type="patient_profile", resource_id=profile.id)
+    await ctx.session.commit()
+    return profile_out(profile)
+
+
+class ProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+    given_name: str | None = Field(default=None, min_length=1, max_length=100)
+    family_name: str | None = Field(default=None, max_length=100)
+    date_of_birth: date | None = None
+    sex_at_birth: SexAtBirth | None = None
+    blood_group: BloodGroup | None = None
+    preferred_language: Literal["en", "hi"] | None = None
+    timezone: str | None = Field(default=None, max_length=64)
+
+    @field_validator("timezone")
+    @classmethod
+    def _tz(cls, v: str | None) -> str | None:
+        if v is not None:
+            try:
+                ZoneInfo(v)
+            except (ZoneInfoNotFoundError, ValueError):
+                raise ValueError("Unknown timezone") from None
+        return v
+
+    @field_validator("date_of_birth")
+    @classmethod
+    def _dob(cls, v: date | None) -> date | None:
+        if v is not None and v > datetime.now(UTC).date():
+            raise ValueError("Date of birth cannot be in the future")
+        return v
+
+
+@router.patch("/patients/{patient_id}/profile", response_model=ProfileOut)
+async def update_profile(
+    patient_id: uuid.UUID, body: ProfileUpdate, ctx: PatientRequest = _edit_profile
+) -> ProfileOut:
+    """Personal details only. Clinical records are never edited through this endpoint."""
+    changes = body.model_dump(exclude_unset=True)
+    profile = await patients.update_profile(ctx.session, ctx.patient_id, changes, ctx.actor_id)
+    await ctx.audit(
+        "patient.profile_update",
+        resource_type="patient_profile",
+        resource_id=profile.id,
+        changed_fields=sorted(changes),
+    )
     await ctx.session.commit()
     return profile_out(profile)
 

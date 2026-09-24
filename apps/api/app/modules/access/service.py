@@ -10,7 +10,9 @@ relationship gives them:
   caregiver  ACTIVE, unexpired caregiver link + CAREGIVER role → exactly the granted scopes,
                                                                never NEVER_FOR_CAREGIVERS,
                                                                guardian-only scopes only for
-                                                               guardians
+                                                               guardians; a guardian of a
+                                                               dependant (no login) may also
+                                                               edit its demographics
 
 Admins get nothing from their role. No relationship at all means no access.
 """
@@ -24,6 +26,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.enums import Role
 from app.modules.access.permissions import (
     CAREGIVER_GRANTABLE,
+    DEPENDANT_GUARDIAN_EXTRA,
     DOCTOR_PERMISSION_CATEGORY,
     DOCTOR_PERMISSIONS,
     GUARDIAN_ONLY,
@@ -110,6 +113,8 @@ async def resolve_patient_access(
             granted -= NEVER_FOR_CAREGIVERS
             if not grant.is_guardian:
                 granted -= GUARDIAN_ONLY
+            elif profile.user_id is None:
+                granted |= DEPENDANT_GUARDIAN_EXTRA
             perms |= granted
 
     return PatientAccess(

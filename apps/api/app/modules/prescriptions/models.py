@@ -97,6 +97,15 @@ class Prescription(Base, Entity, PatientOwned, OptimisticLock):
             unique=True,
             postgresql_where=text("supersedes_prescription_id IS NOT NULL"),
         ),
+        CheckConstraint(
+            "(revision = 1) = (supersedes_prescription_id IS NULL)", name="revision_chain"
+        ),
+        CheckConstraint(
+            "revision = 1 OR revision_reason IS NOT NULL", name="correction_has_reason"
+        ),
+        CheckConstraint(
+            "content_sha256 IS NULL OR content_sha256 ~ '^[0-9a-f]{64}$'", name="content_sha256_hex"
+        ),
         Index("ix_prescriptions_patient_prescribed", "patient_id", "prescribed_on"),
         Index("ix_prescriptions_prescriber_created", "prescriber_doctor_id", "created_at"),
     )
@@ -135,6 +144,19 @@ class Prescription(Base, Entity, PatientOwned, OptimisticLock):
     cancelled_at: Mapped[datetime | None]
     cancelled_by: Mapped[uuid.UUID | None] = user_fk()
     cancel_reason: Mapped[str | None] = mapped_column(String(300))
+
+    # Versions of one prescription: 1 is the original; a correction is a new row with
+    # revision + 1 that supersedes the previous one (which stays frozen, unchanged).
+    revision: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=1, server_default="1"
+    )
+    revision_reason: Mapped[str | None] = mapped_column(String(300))
+    follow_up_on: Mapped[date | None] = mapped_column(Date)
+    follow_up_instructions: Mapped[str | None] = mapped_column(
+        EncryptedString("prescriptions.follow_up_instructions")
+    )
+    # SHA-256 of the canonical issued content; printed on exports for verification.
+    content_sha256: Mapped[str | None] = mapped_column(String(64))
 
 
 class PrescriptionItem(Base, Entity, PatientOwned):

@@ -16,12 +16,12 @@ import {
   useUpdateNote,
   useVisit,
   type Note,
-} from "./api";
+} from "@/features/chart/api";
 import { PrescriptionDialog } from "./forms/prescription";
 import { FollowUpDialog } from "./forms/scheduling";
 import { OrderTestsDialog } from "./forms/tests";
 import { DiagnosisDialog } from "./forms/visit";
-import { DefinitionList, QueryState, StatusBadge } from "./shared";
+import { DefinitionList, QueryState, StatusBadge } from "@/features/chart/shared";
 import { ReasonDialog } from "./sections/orders";
 
 const NOTE_TYPES = ["consultation", "soap", "progress", "procedure", "referral", "discharge", "other"] as const;

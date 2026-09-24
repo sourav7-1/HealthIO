@@ -202,7 +202,10 @@ async def adherence_summary(
             MedicationDose.patient_id == patient_id,
             MedicationDose.schedule_id.is_not(None),
             MedicationDose.scheduled_at >= since,
-            MedicationDose.scheduled_at <= datetime.now(UTC),
+            # Past doses, plus upcoming ones already answered (e.g. taken a little early).
+            (MedicationDose.scheduled_at <= datetime.now(UTC))
+            | MedicationDose.status.in_([DoseStatus.TAKEN, DoseStatus.SKIPPED]),
+            MedicationDose.status != DoseStatus.CANCELLED,
         )
         .group_by(MedicationDose.medication_id, Medication.name, MedicationDose.status)
     )

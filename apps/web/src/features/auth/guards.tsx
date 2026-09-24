@@ -10,6 +10,8 @@ type Role = Schemas["Role"];
 
 export function homeFor(me: Schemas["MeResponse"]): string {
   if (me.roles.includes("doctor")) return "/doctor";
+  if (me.roles.includes("patient") && me.patient_profile_id) return "/patient";
+  if (me.roles.includes("caregiver")) return "/care";
   return "/account";
 }
 

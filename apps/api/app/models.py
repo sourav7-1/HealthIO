@@ -35,6 +35,7 @@ from app.modules.notifications.models import Notification
 from app.modules.patients.models import PatientProfile
 from app.modules.prescriptions.models import Prescription, PrescriptionItem
 from app.modules.records.models import HealthDocument
+from app.modules.reminders.models import ReminderPreference
 
 __all__ = [
     "Allergy",
@@ -64,6 +65,7 @@ __all__ = [
     "Prescription",
     "PrescriptionItem",
     "RefreshToken",
+    "ReminderPreference",
     "Test",
     "TestOrder",
     "TestOrderItem",

@@ -5,8 +5,8 @@ import { z } from "zod";
 import { Alert, Button, Dialog, Field, Input, Select, Textarea } from "@/components/ui";
 import { dueDateFrom, isInPast, todayIso } from "@/lib/format";
 
-import { useBookAppointment, useSetFollowUp, type FollowUp } from "../api";
-import { useSubmit } from "../useSubmit";
+import { useBookAppointment, useSetFollowUp, type FollowUp } from "@/features/chart/api";
+import { useSubmit } from "@/features/chart/useSubmit";
 
 // --- Follow-up ---------------------------------------------------------------------------------
 

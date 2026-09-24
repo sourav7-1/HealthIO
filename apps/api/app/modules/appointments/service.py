@@ -188,3 +188,24 @@ async def upcoming_for_doctor(
         .limit(20)
     )
     return list(rows.all())
+
+
+async def cancel_for_prescription(
+    session: AsyncSession, *, patient_id: uuid.UUID, prescription_id: uuid.UUID, actor: uuid.UUID
+) -> int:
+    rows = list(
+        (
+            await session.scalars(
+                select(FollowUp).where(
+                    FollowUp.patient_id == patient_id,
+                    FollowUp.source_prescription_id == prescription_id,
+                    FollowUp.status == FollowUpStatus.OPEN,
+                )
+            )
+        ).all()
+    )
+    for row in rows:
+        row.status = FollowUpStatus.CANCELLED
+        row.updated_by = actor
+    await session.flush()
+    return len(rows)

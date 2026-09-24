@@ -20,6 +20,7 @@ dependencies = [
     "argon2-cffi>=25.1",
     "pyjwt[crypto]>=2.10",
     "email-validator>=2.2",
+    "reportlab>=4.2",
 ]
 
 [dependency-groups]
@@ -32,6 +33,7 @@ dev = [
     "boto3-stubs[s3]>=1.40",
     "celery-types>=0.23",
     "fakeredis>=2.38.0",
+    "types-reportlab>=5.0.0.20260911",
 ]
 
 [tool.uv]

@@ -1,8 +1,9 @@
 import uuid
 from datetime import datetime
 from typing import Literal
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr, field_validator
 
 from app.core.enums import Role
 from app.modules.identity.models import UserStatus
@@ -63,6 +64,8 @@ class MeResponse(BaseModel):
     patient_profile_id: uuid.UUID | None
     doctor_profile_id: uuid.UUID | None
     doctor_verification_status: str | None
+    timezone: str
+    preferred_language: str
 
 
 class SessionOut(BaseModel):
@@ -71,3 +74,28 @@ class SessionOut(BaseModel):
     last_seen_at: datetime
     expires_at: datetime
     current: bool
+
+
+class PasswordChange(_Strict):
+    current_password: SecretStr = Field(min_length=1, max_length=256)
+    new_password: SecretStr = Field(min_length=1, max_length=256)
+
+
+class AccountUpdate(_Strict):
+    display_name: str | None = Field(default=None, min_length=1, max_length=200)
+    timezone: str | None = Field(default=None, max_length=64)
+    preferred_language: Literal["en", "hi"] | None = None
+
+    @field_validator("timezone")
+    @classmethod
+    def _tz(cls, v: str | None) -> str | None:
+        if v is not None:
+            try:
+                ZoneInfo(v)
+            except (ZoneInfoNotFoundError, ValueError):
+                raise ValueError("Unknown timezone") from None
+        return v
+
+
+class PasswordChanged(BaseModel):
+    other_sessions_signed_out: int

@@ -15,7 +15,7 @@
 ## Layout
 ```
 apps/api        FastAPI modular monolith + Celery workers   (Python 3.12, uv)
-apps/web        React + Vite SPA: doctor portal built; other portals to come
+apps/web        React + Vite SPA: doctor and patient portals built; caregiver and admin portals to come
 packages/       generated API client, design tokens, shared TS config
 infra/          Dockerfiles (compose split and production config come in Phases 1b and 24)
 docs/           ADRs, API conventions, threat model, DPDP register, phase notes

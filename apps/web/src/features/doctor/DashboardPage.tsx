@@ -7,9 +7,9 @@ import { Alert, Badge, Button, Card, EmptyState, ErrorState, Skeleton, Stat } fr
 import { errorMessage } from "@/lib/api";
 import { formatDate, formatDateTime, formatTime, humanize } from "@/lib/format";
 
-import { useDashboard } from "./api";
+import { useDashboard } from "@/features/chart/api";
 import { AddPatientDialog } from "./forms/AddPatientDialog";
-import { PatientName, StatusBadge } from "./shared";
+import { PatientName, StatusBadge } from "@/features/chart/shared";
 
 export function DashboardPage() {
   const dashboard = useDashboard();

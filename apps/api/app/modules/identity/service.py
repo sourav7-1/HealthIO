@@ -26,6 +26,7 @@ from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 
 from redis.asyncio import Redis
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.client import ClientInfo
@@ -500,6 +501,62 @@ class AuthService:
             )
         await self.db.commit()
 
+    async def change_password(self, principal: Principal, current: str, new: str) -> int:
+        """Requires the current password; signs out every other device."""
+        user = await repo.lock_user(self.db, principal.user_id)
+        if user is None or not self.passwords.verify(user.password_hash, current):
+            await self._audit(
+                "auth.password_change",
+                AuditOutcome.DENIED,
+                user_id=principal.user_id,
+                reason="bad_current_password",
+            )
+            await self.db.commit()
+            raise InvalidCredentialsError("Your current password is not correct.")
+        self._check_password(new, user.email)
+        now = self._now()
+        user.password_hash = self.passwords.hash(new)
+        user.password_changed_at = now
+        user.updated_by = user.id
+        # Every other device is signed out; the one making the change stays signed in.
+        revoked = await repo.revoke_sessions(
+            self.db,
+            user.id,
+            SessionRevokeReason.PASSWORD_CHANGED,
+            now,
+            except_session=principal.session_id,
+        )
+        await self._audit(
+            "auth.password_change", user_id=user.id, context={"sessions_revoked": str(revoked)}
+        )
+        await self.db.commit()
+        return revoked
+
+    async def update_account(
+        self,
+        principal: Principal,
+        *,
+        display_name: str | None,
+        timezone: str | None,
+        preferred_language: str | None,
+    ) -> User:
+        user = await repo.get_user(self.db, principal.user_id)
+        if user is None:
+            raise InvalidTokenError()
+        changed = []
+        for field, value in (
+            ("display_name", display_name),
+            ("timezone", timezone),
+            ("preferred_language", preferred_language),
+        ):
+            if value is not None:
+                setattr(user, field, value)
+                changed.append(field)
+        user.updated_by = user.id
+        await self._audit("account.update", user_id=user.id, context={"fields": ",".join(changed)})
+        await self.db.commit()
+        return user
+
     async def list_sessions(self, principal: Principal) -> list[AuthSession]:
         return await repo.list_live_sessions(self.db, principal.user_id, self._now())
 
@@ -618,3 +675,11 @@ async def find_user_id_by_email(session: AsyncSession, email: str) -> uuid.UUID 
 
 async def get_account(session: AsyncSession, user_id: uuid.UUID) -> User | None:
     return await repo.get_user(session, user_id)
+
+
+async def display_names(session: AsyncSession, user_ids: set[uuid.UUID]) -> dict[uuid.UUID, str]:
+    """Display names for showing who someone is (e.g. a patient's caregivers)."""
+    if not user_ids:
+        return {}
+    rows = await session.execute(select(User.id, User.display_name).where(User.id.in_(user_ids)))
+    return dict(rows.tuples().all())

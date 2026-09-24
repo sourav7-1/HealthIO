@@ -7,8 +7,8 @@ import { z } from "zod";
 import { Alert, Button, Dialog, Field, Input, Select, Textarea } from "@/components/ui";
 import { bytes, todayIso } from "@/lib/format";
 
-import { uploadDocument, useOrderTests, useRecordReport, type TestOrder } from "../api";
-import { useSubmit } from "../useSubmit";
+import { uploadDocument, useOrderTests, useRecordReport, type TestOrder } from "@/features/chart/api";
+import { useSubmit } from "@/features/chart/useSubmit";
 
 // --- Order tests -----------------------------------------------------------------------------
 

@@ -7,10 +7,10 @@ import { Badge, Button, Card, EmptyState, ErrorState, Input, SkeletonList } from
 import { errorMessage } from "@/lib/api";
 import { ageFrom, formatDate, humanize, initials } from "@/lib/format";
 
-import { usePatients } from "./api";
+import { usePatients } from "@/features/chart/api";
 import { AddPatientDialog } from "./forms/AddPatientDialog";
 import { ConnectPatientDialog } from "./forms/ConnectPatientDialog";
-import { PatientName } from "./shared";
+import { PatientName } from "@/features/chart/shared";
 
 function useDebounced(value: string, ms = 300): string {
   const [debounced, setDebounced] = useState(value);

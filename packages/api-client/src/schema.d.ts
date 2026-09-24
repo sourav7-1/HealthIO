@@ -106,6 +106,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/password/change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change Password
+         * @description Needs the current password. Every other signed-in device is signed out.
+         */
+        post: operations["change_password_api_v1_auth_password_change_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/password/reset": {
         parameters: {
             query?: never;
@@ -225,6 +245,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/caregiver-invitations/{relationship_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline Invitation */
+        post: operations["decline_invitation_api_v1_caregiver_invitations__relationship_id__decline_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/doctor/dashboard": {
         parameters: {
             query?: never;
@@ -305,7 +342,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        patch?: never;
+        /** Update Me */
+        patch: operations["update_me_api_v1_me_patch"];
         trace?: never;
     };
     "/api/v1/me/caregiving": {
@@ -317,11 +355,69 @@ export interface paths {
         };
         /**
          * My Caregiving
-         * @description Patients I care for, and invitations waiting for me.
+         * @description People I care for, and invitations waiting for me.
          */
         get: operations["my_caregiving_api_v1_me_caregiving_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/caregiving/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Caregiver Dashboard */
+        get: operations["caregiver_dashboard_api_v1_me_caregiving_dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/caregiving/{relationship_id}/leave": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Leave Caregiving
+         * @description Stop being someone's caregiver. Your access ends immediately.
+         */
+        post: operations["leave_caregiving_api_v1_me_caregiving__relationship_id__leave_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/dependants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create Dependant
+         * @description Add someone you look after who does not use Health Io themselves: your child, or an
+         *     adult you are authorised to represent. You become their guardian on the platform.
+         */
+        post: operations["create_dependant_api_v1_me_dependants_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -432,6 +528,23 @@ export interface paths {
         put?: never;
         /** Invite Caregiver */
         post: operations["invite_caregiver_api_v1_patients__patient_id__caregivers_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/caregivers/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** What caregivers did with this patient's record (from the audit log) */
+        get: operations["caregiver_activity_api_v1_patients__patient_id__caregivers_activity_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -563,6 +676,98 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/patients/{patient_id}/doses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Doses
+         * @description Doses for `days` calendar days from `day` (default: today in the patient's timezone).
+         *     Opening the list also creates upcoming dose rows and records long-unanswered doses as
+         *     missed; the reminder engine (Phase 10) does the same on a schedule.
+         */
+        get: operations["list_doses_api_v1_patients__patient_id__doses_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/doses/{dose_id}/{action}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Record Dose */
+        post: operations["record_dose_api_v1_patients__patient_id__doses__dose_id___action__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/emergency-contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Contacts */
+        get: operations["list_contacts_api_v1_patients__patient_id__emergency_contacts_get"];
+        put?: never;
+        /** Add Contact */
+        post: operations["add_contact_api_v1_patients__patient_id__emergency_contacts_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/emergency-contacts/{contact_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove Contact */
+        delete: operations["remove_contact_api_v1_patients__patient_id__emergency_contacts__contact_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/emergency-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Profile */
+        get: operations["get_profile_api_v1_patients__patient_id__emergency_profile_get"];
+        /** Save Profile */
+        put: operations["save_profile_api_v1_patients__patient_id__emergency_profile_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/patients/{patient_id}/follow-ups": {
         parameters: {
             query?: never;
@@ -627,10 +832,106 @@ export interface paths {
         put?: never;
         /**
          * Record Existing Medication
-         * @description Record a medicine the patient already takes (e.g. started elsewhere), as reported
-         *     to the doctor. New treatment is written as a prescription instead.
+         * @description Doctor: record a medicine the patient already takes (e.g. started elsewhere).
+         *     New treatment is written as a prescription instead.
          */
         post: operations["record_existing_medication_api_v1_patients__patient_id__medications_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/medications/self-reported": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Self Reported
+         * @description A medicine the patient takes that no doctor prescribed here. Always labelled
+         *     patient-reported.
+         */
+        post: operations["add_self_reported_api_v1_patients__patient_id__medications_self_reported_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/medications/{medication_id}/as-needed-dose": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Log As Needed */
+        post: operations["log_as_needed_api_v1_patients__patient_id__medications__medication_id__as_needed_dose_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/medications/{medication_id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm Medication
+         * @description Start a prescribed medicine by choosing reminder times. The prescription itself
+         *     is not changed.
+         */
+        post: operations["confirm_medication_api_v1_patients__patient_id__medications__medication_id__confirm_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/medications/{medication_id}/reminder-times": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Change Reminder Times */
+        put: operations["change_reminder_times_api_v1_patients__patient_id__medications__medication_id__reminder_times_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/medications/{medication_id}/stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Stop Medication
+         * @description Only self-reported medicines. Prescribed medicines are changed by the doctor.
+         */
+        post: operations["stop_medication_api_v1_patients__patient_id__medications__medication_id__stop_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -729,7 +1030,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Prescriptions */
+        /**
+         * List Prescriptions
+         * @description All versions, newest first. Superseded versions carry `superseded_by_id`.
+         */
         get: operations["list_prescriptions_api_v1_patients__patient_id__prescriptions_get"];
         put?: never;
         /** Create Prescription */
@@ -747,8 +1051,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        /** Update Prescription */
+        /**
+         * Get Prescription Document
+         * @description The prescription as a document: prescriber and patient details, items as written,
+         *     and every version of it (for the history view).
+         */
+        get: operations["get_prescription_document_api_v1_patients__patient_id__prescriptions__prescription_id__get"];
+        /**
+         * Update Prescription
+         * @description Edit a draft. Issued prescriptions are immutable: use /revisions to correct one.
+         */
         put: operations["update_prescription_api_v1_patients__patient_id__prescriptions__prescription_id__put"];
         post?: never;
         delete?: never;
@@ -768,7 +1080,8 @@ export interface paths {
         put?: never;
         /**
          * Cancel Prescription
-         * @description Cancel an issued prescription (kept as history), or discard an unissued draft.
+         * @description Cancel an issued prescription (kept as history; its medicines stop), or discard an
+         *     unissued draft.
          */
         post: operations["cancel_prescription_api_v1_patients__patient_id__prescriptions__prescription_id__cancel_post"];
         delete?: never;
@@ -789,9 +1102,51 @@ export interface paths {
         /**
          * Issue Prescription
          * @description Issue (freeze) a draft. Its medicines appear on the patient's list as awaiting the
-         *     patient's confirmation; no reminder starts until they confirm the schedule.
+         *     patient's confirmation; no reminder starts until they confirm the schedule. Issuing a
+         *     correction supersedes the previous version and stops the medicines it started.
          */
         post: operations["issue_prescription_api_v1_patients__patient_id__prescriptions__prescription_id__issue_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/prescriptions/{prescription_id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export Prescription Pdf
+         * @description Download the prescription as PDF. Non-current versions are clearly marked.
+         */
+        get: operations["export_prescription_pdf_api_v1_patients__patient_id__prescriptions__prescription_id__pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/prescriptions/{prescription_id}/revisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Start Revision
+         * @description Correct an issued prescription. Creates a new draft version (the issued one is not
+         *     touched); issuing that draft supersedes the previous version.
+         */
+        post: operations["start_revision_api_v1_patients__patient_id__prescriptions__prescription_id__revisions_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -808,6 +1163,28 @@ export interface paths {
         /** Get Profile */
         get: operations["get_profile_api_v1_patients__patient_id__profile_get"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update Profile
+         * @description Personal details only. Clinical records are never edited through this endpoint.
+         */
+        patch: operations["update_profile_api_v1_patients__patient_id__profile_patch"];
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/reminder-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Preferences */
+        get: operations["get_preferences_api_v1_patients__patient_id__reminder_preferences_get"];
+        /** Save Preferences */
+        put: operations["save_preferences_api_v1_patients__patient_id__reminder_preferences_put"];
         post?: never;
         delete?: never;
         options?: never;
@@ -832,6 +1209,63 @@ export interface paths {
          */
         post: operations["add_report_api_v1_patients__patient_id__reports_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/self-reported/allergies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Report Allergy
+         * @description Stored as patient-reported and unconfirmed; doctors see it labelled that way.
+         */
+        post: operations["report_allergy_api_v1_patients__patient_id__self_reported_allergies_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/self-reported/conditions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Report Condition */
+        post: operations["report_condition_api_v1_patients__patient_id__self_reported_conditions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/self-reported/{kind}/{entry_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove Self Reported
+         * @description Only entries the patient reported; a doctor's entries cannot be removed here.
+         */
+        delete: operations["remove_self_reported_api_v1_patients__patient_id__self_reported__kind___entry_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -1001,6 +1435,15 @@ export interface components {
             /** Detail */
             detail: string;
         };
+        /** AccountUpdate */
+        AccountUpdate: {
+            /** Display Name */
+            display_name?: string | null;
+            /** Preferred Language */
+            preferred_language?: ("en" | "hi") | null;
+            /** Timezone */
+            timezone?: string | null;
+        };
         /** AdherenceLineOut */
         AdherenceLineOut: {
             /**
@@ -1032,6 +1475,11 @@ export interface components {
             /** Total Recorded */
             total_recorded: number;
         };
+        /**
+         * AllergenCategory
+         * @enum {string}
+         */
+        AllergenCategory: "medication" | "food" | "environment" | "biologic" | "other";
         /** AllergyOut */
         AllergyOut: {
             /** Category */
@@ -1125,13 +1573,51 @@ export interface components {
          * @enum {string}
          */
         AppointmentStatus: "requested" | "scheduled" | "confirmed" | "checked_in" | "completed" | "cancelled" | "no_show";
+        /** AsNeededIn */
+        AsNeededIn: {
+            /** Taken At */
+            taken_at?: string | null;
+        };
+        /**
+         * BloodGroup
+         * @enum {string}
+         */
+        BloodGroup: "A+" | "A-" | "B+" | "B-" | "AB+" | "AB-" | "O+" | "O-" | "unknown";
         /** CancelIn */
         CancelIn: {
             /** Reason */
             reason: string;
         };
+        /** CaregiverActivityOut */
+        CaregiverActivityOut: {
+            /** Action */
+            action: string;
+            /** Caregiver Name */
+            caregiver_name: string | null;
+            /**
+             * Caregiver User Id
+             * Format: uuid
+             */
+            caregiver_user_id: string;
+            /**
+             * Occurred At
+             * Format: date-time
+             */
+            occurred_at: string;
+            /** Outcome */
+            outcome: string;
+            /** Resource Type */
+            resource_type: string | null;
+        };
+        /** CaregiverDashboard */
+        CaregiverDashboard: {
+            /** People */
+            people: components["schemas"]["DependantSummary"][];
+        };
         /** CaregiverLinkOut */
         CaregiverLinkOut: {
+            /** Caregiver Name */
+            caregiver_name?: string | null;
             /**
              * Caregiver User Id
              * Format: uuid
@@ -1139,6 +1625,13 @@ export interface components {
             caregiver_user_id: string;
             /** Expires At */
             expires_at: string | null;
+            /** Guardian Basis */
+            guardian_basis?: string | null;
+            /**
+             * Is Dependant
+             * @default false
+             */
+            is_dependant: boolean;
             /** Is Guardian */
             is_guardian: boolean;
             /**
@@ -1146,6 +1639,8 @@ export interface components {
              * Format: uuid
              */
             patient_id: string;
+            /** Patient Name */
+            patient_name?: string | null;
             /**
              * Relationship Id
              * Format: uuid
@@ -1160,12 +1655,14 @@ export interface components {
          * CaregiverPermissionScope
          * @description What a caregiver may do for a patient. Least privilege: grant only what is needed.
          *
-         *     Deliberately absent: editing clinical records, changing a doctor's prescription and
-         *     deleting medical records. Those can never be granted to a caregiver
+         *     Every scope is read-only or writes only information labelled as the caregiver's own
+         *     (dose confirmations, reminder times, uploads, reported allergies). Deliberately
+         *     absent: editing clinical records, changing a doctor's prescription and deleting
+         *     medical records. Those can never be granted to a caregiver
          *     (app/modules/access/permissions.py enforces this again at decision time).
          * @enum {string}
          */
-        CaregiverPermissionScope: "view_profile" | "view_medical_history" | "view_medications" | "log_doses" | "manage_reminders" | "view_appointments" | "manage_appointments" | "view_reports" | "upload_reports" | "receive_alerts" | "use_ai_assistant" | "manage_emergency_info" | "manage_caregivers";
+        CaregiverPermissionScope: "view_profile" | "view_medical_history" | "view_prescriptions" | "view_visits" | "view_adherence" | "report_health_info" | "view_medications" | "log_doses" | "manage_reminders" | "view_appointments" | "manage_appointments" | "view_reports" | "upload_reports" | "receive_alerts" | "use_ai_assistant" | "manage_emergency_info" | "manage_caregivers";
         /**
          * CaregiverRelationshipType
          * @enum {string}
@@ -1260,6 +1757,38 @@ export interface components {
              */
             requested_at: string;
         };
+        /** ContactIn */
+        ContactIn: {
+            /** Name */
+            name: string;
+            /**
+             * Notify On Sos
+             * @default true
+             */
+            notify_on_sos: boolean;
+            /** Phone */
+            phone: string;
+            /** Relationship Label */
+            relationship_label?: string | null;
+        };
+        /** ContactOut */
+        ContactOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            /** Notify On Sos */
+            notify_on_sos: boolean;
+            /** Phone */
+            phone: string;
+            /** Priority */
+            priority: number;
+            /** Relationship Label */
+            relationship_label: string | null;
+        };
         /** DashboardAppointment */
         DashboardAppointment: {
             /**
@@ -1346,6 +1875,69 @@ export interface components {
          * @enum {string}
          */
         DataCategory: "demographics" | "conditions" | "allergies" | "medications" | "prescriptions" | "visits_and_notes" | "tests_and_reports" | "documents" | "adherence" | "appointments" | "emergency";
+        /**
+         * DependantBasis
+         * @description Why someone may manage another person's health record (their declaration).
+         *
+         *     Minors: a parent or legal guardian consents for them (DPDP Act s.9).
+         *     Adults: a lawful guardian or attorney, or the person's own agreement to be helped.
+         * @enum {string}
+         */
+        DependantBasis: "parent_of_minor" | "legal_guardian_of_minor" | "court_appointed_guardian" | "power_of_attorney" | "adult_consented";
+        /** DependantIn */
+        DependantIn: {
+            basis: components["schemas"]["DependantBasis"];
+            /**
+             * Date Of Birth
+             * Format: date
+             */
+            date_of_birth: string;
+            /** Declaration Accepted */
+            declaration_accepted: boolean;
+            /** Family Name */
+            family_name?: string | null;
+            /** Given Name */
+            given_name: string;
+            relationship_type: components["schemas"]["CaregiverRelationshipType"];
+            sex_at_birth: components["schemas"]["SexAtBirth"];
+            /**
+             * Timezone
+             * @default Asia/Kolkata
+             */
+            timezone: string;
+        };
+        /** DependantSummary */
+        DependantSummary: {
+            /** Appointments */
+            appointments: components["schemas"]["AppointmentOut"][] | null;
+            /** Follow Ups */
+            follow_ups: components["schemas"]["FollowUpOut"][] | null;
+            /** Is Dependant */
+            is_dependant: boolean;
+            /** Is Guardian */
+            is_guardian: boolean;
+            /** Missed Doses */
+            missed_doses: components["schemas"]["DoseOut"][] | null;
+            /** Name */
+            name: string;
+            /**
+             * Patient Id
+             * Format: uuid
+             */
+            patient_id: string;
+            /** Permissions */
+            permissions: string[];
+            /** Recent Reports */
+            recent_reports: components["schemas"]["ReportSummary"][] | null;
+            /**
+             * Relationship Id
+             * Format: uuid
+             */
+            relationship_id: string;
+            relationship_type: components["schemas"]["CaregiverRelationshipType"];
+            /** Today Doses */
+            today_doses: components["schemas"]["DoseOut"][] | null;
+        };
         /** DoctorVerificationOut */
         DoctorVerificationOut: {
             /**
@@ -1357,6 +1949,35 @@ export interface components {
             verification_status: string;
             /** Verified At */
             verified_at: string | null;
+        };
+        /** DocumentItemOut */
+        DocumentItemOut: {
+            /** Dosage Form */
+            dosage_form: string | null;
+            /** Dose */
+            dose: string | null;
+            /** Duration Days */
+            duration_days: number | null;
+            /** Frequency */
+            frequency: string | null;
+            /** Generic Name */
+            generic_name: string | null;
+            /** Instructions */
+            instructions: string | null;
+            /** Is Prn */
+            is_prn: boolean;
+            /** Meal Relation */
+            meal_relation: string | null;
+            /** Medicine */
+            medicine: string;
+            /** Prn Reason */
+            prn_reason: string | null;
+            /** Route */
+            route: string | null;
+            /** Sequence */
+            sequence: number;
+            /** Strength */
+            strength: string | null;
         };
         /** DocumentOut */
         DocumentOut: {
@@ -1390,6 +2011,52 @@ export interface components {
          * @enum {string}
          */
         DocumentType: "prescription" | "lab_report" | "imaging_report" | "discharge_summary" | "consultation_note" | "vaccination_record" | "medical_certificate" | "insurance" | "other";
+        /** DoseActionIn */
+        DoseActionIn: {
+            /** Minutes */
+            minutes?: (5 | 10 | 15 | 30 | 60) | null;
+            /** Reason */
+            reason?: string | null;
+        };
+        /** DoseOut */
+        DoseOut: {
+            /** As Needed */
+            as_needed: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Instructions */
+            instructions: string | null;
+            meal_relation: components["schemas"]["MealRelation"] | null;
+            /**
+             * Medication Id
+             * Format: uuid
+             */
+            medication_id: string;
+            /** Medication Name */
+            medication_name: string;
+            /** Scheduled At */
+            scheduled_at: string | null;
+            /** Skip Reason */
+            skip_reason: string | null;
+            /** Snooze Count */
+            snooze_count: number;
+            /** Snoozed Until */
+            snoozed_until: string | null;
+            source: components["schemas"]["MedicationSource"];
+            status: components["schemas"]["DoseStatus"];
+            /** Strength */
+            strength: string | null;
+            /** Taken At */
+            taken_at: string | null;
+        };
+        /**
+         * DoseStatus
+         * @enum {string}
+         */
+        DoseStatus: "scheduled" | "snoozed" | "taken" | "skipped" | "missed" | "cancelled";
         /** DownloadOut */
         DownloadOut: {
             /** Expires In */
@@ -1404,6 +2071,64 @@ export interface components {
              * Format: email
              */
             email: string;
+        };
+        /** EmergencyProfileModel */
+        EmergencyProfileModel: {
+            /** Advance Directive */
+            advance_directive?: string | null;
+            /** Critical Information */
+            critical_information?: string | null;
+            organ_donor?: components["schemas"]["OrganDonorStatus"] | null;
+            /**
+             * Show Allergies
+             * @default true
+             */
+            show_allergies: boolean;
+            /**
+             * Show Blood Group
+             * @default true
+             */
+            show_blood_group: boolean;
+            /**
+             * Show Conditions
+             * @default false
+             */
+            show_conditions: boolean;
+            /**
+             * Show Medications
+             * @default false
+             */
+            show_medications: boolean;
+        };
+        /** EmergencyProfileOut */
+        EmergencyProfileOut: {
+            /** Advance Directive */
+            advance_directive?: string | null;
+            /** Critical Information */
+            critical_information?: string | null;
+            /** Last Reviewed At */
+            last_reviewed_at?: string | null;
+            organ_donor?: components["schemas"]["OrganDonorStatus"] | null;
+            /**
+             * Show Allergies
+             * @default true
+             */
+            show_allergies: boolean;
+            /**
+             * Show Blood Group
+             * @default true
+             */
+            show_blood_group: boolean;
+            /**
+             * Show Conditions
+             * @default false
+             */
+            show_conditions: boolean;
+            /**
+             * Show Medications
+             * @default false
+             */
+            show_medications: boolean;
         };
         /** ExistingMedicationIn */
         ExistingMedicationIn: {
@@ -1649,9 +2374,13 @@ export interface components {
             patient_profile_id: string | null;
             /** Platform Permissions */
             platform_permissions: string[];
+            /** Preferred Language */
+            preferred_language: string;
             /** Roles */
             roles: components["schemas"]["Role"][];
             status: components["schemas"]["UserStatus"];
+            /** Timezone */
+            timezone: string;
         };
         /**
          * MealRelation
@@ -1688,10 +2417,16 @@ export interface components {
             is_prn: boolean;
             /** Name */
             name: string;
+            /**
+             * Prescribed Directions
+             * @description The prescription line exactly as the doctor wrote it
+             */
+            prescribed_directions?: string | null;
             /** Prescription Item Id */
             prescription_item_id: string | null;
             /** Route */
             route: string | null;
+            schedule?: components["schemas"]["ScheduleOut"] | null;
             source: components["schemas"]["MedicationSource"];
             /** Start Date */
             start_date: string | null;
@@ -1830,6 +2565,11 @@ export interface components {
             /** Visit Id */
             visit_id: string | null;
         };
+        /**
+         * OrganDonorStatus
+         * @enum {string}
+         */
+        OrganDonorStatus: "yes" | "no" | "undecided";
         /** OverviewOut */
         OverviewOut: {
             /** Active Conditions */
@@ -1857,6 +2597,24 @@ export interface components {
             /** Via */
             via: string[];
         };
+        /** PasswordChange */
+        PasswordChange: {
+            /**
+             * Current Password
+             * Format: password
+             */
+            current_password: string;
+            /**
+             * New Password
+             * Format: password
+             */
+            new_password: string;
+        };
+        /** PasswordChanged */
+        PasswordChanged: {
+            /** Other Sessions Signed Out */
+            other_sessions_signed_out: number;
+        };
         /** PasswordResetConfirm */
         PasswordResetConfirm: {
             /**
@@ -1878,6 +2636,15 @@ export interface components {
             permissions: string[];
             /** Via */
             via: string[];
+        };
+        /** PatientInfoOut */
+        PatientInfoOut: {
+            /** Age Years */
+            age_years: number | null;
+            /** Name */
+            name: string;
+            /** Sex */
+            sex: string | null;
         };
         /** PatientListItem */
         PatientListItem: {
@@ -1902,12 +2669,103 @@ export interface components {
             /** Since */
             since: string | null;
         };
+        /** PreferencesModel */
+        PreferencesModel: {
+            /** Channel Email */
+            channel_email: boolean;
+            /** Channel Push */
+            channel_push: boolean;
+            /** Channel Sms */
+            channel_sms: boolean;
+            /**
+             * Default Snooze Minutes
+             * @enum {integer}
+             */
+            default_snooze_minutes: 5 | 10 | 15 | 30 | 60;
+            /** Missed After Minutes */
+            missed_after_minutes: number;
+            /** Notify Caregivers On Missed */
+            notify_caregivers_on_missed: boolean;
+            /** Quiet Hours End */
+            quiet_hours_end: string | null;
+            /** Quiet Hours Start */
+            quiet_hours_start: string | null;
+            /** Reminders Enabled */
+            reminders_enabled: boolean;
+            /** Show Medicine Names */
+            show_medicine_names: boolean;
+        };
+        /** PrescriberOut */
+        PrescriberOut: {
+            /** Name */
+            name: string;
+            /** Practice Address */
+            practice_address: string | null;
+            /** Practice Name */
+            practice_name: string | null;
+            /** Qualifications */
+            qualifications: string[];
+            /** Registration Council */
+            registration_council: string | null;
+            /** Registration Number */
+            registration_number: string | null;
+            /** Specialty */
+            specialty: string | null;
+        };
+        /** PrescriptionDocumentOut */
+        PrescriptionDocumentOut: {
+            /** Advice */
+            advice: string | null;
+            /** Cancel Reason */
+            cancel_reason: string | null;
+            /** Cancelled At */
+            cancelled_at: string | null;
+            /** Content Sha256 */
+            content_sha256: string | null;
+            /** Diagnosis As Written */
+            diagnosis_as_written: string | null;
+            /** Follow Up Instructions */
+            follow_up_instructions: string | null;
+            /** Follow Up On */
+            follow_up_on: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Issued At */
+            issued_at: string | null;
+            /** Items */
+            items: components["schemas"]["DocumentItemOut"][];
+            patient: components["schemas"]["PatientInfoOut"] | null;
+            /** Prescribed On */
+            prescribed_on: string | null;
+            prescriber: components["schemas"]["PrescriberOut"] | null;
+            /** Revision */
+            revision: number;
+            /** Revision Reason */
+            revision_reason: string | null;
+            /** Status */
+            status: string;
+            /** Superseded By Id */
+            superseded_by_id: string | null;
+            /** Supersedes Prescription Id */
+            supersedes_prescription_id: string | null;
+            /** Valid Until */
+            valid_until: string | null;
+            /** Versions */
+            versions: components["schemas"]["VersionOut"][];
+        };
         /** PrescriptionIn */
         PrescriptionIn: {
             /** Advice */
             advice?: string | null;
             /** Diagnosis As Written */
             diagnosis_as_written?: string | null;
+            /** Follow Up Instructions */
+            follow_up_instructions?: string | null;
+            /** Follow Up On */
+            follow_up_on?: string | null;
             /** Items */
             items: components["schemas"]["ItemIn"][];
             /** Prescribed On */
@@ -1925,10 +2783,16 @@ export interface components {
             cancel_reason: string | null;
             /** Cancelled At */
             cancelled_at: string | null;
+            /** Content Sha256 */
+            content_sha256: string | null;
             /** Diagnosis As Written */
             diagnosis_as_written: string | null;
             /** External Prescriber Name */
             external_prescriber_name: string | null;
+            /** Follow Up Instructions */
+            follow_up_instructions: string | null;
+            /** Follow Up On */
+            follow_up_on: string | null;
             /**
              * Id
              * Format: uuid
@@ -1946,8 +2810,16 @@ export interface components {
             prescriber_doctor_id: string | null;
             /** Prescriber Name */
             prescriber_name: string | null;
+            /** Revision */
+            revision: number;
+            /** Revision Reason */
+            revision_reason: string | null;
             source: components["schemas"]["PrescriptionSource"];
             status: components["schemas"]["PrescriptionStatus"];
+            /** Superseded By Id */
+            superseded_by_id: string | null;
+            /** Supersedes Prescription Id */
+            supersedes_prescription_id: string | null;
             /** Valid Until */
             valid_until: string | null;
             verification_status: components["schemas"]["VerificationStatus"];
@@ -1970,8 +2842,14 @@ export interface components {
             advice?: string | null;
             /** Diagnosis As Written */
             diagnosis_as_written?: string | null;
+            /** Follow Up Instructions */
+            follow_up_instructions?: string | null;
+            /** Follow Up On */
+            follow_up_on?: string | null;
             /** Items */
             items: components["schemas"]["ItemIn"][];
+            /** Revision Reason */
+            revision_reason?: string | null;
             /** Valid Until */
             valid_until?: string | null;
         };
@@ -1996,11 +2874,35 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Preferred Language */
+            preferred_language: string;
             /** Sex At Birth */
             sex_at_birth: string;
             /** Status */
             status: string;
+            /** Timezone */
+            timezone: string;
         };
+        /** ProfileUpdate */
+        ProfileUpdate: {
+            blood_group?: components["schemas"]["BloodGroup"] | null;
+            /** Date Of Birth */
+            date_of_birth?: string | null;
+            /** Family Name */
+            family_name?: string | null;
+            /** Given Name */
+            given_name?: string | null;
+            /** Preferred Language */
+            preferred_language?: ("en" | "hi") | null;
+            sex_at_birth?: components["schemas"]["SexAtBirth"] | null;
+            /** Timezone */
+            timezone?: string | null;
+        };
+        /**
+         * ReactionSeverity
+         * @enum {string}
+         */
+        ReactionSeverity: "mild" | "moderate" | "severe" | "life_threatening";
         /** ReadyResponse */
         ReadyResponse: {
             /** Checks */
@@ -2050,6 +2952,17 @@ export interface components {
          * @enum {string}
          */
         RegistrationRole: "patient" | "caregiver" | "doctor";
+        /** ReminderTimesIn */
+        ReminderTimesIn: {
+            meal_relation?: components["schemas"]["MealRelation"] | null;
+            /** Times Of Day */
+            times_of_day?: string[];
+            /**
+             * Timezone
+             * @description Defaults to the patient's timezone
+             */
+            timezone?: string | null;
+        };
         /** ReportIn */
         ReportIn: {
             /** Collected At */
@@ -2101,6 +3014,46 @@ export interface components {
             status: components["schemas"]["TestReportStatus"];
             /** Verified At */
             verified_at: string | null;
+        };
+        /** ReportSummary */
+        ReportSummary: {
+            /** Collected At */
+            collected_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Lab Name */
+            lab_name: string | null;
+            /** Result Count */
+            result_count: number;
+            /** Source */
+            source: string;
+        };
+        /** ReportedAllergyIn */
+        ReportedAllergyIn: {
+            /** @default medication */
+            category: components["schemas"]["AllergenCategory"];
+            /** Reaction */
+            reaction?: string | null;
+            severity?: components["schemas"]["ReactionSeverity"] | null;
+            /** Substance */
+            substance: string;
+        };
+        /** ReportedConditionIn */
+        ReportedConditionIn: {
+            /** Name */
+            name: string;
+            /** Notes */
+            notes?: string | null;
+            /** Onset Date */
+            onset_date?: string | null;
         };
         /** RespondIn */
         RespondIn: {
@@ -2161,6 +3114,23 @@ export interface components {
             /** Value Text */
             value_text?: string | null;
         };
+        /** RevisionIn */
+        RevisionIn: {
+            /** Advice */
+            advice?: string | null;
+            /** Diagnosis As Written */
+            diagnosis_as_written?: string | null;
+            /** Follow Up Instructions */
+            follow_up_instructions?: string | null;
+            /** Follow Up On */
+            follow_up_on?: string | null;
+            /** Items */
+            items: components["schemas"]["ItemIn"][];
+            /** Reason */
+            reason: string;
+            /** Valid Until */
+            valid_until?: string | null;
+        };
         /**
          * Role
          * @enum {string}
@@ -2172,6 +3142,46 @@ export interface components {
          * @enum {string}
          */
         ScanStatus: "pending_upload" | "pending_scan" | "clean" | "quarantined" | "failed";
+        /** ScheduleOut */
+        ScheduleOut: {
+            meal_relation: components["schemas"]["MealRelation"] | null;
+            /** Times Of Day */
+            times_of_day: string[];
+            /** Timezone */
+            timezone: string;
+            type: components["schemas"]["ScheduleType"];
+        };
+        /**
+         * ScheduleType
+         * @enum {string}
+         */
+        ScheduleType: "fixed_times" | "interval" | "as_needed";
+        /** SelfReportedIn */
+        SelfReportedIn: {
+            /** Dosage Form */
+            dosage_form?: string | null;
+            /** Instructions */
+            instructions?: string | null;
+            /**
+             * Is Prn
+             * @default false
+             */
+            is_prn: boolean;
+            meal_relation?: components["schemas"]["MealRelation"] | null;
+            /** Name */
+            name: string;
+            /** Start Date */
+            start_date?: string | null;
+            /** Strength */
+            strength?: string | null;
+            /** Times Of Day */
+            times_of_day?: string[];
+            /**
+             * Timezone
+             * @description Defaults to the patient's timezone
+             */
+            timezone?: string | null;
+        };
         /** SessionOut */
         SessionOut: {
             /**
@@ -2212,6 +3222,11 @@ export interface components {
          * @enum {string}
          */
         SexAtBirth: "female" | "male" | "intersex" | "unknown";
+        /** StopIn */
+        StopIn: {
+            /** Reason */
+            reason?: string | null;
+        };
         /**
          * TestOrderStatus
          * @enum {string}
@@ -2326,6 +3341,22 @@ export interface components {
         VerifyDoctor: {
             /** Notes */
             notes?: string | null;
+        };
+        /** VersionOut */
+        VersionOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Issued At */
+            issued_at: string | null;
+            /** Revision */
+            revision: number;
+            /** Revision Reason */
+            revision_reason: string | null;
+            /** Status */
+            status: string;
         };
         /** VisitDetailOut */
         VisitDetailOut: {
@@ -2544,6 +3575,39 @@ export interface operations {
             };
         };
     };
+    change_password_api_v1_auth_password_change_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordChange"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PasswordChanged"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     reset_password_api_v1_auth_password_reset_post: {
         parameters: {
             query?: never;
@@ -2741,6 +3805,35 @@ export interface operations {
             };
         };
     };
+    decline_invitation_api_v1_caregiver_invitations__relationship_id__decline_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                relationship_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     dashboard_api_v1_doctor_dashboard_get: {
         parameters: {
             query?: never;
@@ -2878,6 +3971,39 @@ export interface operations {
             };
         };
     };
+    update_me_api_v1_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     my_caregiving_api_v1_me_caregiving_get: {
         parameters: {
             query?: never;
@@ -2894,6 +4020,88 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CaregiverLinkOut"][];
+                };
+            };
+        };
+    };
+    caregiver_dashboard_api_v1_me_caregiving_dashboard_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverDashboard"];
+                };
+            };
+        };
+    };
+    leave_caregiving_api_v1_me_caregiving__relationship_id__leave_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                relationship_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_dependant_api_v1_me_dependants_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DependantIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverLinkOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -3146,6 +4354,37 @@ export interface operations {
             };
         };
     };
+    caregiver_activity_api_v1_patients__patient_id__caregivers_activity_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaregiverActivityOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     revoke_caregiver_api_v1_patients__patient_id__caregivers__relationship_id__delete: {
         parameters: {
             query?: never;
@@ -3377,6 +4616,239 @@ export interface operations {
             };
         };
     };
+    list_doses_api_v1_patients__patient_id__doses_get: {
+        parameters: {
+            query?: {
+                day?: string | null;
+                days?: number;
+            };
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DoseOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    record_dose_api_v1_patients__patient_id__doses__dose_id___action__post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                dose_id: string;
+                action: "take" | "skip" | "snooze";
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DoseActionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DoseOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_contacts_api_v1_patients__patient_id__emergency_contacts_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_contact_api_v1_patients__patient_id__emergency_contacts_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_contact_api_v1_patients__patient_id__emergency_contacts__contact_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                contact_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_profile_api_v1_patients__patient_id__emergency_profile_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmergencyProfileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_profile_api_v1_patients__patient_id__emergency_profile_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmergencyProfileModel"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EmergencyProfileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_follow_ups_api_v1_patients__patient_id__follow_ups_get: {
         parameters: {
             query?: never;
@@ -3555,6 +5027,185 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_self_reported_api_v1_patients__patient_id__medications_self_reported_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelfReportedIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    log_as_needed_api_v1_patients__patient_id__medications__medication_id__as_needed_dose_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                medication_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AsNeededIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DoseOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_medication_api_v1_patients__patient_id__medications__medication_id__confirm_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                medication_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReminderTimesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    change_reminder_times_api_v1_patients__patient_id__medications__medication_id__reminder_times_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                medication_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReminderTimesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MedicationOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    stop_medication_api_v1_patients__patient_id__medications__medication_id__stop_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                medication_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StopIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -3805,6 +5456,38 @@ export interface operations {
             };
         };
     };
+    get_prescription_document_api_v1_patients__patient_id__prescriptions__prescription_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                prescription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrescriptionDocumentOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     update_prescription_api_v1_patients__patient_id__prescriptions__prescription_id__put: {
         parameters: {
             query?: never;
@@ -3907,6 +5590,74 @@ export interface operations {
             };
         };
     };
+    export_prescription_pdf_api_v1_patients__patient_id__prescriptions__prescription_id__pdf_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                prescription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    start_revision_api_v1_patients__patient_id__prescriptions__prescription_id__revisions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                prescription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RevisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrescriptionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_profile_api_v1_patients__patient_id__profile_get: {
         parameters: {
             query?: never;
@@ -3925,6 +5676,107 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_profile_api_v1_patients__patient_id__profile_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProfileUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProfileOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_preferences_api_v1_patients__patient_id__reminder_preferences_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesModel"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_preferences_api_v1_patients__patient_id__reminder_preferences_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferencesModel"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesModel"];
                 };
             };
             /** @description Validation Error */
@@ -3992,6 +5844,107 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["ReportOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_allergy_api_v1_patients__patient_id__self_reported_allergies_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportedAllergyIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AllergyOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_condition_api_v1_patients__patient_id__self_reported_conditions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportedConditionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConditionOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_self_reported_api_v1_patients__patient_id__self_reported__kind___entry_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                kind: "allergies" | "conditions";
+                entry_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

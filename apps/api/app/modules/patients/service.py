@@ -6,6 +6,7 @@ from datetime import date
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.errors import NotFoundError
 from app.modules.patients.models import PatientProfile, PatientStatus, SexAtBirth
 
 
@@ -65,6 +66,33 @@ async def create_clinic_patient(
     return profile
 
 
+async def create_dependant_profile(
+    session: AsyncSession,
+    *,
+    given_name: str,
+    family_name: str | None,
+    date_of_birth: date,
+    sex_at_birth: SexAtBirth,
+    timezone: str,
+    created_by: uuid.UUID,
+) -> PatientProfile:
+    """A dependant (a child, or an adult someone represents) with no login of their own.
+    It is managed only through guardian caregiver relationships."""
+    profile = PatientProfile(
+        user_id=None,
+        given_name=given_name.strip(),
+        family_name=(family_name or "").strip() or None,
+        date_of_birth=date_of_birth,
+        sex_at_birth=sex_at_birth,
+        timezone=timezone,
+        created_by=created_by,
+        updated_by=created_by,
+    )
+    session.add(profile)
+    await session.flush()
+    return profile
+
+
 async def get_profiles(
     session: AsyncSession, patient_ids: list[uuid.UUID]
 ) -> dict[uuid.UUID, PatientProfile]:
@@ -95,3 +123,37 @@ async def search_within(
         )
     rows = await session.scalars(stmt.order_by(PatientProfile.given_name).limit(100))
     return list(rows.all())
+
+
+PATIENT_EDITABLE = frozenset(
+    {
+        "given_name",
+        "family_name",
+        "date_of_birth",
+        "sex_at_birth",
+        "gender_identity",
+        "blood_group",
+        "preferred_language",
+        "timezone",
+    }
+)
+
+
+async def update_profile(
+    session: AsyncSession, patient_id: uuid.UUID, changes: dict[str, object], actor: uuid.UUID
+) -> PatientProfile:
+    """Patient-maintained personal details. Clinical records are never edited here."""
+    profile = await session.scalar(
+        select(PatientProfile)
+        .where(PatientProfile.id == patient_id, PatientProfile.deleted_at.is_(None))
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if profile is None:
+        raise NotFoundError()
+    for field, value in changes.items():
+        if field in PATIENT_EDITABLE:
+            setattr(profile, field, value)
+    profile.updated_by = actor
+    await session.flush()
+    return profile

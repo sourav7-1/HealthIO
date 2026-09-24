@@ -6,8 +6,8 @@ import { z } from "zod";
 
 import { Alert, Button, Dialog, EmptyState, Field, Input } from "@/components/ui";
 
-import { useConnectPatient } from "../api";
-import { useSubmit } from "../useSubmit";
+import { useConnectPatient } from "@/features/chart/api";
+import { useSubmit } from "@/features/chart/useSubmit";
 
 const schema = z.object({ patient_email: z.email("Enter the email the patient uses for Health Io") });
 type Values = z.infer<typeof schema>;

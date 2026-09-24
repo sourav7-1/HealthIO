@@ -85,6 +85,7 @@ async def revoke_sessions(
     now: datetime,
     *,
     only: uuid.UUID | None = None,
+    except_session: uuid.UUID | None = None,
 ) -> int:
     stmt = (
         update(AuthSession)
@@ -94,6 +95,8 @@ async def revoke_sessions(
     )
     if only is not None:
         stmt = stmt.where(AuthSession.id == only)
+    if except_session is not None:
+        stmt = stmt.where(AuthSession.id != except_session)
     result = await session.execute(stmt)
     return int(result.rowcount or 0)  # type: ignore[attr-defined]
 

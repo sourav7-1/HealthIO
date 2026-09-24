@@ -267,3 +267,9 @@ async def doctor_names(session: AsyncSession, doctor_ids: set[uuid.UUID]) -> dic
 async def doctor_id_for(session: AsyncSession, user_id: uuid.UUID) -> uuid.UUID | None:
     profile = await doctor_profile_for_user(session, user_id)
     return profile.id if profile else None
+
+
+async def doctor_profile(session: AsyncSession, doctor_id: uuid.UUID) -> DoctorProfile | None:
+    """Public practice details printed on documents the doctor issues."""
+    row: DoctorProfile | None = await session.get(DoctorProfile, doctor_id)
+    return row

@@ -16,7 +16,7 @@ import { Badge, Button, EmptyState, ErrorState, Skeleton, TabLinks } from "@/com
 import { ApiError, errorMessage } from "@/lib/api";
 import { ageFrom, humanize } from "@/lib/format";
 
-import { useFollowUps, useOverview, useTestOrders, type Overview } from "./api";
+import { useFollowUps, useOverview, useTestOrders, type Overview } from "@/features/chart/api";
 import { UploadReportDialog, OrderTestsDialog } from "./forms/tests";
 import { PrescriptionDialog } from "./forms/prescription";
 import { AppointmentDialog, FollowUpDialog } from "./forms/scheduling";

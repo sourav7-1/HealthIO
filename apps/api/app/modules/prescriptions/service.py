@@ -4,8 +4,15 @@ Lifecycle: DRAFT (editable, items replaceable) → ISSUED (frozen by DB trigger)
 CANCELLED / SUPERSEDED / ENTERED_IN_ERROR. Only the prescribing doctor edits, issues or
 cancels. Issuing hands the items to the medications module, which creates regimens in
 PENDING_CONFIRMATION: nothing becomes active until the patient confirms the schedule.
+
+Corrections never modify an issued prescription. The doctor starts a *revision*: a new
+draft (revision + 1, with a reason) that supersedes the old one. When it is issued, the
+old row's status becomes SUPERSEDED (the only change its trigger allows) and every
+version stays readable as history.
 """
 
+import hashlib
+import json
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, date, datetime
@@ -140,6 +147,35 @@ def _add_items(
         )
 
 
+@dataclass(frozen=True)
+class Details:
+    """Prescription-level fields a doctor writes (everything except the items)."""
+
+    valid_until: date | None = None
+    diagnosis_as_written: str | None = None
+    advice: str | None = None
+    follow_up_on: date | None = None
+    follow_up_instructions: str | None = None
+
+
+def _validate_details(details: Details, prescribed_on: date | None) -> None:
+    start = prescribed_on or datetime.now(UTC).date()
+    if details.valid_until is not None and details.valid_until < start:
+        raise ValidationFailedError("'Valid until' cannot be before the prescription date.")
+    if details.follow_up_on is not None and details.follow_up_on < start:
+        raise ValidationFailedError("The follow-up date cannot be before the prescription date.")
+    if details.follow_up_instructions and details.follow_up_on is None:
+        raise ValidationFailedError("Add a follow-up date for the follow-up instructions.")
+
+
+def _apply_details(rx: Prescription, details: Details) -> None:
+    rx.valid_until = details.valid_until
+    rx.diagnosis_as_written = details.diagnosis_as_written
+    rx.advice = details.advice
+    rx.follow_up_on = details.follow_up_on
+    rx.follow_up_instructions = details.follow_up_instructions
+
+
 async def create_draft(
     session: AsyncSession,
     *,
@@ -149,11 +185,10 @@ async def create_draft(
     items: list[ItemInput],
     visit_id: uuid.UUID | None,
     prescribed_on: date | None,
-    valid_until: date | None,
-    diagnosis_as_written: str | None,
-    advice: str | None,
+    details: Details,
 ) -> PrescriptionWithItems:
     _validate_items(items)
+    _validate_details(details, prescribed_on)
     rx = Prescription(
         patient_id=patient_id,
         source=PrescriptionSource.DOCTOR_ISSUED,
@@ -161,12 +196,58 @@ async def create_draft(
         prescriber_doctor_id=doctor_id,
         visit_id=visit_id,
         prescribed_on=prescribed_on or datetime.now(UTC).date(),
-        valid_until=valid_until,
-        diagnosis_as_written=diagnosis_as_written,
-        advice=advice,
         created_by=actor,
         updated_by=actor,
     )
+    _apply_details(rx, details)
+    session.add(rx)
+    await session.flush()
+    _add_items(session, rx, items, actor)
+    await session.flush()
+    return PrescriptionWithItems(rx, (await _items(session, [rx.id]))[rx.id])
+
+
+async def start_revision(
+    session: AsyncSession,
+    *,
+    patient_id: uuid.UUID,
+    prescription_id: uuid.UUID,
+    doctor_id: uuid.UUID,
+    actor: uuid.UUID,
+    reason: str,
+    items: list[ItemInput],
+    details: Details,
+) -> PrescriptionWithItems:
+    """Start a correction of an issued prescription as a new draft version."""
+    old = await _for_prescriber(session, patient_id, prescription_id, doctor_id)
+    if old.status != PrescriptionStatus.ISSUED:
+        raise ConflictError("Only an issued prescription can be corrected.")
+    successor = await session.scalar(
+        select(Prescription.id).where(Prescription.supersedes_prescription_id == old.id)
+    )
+    if successor is not None:
+        raise ConflictError(
+            "A correction of this prescription already exists. Open the draft to continue."
+        )
+    if len(reason.strip()) < 5:
+        raise ValidationFailedError("Say briefly what is being corrected.")
+    _validate_items(items)
+    today = datetime.now(UTC).date()
+    _validate_details(details, today)
+    rx = Prescription(
+        patient_id=patient_id,
+        source=PrescriptionSource.DOCTOR_ISSUED,
+        status=PrescriptionStatus.DRAFT,
+        prescriber_doctor_id=doctor_id,
+        visit_id=old.visit_id,
+        supersedes_prescription_id=old.id,
+        revision=old.revision + 1,
+        revision_reason=reason.strip(),
+        prescribed_on=today,
+        created_by=actor,
+        updated_by=actor,
+    )
+    _apply_details(rx, details)
     session.add(rx)
     await session.flush()
     _add_items(session, rx, items, actor)
@@ -182,24 +263,57 @@ async def replace_draft(
     doctor_id: uuid.UUID,
     actor: uuid.UUID,
     items: list[ItemInput],
-    valid_until: date | None,
-    diagnosis_as_written: str | None,
-    advice: str | None,
+    details: Details,
+    revision_reason: str | None = None,
 ) -> PrescriptionWithItems:
     rx = await _for_prescriber(session, patient_id, prescription_id, doctor_id)
     if rx.status != PrescriptionStatus.DRAFT:
         raise ConflictError(
-            "An issued prescription cannot be edited. Cancel it and write a new one."
+            "An issued prescription cannot be edited. Use 'Correct' to issue a new version."
         )
     _validate_items(items)
+    _validate_details(details, rx.prescribed_on)
     await session.execute(delete(PrescriptionItem).where(PrescriptionItem.prescription_id == rx.id))
-    rx.valid_until = valid_until
-    rx.diagnosis_as_written = diagnosis_as_written
-    rx.advice = advice
+    _apply_details(rx, details)
+    if rx.revision > 1 and revision_reason and revision_reason.strip():
+        rx.revision_reason = revision_reason.strip()
     rx.updated_by = actor
     _add_items(session, rx, items, actor)
     await session.flush()
     return PrescriptionWithItems(rx, (await _items(session, [rx.id]))[rx.id])
+
+
+def _canon(value: object) -> object:
+    if isinstance(value, (uuid.UUID, date, datetime, Decimal)):
+        return str(value)
+    return value
+
+
+def content_fingerprint(rx: Prescription, items: list[PrescriptionItem]) -> str:
+    """SHA-256 over the clinical content in a canonical form (sorted keys, fixed item
+    order). Anyone holding an export can recompute and compare it with the record."""
+    head_fields = (
+        "id", "patient_id", "prescriber_doctor_id", "prescribed_on", "valid_until",
+        "diagnosis_as_written", "advice", "follow_up_on", "follow_up_instructions",
+        "revision", "revision_reason", "supersedes_prescription_id",
+    )  # fmt: skip
+    item_fields = (
+        "sequence", "drug_name", "generic_name", "strength", "dosage_form", "route",
+        "dose_amount", "dose_unit", "frequency_text", "times_per_day", "meal_relation",
+        "duration_days", "quantity", "is_prn", "prn_reason", "instructions",
+    )  # fmt: skip
+    payload = {
+        "prescription": {f: _canon(getattr(rx, f)) for f in head_fields},
+        "items": [{f: _canon(getattr(i, f)) for f in item_fields} for i in items],
+    }
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+@dataclass(frozen=True)
+class IssueResult:
+    row: PrescriptionWithItems
+    superseded: PrescriptionWithItems | None
 
 
 async def issue(
@@ -209,18 +323,30 @@ async def issue(
     prescription_id: uuid.UUID,
     doctor_id: uuid.UUID,
     actor: uuid.UUID,
-) -> PrescriptionWithItems:
+) -> IssueResult:
     rx = await _for_prescriber(session, patient_id, prescription_id, doctor_id)
     if rx.status != PrescriptionStatus.DRAFT:
         raise ConflictError("This prescription has already been issued.")
     items = (await _items(session, [rx.id]))[rx.id]
     if not items:
         raise ValidationFailedError("Add at least one medicine before issuing.")
+    superseded: PrescriptionWithItems | None = None
+    if rx.supersedes_prescription_id is not None:
+        old = await _for_prescriber(session, patient_id, rx.supersedes_prescription_id, doctor_id)
+        if old.status != PrescriptionStatus.ISSUED:
+            raise ConflictError(
+                "The prescription being corrected is no longer active, so this correction "
+                "cannot be issued. Discard the draft and write a new prescription."
+            )
+        old.status = PrescriptionStatus.SUPERSEDED  # the only change its trigger allows
+        old.updated_by = actor
+        superseded = PrescriptionWithItems(old, (await _items(session, [old.id]))[old.id])
     rx.status = PrescriptionStatus.ISSUED
     rx.issued_at = datetime.now(UTC)
+    rx.content_sha256 = content_fingerprint(rx, items)
     rx.updated_by = actor
     await session.flush()
-    return PrescriptionWithItems(rx, items)
+    return IssueResult(PrescriptionWithItems(rx, items), superseded)
 
 
 async def cancel(
@@ -239,6 +365,11 @@ async def cancel(
         return rx
     if rx.status != PrescriptionStatus.ISSUED:
         raise ConflictError("Only an issued prescription can be cancelled.")
+    successor = await session.scalar(
+        select(Prescription.id).where(Prescription.supersedes_prescription_id == rx.id)
+    )
+    if successor is not None:
+        raise ConflictError("Discard the correction draft of this prescription first.")
     rx.status = PrescriptionStatus.CANCELLED
     rx.cancelled_at = datetime.now(UTC)
     rx.cancelled_by = actor
@@ -246,6 +377,60 @@ async def cancel(
     rx.updated_by = actor
     await session.flush()
     return rx
+
+
+async def get_one(
+    session: AsyncSession,
+    patient_id: uuid.UUID,
+    prescription_id: uuid.UUID,
+    *,
+    viewer_doctor_id: uuid.UUID | None,
+) -> PrescriptionWithItems:
+    rx = await session.scalar(
+        select(Prescription).where(
+            Prescription.id == prescription_id, Prescription.patient_id == patient_id
+        )
+    )
+    if rx is None or (
+        rx.status == PrescriptionStatus.DRAFT and rx.prescriber_doctor_id != viewer_doctor_id
+    ):
+        raise NotFoundError()
+    return PrescriptionWithItems(rx, (await _items(session, [rx.id]))[rx.id])
+
+
+async def version_chain(
+    session: AsyncSession,
+    patient_id: uuid.UUID,
+    prescription_id: uuid.UUID,
+    *,
+    viewer_doctor_id: uuid.UUID | None,
+) -> list[Prescription]:
+    """Every version of this prescription, oldest first (others' drafts excluded)."""
+    rows = list(
+        (
+            await session.scalars(
+                select(Prescription).where(
+                    Prescription.patient_id == patient_id,
+                    Prescription.source == PrescriptionSource.DOCTOR_ISSUED,
+                )
+            )
+        ).all()
+    )
+    by_id = {r.id: r for r in rows}
+    successor = {r.supersedes_prescription_id: r for r in rows if r.supersedes_prescription_id}
+    start = by_id.get(prescription_id)
+    if start is None:
+        return []
+    while start.supersedes_prescription_id and start.supersedes_prescription_id in by_id:
+        start = by_id[start.supersedes_prescription_id]
+    chain = [start]
+    while chain[-1].id in successor:
+        chain.append(successor[chain[-1].id])
+    return [
+        r
+        for r in chain
+        if r.status != PrescriptionStatus.DRAFT or r.prescriber_doctor_id == viewer_doctor_id
+    ]
 
 
 async def active_item_ids_by_prescriber(
@@ -264,3 +449,17 @@ async def active_item_ids_by_prescriber(
         )
     )
     return list(rows.all())
+
+
+async def items_by_ids(
+    session: AsyncSession, patient_id: uuid.UUID, item_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, PrescriptionItem]:
+    """Prescription lines (as the doctor wrote them) for display next to a medicine."""
+    if not item_ids:
+        return {}
+    rows = await session.scalars(
+        select(PrescriptionItem).where(
+            PrescriptionItem.patient_id == patient_id, PrescriptionItem.id.in_(item_ids)
+        )
+    )
+    return {i.id: i for i in rows.all()}

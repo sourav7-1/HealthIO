@@ -26,9 +26,9 @@ import {
   useVisits,
   type Overview,
   type TimelineEvent,
-} from "../api";
+} from "@/features/chart/api";
 import { DiagnosisDialog } from "../forms/visit";
-import { DefinitionList, QueryState, SourceLabel, StatusBadge } from "../shared";
+import { DefinitionList, QueryState, SourceLabel, StatusBadge } from "@/features/chart/shared";
 
 // --- Overview --------------------------------------------------------------------------------
 

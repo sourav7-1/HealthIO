@@ -16,10 +16,16 @@ export interface NavItem {
 export function PortalShell({
   portalName,
   nav,
+  switcher,
+  banner,
   children,
 }: {
   portalName: string;
   nav: NavItem[];
+  /** Shown above the navigation, e.g. a picker for the person being cared for. */
+  switcher?: ReactNode;
+  /** Shown above every page, e.g. whose record is being viewed. */
+  banner?: ReactNode;
   children: ReactNode;
 }) {
   const me = useMe();
@@ -92,6 +98,7 @@ export function PortalShell({
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh flex-col gap-6 border-r border-line bg-surface p-4 md:flex">
         {brand}
+        {switcher}
         <nav aria-label={`${portalName} navigation`} className="flex-1">
           {navList}
         </nav>
@@ -126,6 +133,7 @@ export function PortalShell({
                 <X className="size-5" />
               </button>
             </div>
+            {switcher}
             <nav aria-label={`${portalName} navigation`} className="flex-1">
               {navList}
             </nav>
@@ -135,7 +143,10 @@ export function PortalShell({
       )}
 
       <main id="main" className="min-w-0 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl">{children}</div>
+        <div className="mx-auto max-w-6xl">
+          {banner}
+          {children}
+        </div>
       </main>
     </div>
   );

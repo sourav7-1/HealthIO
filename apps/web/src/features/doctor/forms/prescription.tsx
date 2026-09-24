@@ -6,8 +6,14 @@ import { z } from "zod";
 import { Alert, Button, Checkbox, Dialog, Field, Input, Select, Textarea } from "@/components/ui";
 import { todayIso } from "@/lib/format";
 
-import { useCreatePrescription, useRecordMedication, useUpdatePrescription, type Prescription } from "../api";
-import { useSubmit } from "../useSubmit";
+import {
+  useCreatePrescription,
+  useRecordMedication,
+  useStartRevision,
+  useUpdatePrescription,
+  type Prescription,
+} from "@/features/chart/api";
+import { useSubmit } from "@/features/chart/useSubmit";
 
 const optionalInt = z
   .string()
@@ -18,6 +24,7 @@ const optionalInt = z
 const itemSchema = z
   .object({
     drug_name: z.string().trim().min(1, "Medicine name required").max(200),
+    generic_name: z.string().trim().max(200).optional(),
     strength: z.string().trim().max(64).optional(),
     dosage_form: z.string().trim().max(64).optional(),
     route: z.string().trim().max(64).optional(),
@@ -31,16 +38,25 @@ const itemSchema = z
   })
   .refine((i) => !i.is_prn || !!i.prn_reason, { message: "Say when to take it", path: ["prn_reason"] });
 
-const schema = z.object({
-  items: z.array(itemSchema).min(1, "Add at least one medicine").max(30),
-  diagnosis_as_written: z.string().trim().max(1000).optional(),
-  advice: z.string().trim().max(2000).optional(),
-  valid_until: z.string().optional(),
-});
+const schema = z
+  .object({
+    items: z.array(itemSchema).min(1, "Add at least one medicine").max(30),
+    diagnosis_as_written: z.string().trim().max(1000).optional(),
+    advice: z.string().trim().max(2000).optional(),
+    valid_until: z.string().optional(),
+    follow_up_on: z.string().optional().refine((v) => !v || v >= todayIso(), "Cannot be in the past"),
+    follow_up_instructions: z.string().trim().max(500).optional(),
+    reason: z.string().trim().max(300).optional(),
+  })
+  .refine((v) => !v.follow_up_instructions || !!v.follow_up_on, {
+    message: "Add the follow-up date",
+    path: ["follow_up_on"],
+  });
 type Values = z.infer<typeof schema>;
 
 const emptyItem: Values["items"][number] = {
   drug_name: "",
+  generic_name: "",
   strength: "",
   dosage_form: "",
   route: "",
@@ -53,10 +69,11 @@ const emptyItem: Values["items"][number] = {
   instructions: "",
 };
 
-function fromExisting(rx: Prescription): Values {
+function fromExisting(rx: Prescription, forCorrection = false): Values {
   return {
     items: rx.items.map((i) => ({
       drug_name: i.drug_name,
+      generic_name: i.generic_name ?? "",
       strength: i.strength ?? "",
       dosage_form: i.dosage_form ?? "",
       route: i.route ?? "",
@@ -71,6 +88,10 @@ function fromExisting(rx: Prescription): Values {
     diagnosis_as_written: rx.diagnosis_as_written ?? "",
     advice: rx.advice ?? "",
     valid_until: rx.valid_until ?? "",
+    // A correction starts today, so an old follow-up date may no longer be valid.
+    follow_up_on: forCorrection && rx.follow_up_on && rx.follow_up_on < todayIso() ? "" : (rx.follow_up_on ?? ""),
+    follow_up_instructions: rx.follow_up_instructions ?? "",
+    reason: forCorrection ? "" : (rx.revision_reason ?? ""),
   };
 }
 
@@ -80,24 +101,33 @@ function splitDose(dose: string | undefined): { dose_amount: string | null; dose
   return m ? { dose_amount: m[1] ?? null, dose_unit: m[2]?.trim() || null } : { dose_amount: null, dose_unit: null };
 }
 
+/**
+ * Write a prescription, edit a draft, or (with `correcting`) start a correction of an
+ * issued prescription. A correction is saved as a new draft version; the issued version
+ * is never changed.
+ */
 export function PrescriptionDialog({
   patientId,
   visitId,
   draft,
+  correcting,
   open,
   onClose,
 }: {
   patientId: string;
   visitId?: string;
   draft?: Prescription;
+  correcting?: Prescription;
   open: boolean;
   onClose: () => void;
 }) {
   const create = useCreatePrescription(patientId);
   const update = useUpdatePrescription(patientId);
+  const revise = useStartRevision(patientId);
+  const isCorrection = correcting !== undefined || (draft?.revision ?? 1) > 1;
   const { register, control, handleSubmit, reset, setError, watch, formState } = useForm<Values>({
     resolver: zodResolver(schema),
-    values: draft ? fromExisting(draft) : undefined,
+    values: correcting ? fromExisting(correcting, true) : draft ? fromExisting(draft) : undefined,
     defaultValues: { items: [emptyItem] },
   });
   const items = useFieldArray({ control, name: "items" });
@@ -115,6 +145,7 @@ export function PrescriptionDialog({
       const unparsedDose = i.dose && !dose_amount ? `Dose: ${i.dose}` : null;
       return {
         drug_name: i.drug_name,
+        generic_name: i.generic_name || null,
         strength: i.strength || null,
         dosage_form: i.dosage_form || null,
         route: i.route || null,
@@ -133,13 +164,21 @@ export function PrescriptionDialog({
       diagnosis_as_written: v.diagnosis_as_written || null,
       advice: v.advice || null,
       valid_until: v.valid_until || null,
+      follow_up_on: v.follow_up_on || null,
+      follow_up_instructions: v.follow_up_instructions || null,
     };
+    if (isCorrection && (v.reason ?? "").length < 5) {
+      setError("reason", { message: "Say briefly what is being corrected (at least 5 characters)" });
+      return;
+    }
     const ok = await run(
       () =>
-        draft
-          ? update.mutateAsync({ prescription_id: draft.id, ...common })
-          : create.mutateAsync({ ...common, visit_id: visitId ?? null }),
-      draft ? "Draft updated" : "Prescription saved as draft",
+        correcting
+          ? revise.mutateAsync({ prescription_id: correcting.id, ...common, reason: v.reason ?? "" })
+          : draft
+            ? update.mutateAsync({ prescription_id: draft.id, ...common, revision_reason: v.reason || null })
+            : create.mutateAsync({ ...common, visit_id: visitId ?? null }),
+      correcting ? "Correction saved as a draft. Issue it to replace the current version." : draft ? "Draft updated" : "Prescription saved as draft",
     );
     if (ok) close();
   });
@@ -150,21 +189,38 @@ export function PrescriptionDialog({
       open={open}
       onClose={close}
       size="lg"
-      title={draft ? "Edit draft prescription" : "New prescription"}
-      description="Saved as a draft only you can see. Review it, then issue it from the Prescriptions tab."
+      title={
+        correcting
+          ? `Correct prescription (new version ${correcting.revision + 1})`
+          : draft
+            ? isCorrection
+              ? `Edit correction draft (version ${draft.revision})`
+              : "Edit draft prescription"
+            : "New prescription"
+      }
+      description={
+        isCorrection
+          ? "The issued version stays in the record unchanged. This correction is saved as a draft; when you issue it, it replaces the current version and the patient is asked to confirm the medicines again."
+          : "Saved as a draft only you can see. Review it, then issue it from the Prescriptions tab."
+      }
       footer={
         <>
           <Button variant="secondary" onClick={close}>
             Cancel
           </Button>
           <Button type="submit" form="prescription" loading={formState.isSubmitting}>
-            Save draft
+            {correcting ? "Save correction as draft" : "Save draft"}
           </Button>
         </>
       }
     >
       <form id="prescription" onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
         {formError && <Alert tone="danger">{formError}</Alert>}
+        {isCorrection && (
+          <Field label="What is being corrected?" required error={e.reason?.message}>
+            {(p) => <Input {...p} placeholder="e.g. Strength written incorrectly" {...register("reason")} />}
+          </Field>
+        )}
         {items.fields.map((field, i) => {
           const ie = e.items?.[i];
           const prn = watch(`items.${i}.is_prn`);
@@ -174,6 +230,9 @@ export function PrescriptionDialog({
               <div className="grid gap-3 sm:grid-cols-6">
                 <Field label="Medicine" required error={ie?.drug_name?.message} className="sm:col-span-3">
                   {(p) => <Input {...p} placeholder="Name as prescribed" {...register(`items.${i}.drug_name`)} />}
+                </Field>
+                <Field label="Generic name" hint="If known" className="sm:col-span-3">
+                  {(p) => <Input {...p} {...register(`items.${i}.generic_name`)} />}
                 </Field>
                 <Field label="Strength" className="sm:col-span-1">
                   {(p) => <Input {...p} placeholder="e.g. 500 mg" {...register(`items.${i}.strength`)} />}
@@ -234,11 +293,17 @@ export function PrescriptionDialog({
           </Button>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Diagnosis (as you write it on the prescription)" className="sm:col-span-2">
+          <Field label="Diagnosis / assessment (as you document it)" className="sm:col-span-2">
             {(p) => <Input {...p} {...register("diagnosis_as_written")} />}
           </Field>
-          <Field label="Advice" className="sm:col-span-2">
+          <Field label="Notes and advice" className="sm:col-span-2">
             {(p) => <Textarea {...p} rows={2} {...register("advice")} />}
+          </Field>
+          <Field label="Follow-up on or before" error={e.follow_up_on?.message}>
+            {(p) => <Input {...p} type="date" min={todayIso()} {...register("follow_up_on")} />}
+          </Field>
+          <Field label="Follow-up instructions">
+            {(p) => <Input {...p} placeholder="e.g. Review with test results" {...register("follow_up_instructions")} />}
           </Field>
           <Field label="Valid until">
             {(p) => <Input {...p} type="date" min={todayIso()} {...register("valid_until")} />}
