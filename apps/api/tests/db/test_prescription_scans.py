@@ -247,6 +247,7 @@ async def test_full_flow_low_confidence_correction_and_conversion(
     assert (b["is_prn"], b["prn_reason"], b["strength"]) == (True, "as written: SOS", None)
     meds = (await api.get(f"{API}/patients/{pid}/medications", headers=h)).json()
     assert {m["status"] for m in meds} == {"pending_confirmation"}
+    assert {m["origin"] for m in meds} == {"uploaded_prescription_ai"}
 
     # Stored: original image reference, extracted result, model metadata, status, trail.
     row = await session.get(PrescriptionScan, uuid.UUID(scan["id"]))
@@ -340,6 +341,8 @@ async def test_manual_entry_needs_no_ai_and_no_consent(
         None,
     )
     assert rx["external_prescriber_name"] is None
+    meds = (await api.get(f"{API}/patients/{pid}/medications", headers=h)).json()
+    assert {m["origin"] for m in meds} == {"uploaded_prescription_typed"}
 
 
 async def test_failures_are_recorded_and_can_be_retried(

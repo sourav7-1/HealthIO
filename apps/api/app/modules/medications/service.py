@@ -15,10 +15,13 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import ValidationFailedError
+from app.modules.medications import regimen
 from app.modules.medications.models import (
+    ActorRole,
     DoseStatus,
     Medication,
     MedicationDose,
+    MedicationOrigin,
     MedicationSchedule,
     MedicationSource,
     MedicationStatus,
@@ -61,12 +64,17 @@ async def create_from_prescription(
     lines: list[PrescribedLine],
     start_date: date,
     actor: uuid.UUID,
+    origin: MedicationOrigin,
+    actor_role: ActorRole,
 ) -> list[Medication]:
+    """Regimens from a prescription (doctor-issued, or a checked paper prescription):
+    PENDING_CONFIRMATION until the patient chooses reminder times."""
     meds = []
     for line in lines:
         med = Medication(
             patient_id=patient_id,
             source=MedicationSource.PRESCRIPTION,
+            origin=origin,
             prescription_item_id=line.item_id,
             name=line.drug_name,
             generic_name=line.generic_name,
@@ -86,6 +94,15 @@ async def create_from_prescription(
         session.add(med)
         meds.append(med)
     await session.flush()
+    for med in meds:
+        session.add(
+            regimen.record_created(
+                med, actor=actor, role=actor_role, details={"origin": origin.value}
+            )
+        )
+    await session.flush()
+    for med in meds:
+        await regimen.note_duplicates(session, med)
     return meds
 
 
@@ -109,6 +126,7 @@ async def record_existing(
     med = Medication(
         patient_id=patient_id,
         source=MedicationSource.CLINICIAN_RECORDED,
+        origin=MedicationOrigin.CLINICIAN_RECORDED,
         name=name.strip(),
         strength=strength,
         dosage_form=dosage_form,
@@ -124,6 +142,9 @@ async def record_existing(
     )
     session.add(med)
     await session.flush()
+    session.add(regimen.record_created(med, actor=actor, role=ActorRole.DOCTOR))
+    await session.flush()
+    await regimen.note_duplicates(session, med)
     return med
 
 

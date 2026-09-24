@@ -36,6 +36,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
+from app.core.crypto import EncryptedString
 from app.core.enums import MealRelation, RecordSource
 from app.core.models import (
     Base,
@@ -56,13 +57,43 @@ class MedicationSource(StrEnum):
     INTEGRATION = "integration"
 
 
+class MedicationOrigin(StrEnum):
+    """Where the medicine came from, shown to everyone as its label."""
+
+    DOCTOR_PRESCRIPTION = "doctor_prescription"  # e-prescription issued on the platform
+    UPLOADED_AI = "uploaded_prescription_ai"  # paper prescription read by AI, then checked
+    UPLOADED_TYPED = "uploaded_prescription_typed"  # paper prescription typed in by a person
+    SELF_REPORTED = "self_reported"  # added by the patient or caregiver
+    CLINICIAN_RECORDED = "clinician_recorded"  # an existing medicine recorded by a doctor
+    INTEGRATION = "integration"
+
+
 class MedicationStatus(StrEnum):
     PENDING_CONFIRMATION = "pending_confirmation"
     ACTIVE = "active"
     PAUSED = "paused"
     COMPLETED = "completed"  # course finished as prescribed
-    STOPPED = "stopped"  # stopped before the planned end (who and why is recorded)
+    STOPPED = "stopped"  # discontinued before the planned end (who and why is recorded)
     ENTERED_IN_ERROR = "entered_in_error"
+
+
+OPEN_MEDICATION_STATUSES = ("pending_confirmation", "active", "paused")
+
+# Duplicate detection keys, computed by PostgreSQL itself so every writer gets them:
+# the name without its form prefix (Tab./Cap./Syp. …), letters and digits only.
+_FORM_PREFIX = (
+    r"^\s*(tab|tabs|tablet|cap|caps|capsule|syp|syrup|susp|suspension|inj|injection|oint"
+    r"|ointment|cream|gel|drop|drops|inh|inhaler|sachet|lotion|spray)\.?\s+"
+)
+NAME_KEY_SQL = (
+    f"lower(regexp_replace(regexp_replace(name, '{_FORM_PREFIX}', '', 'i'), "
+    "'[^[:alnum:]]+', '', 'g'))"
+)
+GENERIC_KEY_SQL = (
+    "CASE WHEN generic_name IS NULL OR btrim(generic_name) = '' THEN NULL ELSE "
+    "lower(regexp_replace(generic_name, '[^[:alnum:]]+', '', 'g')) END"
+)
+STRENGTH_KEY_SQL = "lower(regexp_replace(coalesce(strength, ''), '[^[:alnum:].]+', '', 'g'))"
 
 
 class Medication(Base, Entity, PatientOwned, OptimisticLock):
@@ -100,9 +131,38 @@ class Medication(Base, Entity, PatientOwned, OptimisticLock):
             ),
         ),
         Index("ix_medications_patient_status", "patient_id", "status"),
+        CheckConstraint("(status = 'paused') = (paused_at IS NOT NULL)", name="paused_consistent"),
+        CheckConstraint("status <> 'paused' OR paused_by IS NOT NULL", name="paused_has_actor"),
+        CheckConstraint(
+            "source <> 'self_reported' OR origin = 'self_reported'", name="self_reported_origin"
+        ),
+        CheckConstraint(
+            "origin NOT IN ('doctor_prescription', 'uploaded_prescription_ai', "
+            "'uploaded_prescription_typed') OR source = 'prescription'",
+            name="prescription_origin",
+        ),
+        # The same medicine cannot be on the patient's own list twice while in use.
+        Index(
+            "uq_medications_self_reported_open",
+            "patient_id",
+            "name_key",
+            "strength_key",
+            unique=True,
+            postgresql_where=text(
+                "source = 'self_reported' "
+                "AND status IN ('pending_confirmation', 'active', 'paused')"
+            ),
+        ),
+        Index(
+            "ix_medications_patient_name_key_open",
+            "patient_id",
+            "name_key",
+            postgresql_where=text("status IN ('pending_confirmation', 'active', 'paused')"),
+        ),
     )
 
     source: Mapped[MedicationSource] = mapped_column(str_enum(MedicationSource), nullable=False)
+    origin: Mapped[MedicationOrigin] = mapped_column(str_enum(MedicationOrigin), nullable=False)
     prescription_item_id: Mapped[uuid.UUID | None]
 
     name: Mapped[str] = mapped_column(String(200), nullable=False)
@@ -130,6 +190,21 @@ class Medication(Base, Entity, PatientOwned, OptimisticLock):
         str_enum(RecordSource, name="stop_source")
     )
     stop_reason: Mapped[str | None] = mapped_column(String(300))
+
+    paused_at: Mapped[datetime | None]
+    paused_by: Mapped[uuid.UUID | None] = user_fk()
+    pause_reason: Mapped[str | None] = mapped_column(String(300))
+    resume_on: Mapped[date | None] = mapped_column(Date)  # optional planned restart
+
+    name_key: Mapped[str] = mapped_column(
+        String(200), Computed(NAME_KEY_SQL, persisted=True), nullable=False
+    )
+    generic_key: Mapped[str | None] = mapped_column(
+        String(200), Computed(GENERIC_KEY_SQL, persisted=True)
+    )
+    strength_key: Mapped[str] = mapped_column(
+        String(64), Computed(STRENGTH_KEY_SQL, persisted=True), nullable=False
+    )
 
 
 class ScheduleType(StrEnum):
@@ -310,3 +385,134 @@ class MedicationAdherence(Base, Entity, PatientOwned):
         ),
     )
     computed_at: Mapped[datetime] = mapped_column(server_default=text("now()"), nullable=False)
+
+
+class MedicationEventType(StrEnum):
+    CREATED = "created"
+    CONFIRMED = "confirmed"  # a prescribed medicine accepted and scheduled
+    SCHEDULE_CHANGED = "schedule_changed"
+    PAUSED = "paused"
+    RESUMED = "resumed"
+    STOPPED = "stopped"
+    COMPLETED = "completed"  # course end date passed
+    CHANGE_REQUESTED = "change_requested"
+    CHANGE_APPROVED = "change_approved"
+    CHANGE_DECLINED = "change_declined"
+    CHANGE_WITHDRAWN = "change_withdrawn"
+    DUPLICATE_NOTED = "duplicate_noted"
+
+
+class ActorRole(StrEnum):
+    PATIENT = "patient"
+    CAREGIVER = "caregiver"
+    DOCTOR = "doctor"
+    SYSTEM = "system"  # scheduled jobs; may only record a course reaching its end date
+
+
+class AdvisorRole(StrEnum):
+    DOCTOR = "doctor"
+    PHARMACIST = "pharmacist"
+
+
+class MedicationEvent(Base, Entity, PatientOwned):
+    """Append-only history of a medicine (migration 0009 blocks UPDATE and DELETE).
+
+    Changes to a regimen are always made by a named person. The database refuses a
+    schedule change, pause, stop or resume without a human actor, so no automated
+    process (including AI) can change what a patient takes.
+    """
+
+    __tablename__ = "medication_events"
+    __table_args__ = (
+        patient_scoped_fk(["medication_id"], "medications"),
+        CheckConstraint(
+            "actor_role = 'system' OR actor_user_id IS NOT NULL", name="person_has_user"
+        ),
+        CheckConstraint(
+            "actor_role <> 'system' OR event_type IN ('completed', 'duplicate_noted')",
+            name="system_cannot_change_regimen",
+        ),
+        CheckConstraint(
+            "(advised_by_role IS NULL) = (advised_by_name IS NULL)", name="advisor_complete"
+        ),
+        Index("ix_medication_events_medication_occurred", "medication_id", "occurred_at"),
+        Index("ix_medication_events_patient_occurred", "patient_id", "occurred_at"),
+    )
+
+    medication_id: Mapped[uuid.UUID] = mapped_column(nullable=False)
+    event_type: Mapped[MedicationEventType] = mapped_column(
+        str_enum(MedicationEventType), nullable=False
+    )
+    occurred_at: Mapped[datetime] = mapped_column(server_default=text("now()"), nullable=False)
+    actor_user_id: Mapped[uuid.UUID | None] = user_fk()
+    actor_role: Mapped[ActorRole] = mapped_column(str_enum(ActorRole), nullable=False)
+    # What changed (before/after regimen, findings acknowledged), encrypted JSON.
+    details: Mapped[str | None] = mapped_column(EncryptedString("medication_events.details"))
+    reason: Mapped[str | None] = mapped_column(EncryptedString("medication_events.reason"))
+    # A clinician outside the platform who advised the change, as reported by the patient.
+    advised_by_role: Mapped[AdvisorRole | None] = mapped_column(str_enum(AdvisorRole))
+    advised_by_name: Mapped[str | None] = mapped_column(
+        EncryptedString("medication_events.advised_by_name")
+    )
+    change_request_id: Mapped[uuid.UUID | None]
+
+
+class ChangeRequestKind(StrEnum):
+    SCHEDULE = "schedule"  # dose, frequency, days, food relation
+    STOP = "stop"
+    PAUSE = "pause"
+    OTHER = "other"
+
+
+class ChangeRequestStatus(StrEnum):
+    PENDING = "pending"
+    APPROVED = "approved"
+    DECLINED = "declined"
+    WITHDRAWN = "withdrawn"
+
+
+class MedicationChangeRequest(Base, Entity, PatientOwned, OptimisticLock):
+    """A patient or caregiver asks a linked doctor to confirm a clinically relevant change.
+    Nothing changes until a doctor approves; approving applies exactly the proposal."""
+
+    __tablename__ = "medication_change_requests"
+    __table_args__ = (
+        patient_scope_key(),
+        patient_scoped_fk(["medication_id"], "medications"),
+        CheckConstraint("(status = 'pending') = (resolved_at IS NULL)", name="resolved_consistent"),
+        CheckConstraint(
+            "status NOT IN ('approved', 'declined') OR resolved_by IS NOT NULL",
+            name="resolution_has_actor",
+        ),
+        CheckConstraint(
+            "kind <> 'schedule' OR proposed IS NOT NULL", name="schedule_change_has_proposal"
+        ),
+        Index(
+            "uq_medication_change_requests_pending",
+            "medication_id",
+            unique=True,
+            postgresql_where=text("status = 'pending'"),
+        ),
+        Index("ix_medication_change_requests_patient_status", "patient_id", "status"),
+    )
+
+    medication_id: Mapped[uuid.UUID] = mapped_column(nullable=False)
+    kind: Mapped[ChangeRequestKind] = mapped_column(str_enum(ChangeRequestKind), nullable=False)
+    status: Mapped[ChangeRequestStatus] = mapped_column(
+        str_enum(ChangeRequestStatus), nullable=False, default=ChangeRequestStatus.PENDING
+    )
+    requested_by: Mapped[uuid.UUID] = user_fk(nullable=False)
+    requester_role: Mapped[ActorRole] = mapped_column(
+        str_enum(ActorRole, name="requester_role"), nullable=False
+    )
+    message: Mapped[str | None] = mapped_column(
+        EncryptedString("medication_change_requests.message")
+    )
+    proposed: Mapped[str | None] = mapped_column(
+        EncryptedString("medication_change_requests.proposed")
+    )
+    resolved_by: Mapped[uuid.UUID | None] = user_fk()
+    resolved_at: Mapped[datetime | None]
+    resolution_note: Mapped[str | None] = mapped_column(
+        EncryptedString("medication_change_requests.resolution_note")
+    )

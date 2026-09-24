@@ -31,6 +31,7 @@ from app.modules.extraction.models import (
     VerifierRole,
 )
 from app.modules.medications import service as medications
+from app.modules.medications.models import ActorRole, MedicationOrigin
 
 router = APIRouter(tags=["prescription scans"])
 
@@ -468,6 +469,10 @@ async def confirm_scan(
         patient_id=ctx.patient_id,
         start_date=done.prescription.prescribed_on or date.today(),
         actor=ctx.actor_id,
+        origin=MedicationOrigin.UPLOADED_AI
+        if done.scan.mode == PrescriptionScanMode.AI
+        else MedicationOrigin.UPLOADED_TYPED,
+        actor_role=ActorRole(role.value),
         lines=[
             medications.PrescribedLine(
                 item_id=i.id,

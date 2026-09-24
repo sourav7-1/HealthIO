@@ -21,6 +21,9 @@ import {
   type Prescription,
 } from "@/features/chart/api";
 import { useScans } from "@/features/scans/api";
+import { useChangeRequests, useResolveRequest } from "@/features/meds/api";
+import { OriginBadge, scheduleText } from "@/features/meds/labels";
+import { ModeProvider } from "@/features/patient/context";
 import { PrescriptionDialog, RecordMedicationDialog } from "../forms/prescription";
 import { QueryState, SourceLabel, StatusBadge } from "@/features/chart/shared";
 
@@ -98,6 +101,75 @@ export function ReasonDialog({
 
 // --- Medications -------------------------------------------------------------------------------
 
+function proposalText(p: Record<string, unknown> | null | undefined): string {
+  if (!p) return "";
+  const dose = p.dose_amount ? `${Number(p.dose_amount)} ${String(p.dose_unit ?? "")}`.trim() : null;
+  const when =
+    p.schedule_type === "as_needed"
+      ? "only when needed"
+      : p.schedule_type === "interval"
+        ? `every ${Math.round(Number(p.interval_minutes) / 60)} h`
+        : (p.times as string[] | undefined)?.join(", ");
+  return [dose, when, p.rule ? `(${String(p.rule)})` : null, p.meal_relation ? humanize(String(p.meal_relation)) : null]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+function ChangeRequests({ patientId, canResolve }: { patientId: string; canResolve: boolean }) {
+  const requests = useChangeRequests(patientId);
+  const resolve = useResolveRequest(patientId);
+  const toast = useToast();
+  const [note, setNote] = useState("");
+  const pending = (requests.data ?? []).filter((r) => r.status === "pending");
+  if (pending.length === 0) return null;
+  return (
+    <Card title="Changes the patient asked you to confirm" className="lg:col-span-3">
+      <ul className="flex flex-col gap-4">
+        {pending.map((r) => (
+          <li key={r.id} className="rounded-lg border border-line p-3 text-sm">
+            <p className="font-medium">
+              {r.medication_name}: {r.kind === "schedule" ? `new schedule ${proposalText(r.proposed)}` : r.kind}
+            </p>
+            <p className="text-muted">
+              Asked {formatDateTime(r.created_at)} by the {r.requester_role}
+              {r.message ? ` · “${r.message}”` : ""}
+            </p>
+            {canResolve && (
+              <div className="mt-2 flex flex-wrap items-end gap-2">
+                <Field label="Note to the patient (optional)" className="min-w-56 flex-1">
+                  {(p) => <Textarea {...p} rows={1} value={note} onChange={(e) => setNote(e.target.value)} />}
+                </Field>
+                {(["approve", "decline"] as const).map((decision) => (
+                  <Button
+                    key={decision}
+                    size="sm"
+                    variant={decision === "approve" ? "primary" : "secondary"}
+                    loading={resolve.isPending}
+                    onClick={() =>
+                      void resolve.mutateAsync({ request_id: r.id, decision, note: note.trim() || null }).then(
+                        () => {
+                          setNote("");
+                          toast.success(decision === "approve" ? "Approved and applied to the patient's schedule" : "Declined");
+                        },
+                        (err) => toast.error(errorMessage(err)),
+                      )
+                    }
+                  >
+                    {decision === "approve" ? "Approve" : "Decline"}
+                  </Button>
+                ))}
+              </div>
+            )}
+            {canResolve && r.kind === "schedule" && (
+              <p className="mt-2 text-xs text-muted">Approving changes the patient&apos;s schedule. To change the prescription itself, correct it as a new version.</p>
+            )}
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
 export function MedicationsSection({ patientId, overview }: { patientId: string; overview: Overview }) {
   const meds = useMedications(patientId);
   const canAdherence = overview.permissions.includes("view_adherence");
@@ -106,7 +178,9 @@ export function MedicationsSection({ patientId, overview }: { patientId: string;
   const [recording, setRecording] = useState(false);
 
   return (
+    <ModeProvider mode="doctor">
     <div className="grid gap-6 lg:grid-cols-3">
+      <ChangeRequests patientId={patientId} canResolve={canRecord} />
       <Card
         title="Medicines"
         className="lg:col-span-2"
@@ -135,7 +209,11 @@ export function MedicationsSection({ patientId, overview }: { patientId: string;
                       {med.strength && <span className="font-normal text-muted"> {med.strength}</span>}
                       {med.is_prn && <Badge tone="neutral">When needed</Badge>}
                     </p>
+                    {med.status !== "pending_confirmation" && <p className="text-sm">Patient&apos;s schedule: {scheduleText(med)}</p>}
                     {med.instructions && <p className="text-sm text-muted">{med.instructions}</p>}
+                    {(med.duplicates ?? []).length > 0 && (
+                      <p className="text-sm text-warning">Possible duplicate of {(med.duplicates ?? []).map((d) => d.name).join(", ")}</p>
+                    )}
                     <p className="text-xs text-muted">
                       {med.start_date ? `From ${formatDate(med.start_date)}` : "Start date not recorded"}
                       {med.end_date ? ` to ${formatDate(med.end_date)}` : ""}
@@ -146,7 +224,7 @@ export function MedicationsSection({ patientId, overview }: { patientId: string;
                       status={med.status}
                       label={med.status === "pending_confirmation" ? "Awaiting patient confirmation" : undefined}
                     />
-                    <SourceLabel source={med.source} />
+                    <OriginBadge origin={med.origin} />
                   </div>
                 </li>
               ))}
@@ -195,6 +273,7 @@ export function MedicationsSection({ patientId, overview }: { patientId: string;
       </Card>
       <RecordMedicationDialog patientId={patientId} open={recording} onClose={() => setRecording(false)} />
     </div>
+    </ModeProvider>
   );
 }
 

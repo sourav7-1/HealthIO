@@ -463,3 +463,14 @@ async def items_by_ids(
         )
     )
     return {i.id: i for i in rows.all()}
+
+
+async def by_ids(
+    session: AsyncSession, patient_id: uuid.UUID, ids: set[uuid.UUID]
+) -> dict[uuid.UUID, Prescription]:
+    if not ids:
+        return {}
+    rows = await session.scalars(
+        select(Prescription).where(Prescription.patient_id == patient_id, Prescription.id.in_(ids))
+    )
+    return {r.id: r for r in rows.all()}

@@ -80,20 +80,6 @@ export function useConfirmMedication(pid: string) {
   });
 }
 
-export function useChangeReminderTimes(pid: string) {
-  const invalidate = useInvalidatePatient(pid);
-  return useMutation({
-    mutationFn: ({ medication_id, ...body }: Schemas["ReminderTimesIn"] & { medication_id: string }) =>
-      unwrap(
-        api.PUT("/api/v1/patients/{patient_id}/medications/{medication_id}/reminder-times", {
-          params: { path: { patient_id: pid, medication_id } },
-          body,
-        }),
-      ),
-    onSuccess: invalidate,
-  });
-}
-
 export function useAddSelfReported(pid: string) {
   const invalidate = useInvalidatePatient(pid);
   return useMutation({
@@ -102,22 +88,6 @@ export function useAddSelfReported(pid: string) {
     onSuccess: invalidate,
   });
 }
-
-export function useStopMedication(pid: string) {
-  const invalidate = useInvalidatePatient(pid);
-  return useMutation({
-    mutationFn: ({ medication_id, reason }: { medication_id: string; reason: string | null }) =>
-      unwrap(
-        api.POST("/api/v1/patients/{patient_id}/medications/{medication_id}/stop", {
-          params: { path: { patient_id: pid, medication_id } },
-          body: { reason },
-        }),
-      ),
-    onSuccess: invalidate,
-  });
-}
-
-// --- self-reported history -------------------------------------------------------------------
 
 export function useReportAllergy(pid: string) {
   const invalidate = useInvalidatePatient(pid);

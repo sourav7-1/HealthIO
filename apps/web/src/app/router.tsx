@@ -85,6 +85,7 @@ const profile = () => import("@/features/patient/pages/ProfilePages");
 const medications = () => import("@/features/patient/pages/MedicationsPage");
 const care = () => import("@/features/care/pages");
 const scans = () => import("@/features/scans/ScanReviewPage");
+const medDetail = () => import("@/features/meds/MedicationDetailPage");
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage />, errorElement: <RouteError /> },
@@ -121,6 +122,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, lazy: async () => ({ Component: (await import("@/features/patient/pages/TodayPage")).TodayPage }) },
       { path: "medications", lazy: async () => ({ Component: (await medications()).MedicationsPage }) },
+      { path: "medications/:medicationId", lazy: async () => ({ Component: (await medDetail()).MedicationDetailPage }) },
       { path: "health", lazy: async () => ({ Component: (await profile()).MyHealthPage }) },
       { path: "history", lazy: async () => ({ Component: (await records()).HistoryPage }) },
       { path: "visits", lazy: async () => ({ Component: (await records()).VisitsPage }) },
@@ -149,6 +151,8 @@ export const router = createBrowserRouter([
           { index: true, lazy: async () => ({ Component: (await care()).CarePersonPage }) },
           { path: "health", lazy: async () => ({ Component: (await profile()).MyHealthPage }) },
           { path: "medications", lazy: async () => ({ Component: (await medications()).MedicationsPage }) },
+          { path: "medications/:medicationId", lazy: async () => ({ Component: (await medDetail()).MedicationDetailPage }) },
+      { path: "medications/:medicationId", lazy: async () => ({ Component: (await medDetail()).MedicationDetailPage }) },
           { path: "prescriptions", lazy: async () => ({ Component: (await records()).PrescriptionsPage }) },
           { path: "prescriptions/scan/:scanId", lazy: async () => ({ Component: (await scans()).ScanReviewPage }) },
       { path: "prescriptions/:prescriptionId", lazy: async () => ({ Component: (await records()).PrescriptionDetailPage }) },

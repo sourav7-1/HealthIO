@@ -1,52 +1,39 @@
-import { Plus, Pill, Stethoscope, UserRound } from "lucide-react";
+import { Pill, Plus, TriangleAlert } from "lucide-react";
+import { Link } from "react-router";
 import { useState } from "react";
 
 import { PageHeader } from "@/components/layout/PortalShell";
 import { Alert, Button, Card, Checkbox, Dialog, EmptyState, Field, Input, Select, Textarea, useToast } from "@/components/ui";
 import { useMedications } from "@/features/chart/api";
-import { QueryState, StatusBadge } from "@/features/chart/shared";
+import { QueryState } from "@/features/chart/shared";
 import { errorMessage, type Schemas } from "@/lib/api";
-import { formatDate, formatTime, humanize, todayIso } from "@/lib/format";
+import { formatDate, todayIso } from "@/lib/format";
 
 import {
   useAddSelfReported,
-  useChangeReminderTimes,
   useConfirmMedication,
   useLogAsNeeded,
-  useStopMedication,
   type MedicationOut,
 } from "../api";
+import { OriginBadge, StatusPill, courseText, scheduleText } from "@/features/meds/labels";
+
 import { SafetyNote, SourceBadge, TimesPicker } from "../components";
 import { useActivePatient } from "../context";
 
 type Meal = Schemas["MealRelation"];
 
-function timesOf(med: MedicationOut): string[] {
-  return (med.schedule?.times_of_day ?? []).map((t) => t.slice(0, 5));
-}
-
-function readableTimes(med: MedicationOut): string {
-  const times = timesOf(med);
-  if (med.is_prn) return "Only when needed";
-  if (times.length === 0) return "No reminders set";
-  return times.map((t) => formatTime(`2000-01-01T${t}:00`)).join(", ");
-}
-
 export function MedicationsPage() {
   const { patientId: pid, mode, can } = useActivePatient();
   const meds = useMedications(pid);
   const [adding, setAdding] = useState(false);
+  const [showPast, setShowPast] = useState(false);
   const self = mode === "self";
 
   return (
     <>
       <PageHeader
         title={self ? "My medicines" : "Medicines"}
-        description={
-          self
-            ? "Medicines your doctor prescribed, and medicines you added yourself."
-            : "Medicines a doctor prescribed, and medicines added by the patient or family. Prescribed medicines can only be changed by the doctor."
-        }
+        description="Every medicine shows where it came from. Prescribed medicines stay as the doctor wrote them; changes to them need the doctor or a pharmacist."
         actions={
           can("report_health_info") && (
             <Button icon={<Plus className="size-4" />} onClick={() => setAdding(true)}>
@@ -64,7 +51,7 @@ export function MedicationsPage() {
             <EmptyState
               icon={<Pill className="size-5" />}
               title="No medicines yet"
-              description="Medicines your doctor prescribes appear here. You can also add medicines you already take."
+              description="Medicines from prescriptions appear here. You can also add medicines you already take."
               action={
                 can("report_health_info") ? (
                   <Button variant="secondary" onClick={() => setAdding(true)}>Add a medicine</Button>
@@ -76,14 +63,13 @@ export function MedicationsPage() {
       >
         {(list) => {
           const pending = list.filter((m) => m.status === "pending_confirmation");
-          const current = list.filter((m) => m.status === "active" || m.status === "paused");
-          const prescribed = current.filter((m) => m.source !== "self_reported");
-          const mine = current.filter((m) => m.source === "self_reported");
+          const active = list.filter((m) => m.status === "active");
+          const paused = list.filter((m) => m.status === "paused");
           const past = list.filter((m) => ["completed", "stopped"].includes(m.status));
           return (
             <div className="flex flex-col gap-6">
               {pending.length > 0 && (
-                <Card title="New from your doctor: set up reminders">
+                <Card title="New from a prescription: set up reminders">
                   <ul className="flex flex-col gap-4">
                     {pending.map((m) => (
                       <PendingMedicine key={m.id} med={m} patientId={pid} />
@@ -91,14 +77,13 @@ export function MedicationsPage() {
                   </ul>
                 </Card>
               )}
-
-              <Card title={<span className="flex items-center gap-2"><Stethoscope className="size-4" aria-hidden /> Prescribed by your doctor</span>}>
-                {prescribed.length === 0 ? (
-                  <p className="text-sm text-muted">No active prescribed medicines.</p>
+              <Card title={`In use (${active.length})`}>
+                {active.length === 0 ? (
+                  <p className="text-sm text-muted">No medicines in use.</p>
                 ) : (
                   <ul className="flex flex-col gap-4">
-                    {prescribed.map((m) => (
-                      <MedicineRow key={m.id} med={m} patientId={pid} />
+                    {active.map((m) => (
+                      <MedicineCard key={m.id} med={m} />
                     ))}
                   </ul>
                 )}
@@ -106,33 +91,33 @@ export function MedicationsPage() {
                   <SafetyNote />
                 </div>
               </Card>
-
-              <Card title={<span className="flex items-center gap-2"><UserRound className="size-4" aria-hidden /> Added by you</span>}>
-                {mine.length === 0 ? (
-                  <p className="text-sm text-muted">
-                    Add medicines you take that were not prescribed here, such as vitamins or medicines from another doctor.
-                  </p>
-                ) : (
+              {paused.length > 0 && (
+                <Card title={`Paused (${paused.length})`}>
                   <ul className="flex flex-col gap-4">
-                    {mine.map((m) => (
-                      <MedicineRow key={m.id} med={m} patientId={pid} />
+                    {paused.map((m) => (
+                      <MedicineCard key={m.id} med={m} />
                     ))}
                   </ul>
-                )}
-              </Card>
-
+                </Card>
+              )}
               {past.length > 0 && (
-                <Card title="Past medicines">
-                  <ul className="divide-y divide-line">
-                    {past.map((m) => (
-                      <li key={m.id} className="flex flex-wrap items-center justify-between gap-2 py-3 text-sm first:pt-0 last:pb-0">
-                        <span className="font-medium">{m.name}</span>
-                        <span className="flex items-center gap-2 text-muted">
-                          <SourceBadge source={m.source} /> {humanize(m.status)} {formatDate(m.end_date)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                <Card
+                  title={`Past medicines (${past.length})`}
+                  action={
+                    <Button size="sm" variant="ghost" onClick={() => setShowPast((v) => !v)}>
+                      {showPast ? "Hide" : "Show"}
+                    </Button>
+                  }
+                >
+                  {showPast ? (
+                    <ul className="flex flex-col gap-4">
+                      {past.map((m) => (
+                        <MedicineCard key={m.id} med={m} />
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted">Completed courses and discontinued medicines, with their history.</p>
+                  )}
                 </Card>
               )}
             </div>
@@ -141,6 +126,55 @@ export function MedicationsPage() {
       </QueryState>
       <AddMedicineDialog patientId={pid} open={adding} onClose={() => setAdding(false)} />
     </>
+  );
+}
+
+function MedicineCard({ med }: { med: MedicationOut }) {
+  const { patientId, base, can } = useActivePatient();
+  const logPrn = useLogAsNeeded(patientId);
+  const toast = useToast();
+  return (
+    <li className="rounded-xl border border-line p-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div className="min-w-0">
+          <Link to={`${base}/medications/${med.id}`} className="text-base font-semibold hover:underline">
+            {med.name} {med.strength && <span className="font-normal text-muted">{med.strength}</span>}
+          </Link>
+          <p className="text-sm">{scheduleText(med)}</p>
+          {courseText(med) && <p className="text-sm text-muted">{courseText(med)}</p>}
+        </div>
+        <div className="flex flex-col items-end gap-1">
+          <OriginBadge origin={med.origin} />
+          {med.status !== "active" && <StatusPill status={med.status} />}
+        </div>
+      </div>
+      <Instructions med={med} />
+      {(med.duplicates ?? []).length > 0 && (
+        <p className="mt-2 flex items-center gap-1 text-sm text-warning">
+          <TriangleAlert className="size-4" aria-hidden /> May be on the list twice ({(med.duplicates ?? []).map((d) => d.name).join(", ")})
+        </p>
+      )}
+      {med.pending_request && <p className="mt-2 text-sm text-info">A change is waiting for the doctor&apos;s confirmation.</p>}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {med.is_prn && med.status === "active" && can("log_doses") && (
+          <Button
+            size="sm"
+            onClick={() =>
+              void logPrn.mutateAsync(med.id).then(
+                () => toast.success(`Recorded: ${med.name} taken`),
+                (err) => toast.error(errorMessage(err)),
+              )
+            }
+            loading={logPrn.isPending}
+          >
+            I took a dose now
+          </Button>
+        )}
+        <Link to={`${base}/medications/${med.id}`} className="inline-flex min-h-9 items-center rounded-lg border border-line px-3 text-sm font-medium hover:bg-surface-2">
+          Details and changes
+        </Link>
+      </div>
+    </li>
   );
 }
 
@@ -178,7 +212,7 @@ function PendingMedicine({ med, patientId }: { med: MedicationOut; patientId: st
   const save = async () => {
     if (!med.is_prn && times.length === 0) return setError("Choose at least one time.");
     try {
-      await confirm.mutateAsync({ medication_id: med.id, times_of_day: times, meal_relation: null, timezone: null });
+      await confirm.mutateAsync({ medication_id: med.id, times_of_day: times, meal_relation: null, timezone: null, acknowledged: false });
       toast.success(`Reminders set for ${med.name}`);
     } catch (err) {
       setError(errorMessage(err));
@@ -210,136 +244,6 @@ function PendingMedicine({ med, patientId }: { med: MedicationOut; patientId: st
         <p className="mt-3 text-sm text-muted">Waiting for reminder times to be set up.</p>
       )}
     </li>
-  );
-}
-
-function MedicineRow({ med, patientId }: { med: MedicationOut; patientId: string }) {
-  const { can } = useActivePatient();
-  const [dialog, setDialog] = useState<"times" | "stop" | null>(null);
-  const logPrn = useLogAsNeeded(patientId);
-  const toast = useToast();
-  return (
-    <li className="rounded-xl border border-line p-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <p className="text-base font-semibold">
-            {med.name} {med.strength && <span className="font-normal text-muted">{med.strength}</span>}
-          </p>
-          <p className="text-sm">{readableTimes(med)}</p>
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          <SourceBadge source={med.source} />
-          {med.status !== "active" && <StatusBadge status={med.status} />}
-        </div>
-      </div>
-      <Instructions med={med} />
-      <div className="mt-3 flex flex-wrap gap-2">
-        {med.is_prn ? (
-          can("log_doses") && (
-          <Button
-            size="sm"
-            onClick={() =>
-              void logPrn.mutateAsync(med.id).then(
-                () => toast.success(`Recorded: you took ${med.name}`),
-                (err) => toast.error(errorMessage(err)),
-              )
-            }
-            loading={logPrn.isPending}
-          >
-            I took a dose now
-          </Button>
-          )
-        ) : (
-          can("manage_reminders") && (
-            <Button size="sm" variant="secondary" onClick={() => setDialog("times")}>
-              Change reminder times
-            </Button>
-          )
-        )}
-        {med.source === "self_reported" && can("report_health_info") && (
-          <Button size="sm" variant="ghost" onClick={() => setDialog("stop")}>
-            I stopped taking this
-          </Button>
-        )}
-      </div>
-      {dialog === "times" && <ChangeTimesDialog med={med} patientId={patientId} onClose={() => setDialog(null)} />}
-      {dialog === "stop" && <StopDialog med={med} patientId={patientId} onClose={() => setDialog(null)} />}
-    </li>
-  );
-}
-
-function ChangeTimesDialog({ med, patientId, onClose }: { med: MedicationOut; patientId: string; onClose: () => void }) {
-  const change = useChangeReminderTimes(patientId);
-  const toast = useToast();
-  const [times, setTimes] = useState<string[]>(timesOf(med));
-  const [error, setError] = useState<string | undefined>();
-  const save = async () => {
-    if (times.length === 0) return setError("Choose at least one time.");
-    try {
-      await change.mutateAsync({ medication_id: med.id, times_of_day: times, meal_relation: null, timezone: null });
-      toast.success("Reminder times updated");
-      onClose();
-    } catch (err) {
-      setError(errorMessage(err));
-    }
-  };
-  return (
-    <Dialog
-      open
-      onClose={onClose}
-      title={`Reminder times for ${med.name}`}
-      description={
-        med.source !== "self_reported"
-          ? "This changes only when you are reminded. Your doctor's instructions stay the same."
-          : undefined
-      }
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button onClick={() => void save()} loading={change.isPending}>Save</Button>
-        </>
-      }
-    >
-      <TimesPicker value={times} onChange={setTimes} error={error} />
-    </Dialog>
-  );
-}
-
-function StopDialog({ med, patientId, onClose }: { med: MedicationOut; patientId: string; onClose: () => void }) {
-  const stop = useStopMedication(patientId);
-  const toast = useToast();
-  const [reason, setReason] = useState("");
-  return (
-    <Dialog
-      open
-      onClose={onClose}
-      title={`Stop ${med.name}?`}
-      description="Reminders for this medicine will stop. It stays in your history."
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>Back</Button>
-          <Button
-            variant="danger"
-            loading={stop.isPending}
-            onClick={() =>
-              void stop.mutateAsync({ medication_id: med.id, reason: reason.trim() || null }).then(
-                () => {
-                  toast.success(`${med.name} stopped`);
-                  onClose();
-                },
-                (err) => toast.error(errorMessage(err)),
-              )
-            }
-          >
-            Stop medicine
-          </Button>
-        </>
-      }
-    >
-      <Field label="Reason (optional)">
-        {(p) => <Textarea {...p} rows={2} value={reason} onChange={(e) => setReason(e.target.value)} />}
-      </Field>
-    </Dialog>
   );
 }
 
@@ -378,6 +282,8 @@ function AddMedicineDialog({ patientId, open, onClose }: { patientId: string; op
         instructions: instructions.trim() || null,
         start_date: since || null,
         is_prn: prn,
+        schedule_type: prn ? "as_needed" : "fixed_times",
+        clear_end_date: false,
         times_of_day: prn ? [] : times,
         meal_relation: (meal || null) as Meal | null,
         timezone: null,

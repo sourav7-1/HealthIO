@@ -61,6 +61,16 @@
         "title": "AccountUpdate",
         "type": "object"
       },
+      "ActorRole": {
+        "enum": [
+          "patient",
+          "caregiver",
+          "doctor",
+          "system"
+        ],
+        "title": "ActorRole",
+        "type": "string"
+      },
       "AdherenceLineOut": {
         "properties": {
           "medication_id": {
@@ -142,6 +152,34 @@
         ],
         "title": "AdherenceOut",
         "type": "object"
+      },
+      "AdviceIn": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name",
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/AdvisorRole"
+          }
+        },
+        "required": [
+          "role",
+          "name"
+        ],
+        "title": "AdviceIn",
+        "type": "object"
+      },
+      "AdvisorRole": {
+        "enum": [
+          "doctor",
+          "pharmacist"
+        ],
+        "title": "AdvisorRole",
+        "type": "string"
       },
       "AiConsentIn": {
         "additionalProperties": false,
@@ -840,6 +878,180 @@
         ],
         "title": "CaregiverStatus",
         "type": "string"
+      },
+      "ChangeRequestIn": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/ChangeRequestKind"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "schedule": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ScheduleIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "ChangeRequestIn",
+        "type": "object"
+      },
+      "ChangeRequestKind": {
+        "enum": [
+          "schedule",
+          "stop",
+          "pause",
+          "other"
+        ],
+        "title": "ChangeRequestKind",
+        "type": "string"
+      },
+      "ChangeRequestOut": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ChangeRequestKind"
+          },
+          "medication_id": {
+            "format": "uuid",
+            "title": "Medication Id",
+            "type": "string"
+          },
+          "medication_name": {
+            "title": "Medication Name",
+            "type": "string"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          },
+          "proposed": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Proposed"
+          },
+          "requester_role": {
+            "$ref": "#/components/schemas/ActorRole"
+          },
+          "resolution_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolution Note"
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ChangeRequestStatus"
+          }
+        },
+        "required": [
+          "id",
+          "medication_id",
+          "medication_name",
+          "kind",
+          "status",
+          "requester_role",
+          "message",
+          "proposed",
+          "created_at",
+          "resolved_at",
+          "resolution_note"
+        ],
+        "title": "ChangeRequestOut",
+        "type": "object"
+      },
+      "ChangeRequestStatus": {
+        "enum": [
+          "pending",
+          "approved",
+          "declined",
+          "withdrawn"
+        ],
+        "title": "ChangeRequestStatus",
+        "type": "string"
+      },
+      "CheckOut": {
+        "properties": {
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/FindingOut"
+            },
+            "title": "Findings",
+            "type": "array"
+          },
+          "requires": {
+            "enum": [
+              "none",
+              "acknowledgement",
+              "clinician"
+            ],
+            "title": "Requires",
+            "type": "string"
+          }
+        },
+        "required": [
+          "requires",
+          "findings"
+        ],
+        "title": "CheckOut",
+        "type": "object"
       },
       "ConditionClinicalStatus": {
         "enum": [
@@ -2089,6 +2301,38 @@
         "title": "DownloadOut",
         "type": "object"
       },
+      "DuplicateOut": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "same_name",
+              "same_generic"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "medication_id": {
+            "format": "uuid",
+            "title": "Medication Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/MedicationOrigin"
+          }
+        },
+        "required": [
+          "medication_id",
+          "name",
+          "origin",
+          "kind"
+        ],
+        "title": "DuplicateOut",
+        "type": "object"
+      },
       "EmailRequest": {
         "additionalProperties": false,
         "properties": {
@@ -2238,6 +2482,94 @@
         "title": "EmergencyProfileOut",
         "type": "object"
       },
+      "EventOut": {
+        "properties": {
+          "actor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Name"
+          },
+          "actor_role": {
+            "$ref": "#/components/schemas/ActorRole"
+          },
+          "advised_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Advised By Name"
+          },
+          "advised_by_role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AdvisorRole"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "details": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Details"
+          },
+          "event_type": {
+            "$ref": "#/components/schemas/MedicationEventType"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "occurred_at": {
+            "format": "date-time",
+            "title": "Occurred At",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "required": [
+          "id",
+          "event_type",
+          "occurred_at",
+          "actor_role",
+          "actor_name",
+          "reason",
+          "advised_by_role",
+          "advised_by_name",
+          "details"
+        ],
+        "title": "EventOut",
+        "type": "object"
+      },
       "ExistingMedicationIn": {
         "additionalProperties": false,
         "properties": {
@@ -2317,6 +2649,29 @@
           "name"
         ],
         "title": "ExistingMedicationIn",
+        "type": "object"
+      },
+      "FindingOut": {
+        "properties": {
+          "clinical": {
+            "title": "Clinical",
+            "type": "boolean"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "clinical"
+        ],
+        "title": "FindingOut",
         "type": "object"
       },
       "FollowUpIn": {
@@ -3175,6 +3530,37 @@
         "title": "MedicalHistoryOut",
         "type": "object"
       },
+      "MedicationEventType": {
+        "enum": [
+          "created",
+          "confirmed",
+          "schedule_changed",
+          "paused",
+          "resumed",
+          "stopped",
+          "completed",
+          "change_requested",
+          "change_approved",
+          "change_declined",
+          "change_withdrawn",
+          "duplicate_noted"
+        ],
+        "title": "MedicationEventType",
+        "type": "string"
+      },
+      "MedicationOrigin": {
+        "description": "Where the medicine came from, shown to everyone as its label.",
+        "enum": [
+          "doctor_prescription",
+          "uploaded_prescription_ai",
+          "uploaded_prescription_typed",
+          "self_reported",
+          "clinician_recorded",
+          "integration"
+        ],
+        "title": "MedicationOrigin",
+        "type": "string"
+      },
       "MedicationOut": {
         "properties": {
           "confirmed_at": {
@@ -3199,6 +3585,13 @@
               }
             ],
             "title": "Dosage Form"
+          },
+          "duplicates": {
+            "items": {
+              "$ref": "#/components/schemas/DuplicateOut"
+            },
+            "title": "Duplicates",
+            "type": "array"
           },
           "end_date": {
             "anyOf": [
@@ -3247,6 +3640,52 @@
             "title": "Name",
             "type": "string"
           },
+          "origin": {
+            "$ref": "#/components/schemas/MedicationOrigin"
+          },
+          "pause_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pause Reason"
+          },
+          "paused_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paused At"
+          },
+          "pending_request": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ChangeRequestOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "prescribed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PrescribedOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "prescribed_directions": {
             "anyOf": [
               {
@@ -3270,6 +3709,18 @@
               }
             ],
             "title": "Prescription Item Id"
+          },
+          "resume_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resume On"
           },
           "route": {
             "anyOf": [
@@ -3355,13 +3806,17 @@
           "instructions",
           "is_prn",
           "source",
+          "origin",
           "status",
           "start_date",
           "end_date",
           "prescription_item_id",
           "confirmed_at",
           "stopped_at",
-          "stop_reason"
+          "stop_reason",
+          "paused_at",
+          "pause_reason",
+          "resume_on"
         ],
         "title": "MedicationOut",
         "type": "object"
@@ -4121,6 +4576,120 @@
         "title": "PatientListItem",
         "type": "object"
       },
+      "PatternIn": {
+        "additionalProperties": false,
+        "properties": {
+          "every": {
+            "default": 1,
+            "maximum": 30.0,
+            "minimum": 1.0,
+            "title": "Every",
+            "type": "integer"
+          },
+          "kind": {
+            "default": "daily",
+            "enum": [
+              "daily",
+              "every_n_days",
+              "weekdays"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "weekdays": {
+            "items": {
+              "type": "integer"
+            },
+            "maxItems": 7,
+            "title": "Weekdays",
+            "type": "array"
+          }
+        },
+        "title": "PatternIn",
+        "type": "object"
+      },
+      "PatternOut": {
+        "properties": {
+          "every": {
+            "title": "Every",
+            "type": "integer"
+          },
+          "kind": {
+            "enum": [
+              "daily",
+              "every_n_days",
+              "weekdays"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "weekdays": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Weekdays",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "every",
+          "weekdays"
+        ],
+        "title": "PatternOut",
+        "type": "object"
+      },
+      "PauseIn": {
+        "additionalProperties": false,
+        "properties": {
+          "acknowledged": {
+            "default": false,
+            "title": "Acknowledged",
+            "type": "boolean"
+          },
+          "advice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AdviceIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "own_decision": {
+            "default": false,
+            "title": "Own Decision",
+            "type": "boolean"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "resume_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resume On"
+          }
+        },
+        "title": "PauseIn",
+        "type": "object"
+      },
       "PreferencesModel": {
         "additionalProperties": false,
         "properties": {
@@ -4201,6 +4770,103 @@
           "notify_caregivers_on_missed"
         ],
         "title": "PreferencesModel",
+        "type": "object"
+      },
+      "PrescribedOut": {
+        "description": "The prescription line as the doctor wrote it (never changed by the patient).",
+        "properties": {
+          "dose_amount": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose Amount"
+          },
+          "dose_unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose Unit"
+          },
+          "duration_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Days"
+          },
+          "frequency_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frequency Text"
+          },
+          "is_prn": {
+            "title": "Is Prn",
+            "type": "boolean"
+          },
+          "meal_relation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MealRelation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "prescription_id": {
+            "format": "uuid",
+            "title": "Prescription Id",
+            "type": "string"
+          },
+          "times_per_day": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Times Per Day"
+          },
+          "verification_status": {
+            "title": "Verification Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "frequency_text",
+          "times_per_day",
+          "dose_amount",
+          "dose_unit",
+          "meal_relation",
+          "duration_days",
+          "is_prn",
+          "prescription_id",
+          "verification_status"
+        ],
+        "title": "PrescribedOut",
         "type": "object"
       },
       "PrescriberOut": {
@@ -5371,6 +6037,11 @@
       "ReminderTimesIn": {
         "additionalProperties": false,
         "properties": {
+          "acknowledged": {
+            "default": false,
+            "title": "Acknowledged",
+            "type": "boolean"
+          },
           "meal_relation": {
             "anyOf": [
               {
@@ -5755,6 +6426,25 @@
           "name"
         ],
         "title": "ReportedConditionIn",
+        "type": "object"
+      },
+      "ResolveIn": {
+        "additionalProperties": false,
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "title": "ResolveIn",
         "type": "object"
       },
       "RespondIn": {
@@ -6590,8 +7280,82 @@
         "title": "ScanSummaryOut",
         "type": "object"
       },
-      "ScheduleOut": {
+      "ScheduleChangeIn": {
+        "additionalProperties": false,
         "properties": {
+          "acknowledged": {
+            "default": false,
+            "title": "Acknowledged",
+            "type": "boolean"
+          },
+          "advice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AdviceIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "clear_end_date": {
+            "default": false,
+            "title": "Clear End Date",
+            "type": "boolean"
+          },
+          "dose_amount": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,7}|(?=[\\d.]{1,11}0*$)\\d{0,7}\\.\\d{0,3}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose Amount"
+          },
+          "dose_unit": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose Unit"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "interval_hours": {
+            "anyOf": [
+              {
+                "maximum": 48.0,
+                "minimum": 1.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval Hours"
+          },
           "meal_relation": {
             "anyOf": [
               {
@@ -6601,6 +7365,234 @@
                 "type": "null"
               }
             ]
+          },
+          "pattern": {
+            "$ref": "#/components/schemas/PatternIn"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "schedule_type": {
+            "$ref": "#/components/schemas/ScheduleType",
+            "default": "fixed_times"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "times_of_day": {
+            "items": {
+              "format": "time",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Times Of Day",
+            "type": "array"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "title": "ScheduleChangeIn",
+        "type": "object"
+      },
+      "ScheduleIn": {
+        "additionalProperties": false,
+        "description": "A complete regimen: how often, when, how much, and for how long.",
+        "properties": {
+          "clear_end_date": {
+            "default": false,
+            "title": "Clear End Date",
+            "type": "boolean"
+          },
+          "dose_amount": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,7}|(?=[\\d.]{1,11}0*$)\\d{0,7}\\.\\d{0,3}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose Amount"
+          },
+          "dose_unit": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose Unit"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "interval_hours": {
+            "anyOf": [
+              {
+                "maximum": 48.0,
+                "minimum": 1.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval Hours"
+          },
+          "meal_relation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MealRelation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pattern": {
+            "$ref": "#/components/schemas/PatternIn"
+          },
+          "schedule_type": {
+            "$ref": "#/components/schemas/ScheduleType",
+            "default": "fixed_times"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "times_of_day": {
+            "items": {
+              "format": "time",
+              "type": "string"
+            },
+            "maxItems": 8,
+            "title": "Times Of Day",
+            "type": "array"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "title": "ScheduleIn",
+        "type": "object"
+      },
+      "ScheduleOut": {
+        "properties": {
+          "dose_amount": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose Amount"
+          },
+          "dose_unit": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose Unit"
+          },
+          "effective_from": {
+            "format": "date-time",
+            "title": "Effective From",
+            "type": "string"
+          },
+          "interval_minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval Minutes"
+          },
+          "meal_relation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MealRelation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "pattern": {
+            "$ref": "#/components/schemas/PatternOut"
+          },
+          "pattern_text": {
+            "title": "Pattern Text",
+            "type": "string"
           },
           "times_of_day": {
             "items": {
@@ -6621,8 +7613,14 @@
         "required": [
           "type",
           "times_of_day",
+          "interval_minutes",
+          "pattern",
+          "pattern_text",
+          "dose_amount",
+          "dose_unit",
           "timezone",
-          "meal_relation"
+          "meal_relation",
+          "effective_from"
         ],
         "title": "ScheduleOut",
         "type": "object"
@@ -6639,6 +7637,11 @@
       "SelfReportedIn": {
         "additionalProperties": false,
         "properties": {
+          "clear_end_date": {
+            "default": false,
+            "title": "Clear End Date",
+            "type": "boolean"
+          },
           "dosage_form": {
             "anyOf": [
               {
@@ -6651,6 +7654,46 @@
             ],
             "title": "Dosage Form"
           },
+          "dose_amount": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "number"
+              },
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,7}|(?=[\\d.]{1,11}0*$)\\d{0,7}\\.\\d{0,3}0*$)",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose Amount"
+          },
+          "dose_unit": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose Unit"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
           "instructions": {
             "anyOf": [
               {
@@ -6662,6 +7705,19 @@
               }
             ],
             "title": "Instructions"
+          },
+          "interval_hours": {
+            "anyOf": [
+              {
+                "maximum": 48.0,
+                "minimum": 1.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval Hours"
           },
           "is_prn": {
             "default": false,
@@ -6683,6 +7739,13 @@
             "minLength": 1,
             "title": "Name",
             "type": "string"
+          },
+          "pattern": {
+            "$ref": "#/components/schemas/PatternIn"
+          },
+          "schedule_type": {
+            "$ref": "#/components/schemas/ScheduleType",
+            "default": "fixed_times"
           },
           "start_date": {
             "anyOf": [
@@ -6726,7 +7789,6 @@
                 "type": "null"
               }
             ],
-            "description": "Defaults to the patient's timezone",
             "title": "Timezone"
           }
         },
@@ -6814,6 +7876,26 @@
       "StopIn": {
         "additionalProperties": false,
         "properties": {
+          "acknowledged": {
+            "default": false,
+            "title": "Acknowledged",
+            "type": "boolean"
+          },
+          "advice": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AdviceIn"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "own_decision": {
+            "default": false,
+            "title": "Own Decision",
+            "type": "boolean"
+          },
           "reason": {
             "anyOf": [
               {
@@ -9963,8 +11045,201 @@
         ]
       }
     },
+    "/api/v1/patients/{patient_id}/medication-change-requests": {
+      "get": {
+        "operationId": "list_change_requests_api_v1_patients__patient_id__medication_change_requests_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ChangeRequestOut"
+                  },
+                  "title": "Response List Change Requests Api V1 Patients  Patient Id  Medication Change Requests Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Change Requests",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/medication-change-requests/{request_id}/withdraw": {
+      "post": {
+        "operationId": "withdraw_change_request_api_v1_patients__patient_id__medication_change_requests__request_id__withdraw_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRequestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Withdraw Change Request",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/medication-change-requests/{request_id}/{decision}": {
+      "post": {
+        "description": "A linked doctor approves (the proposal is applied exactly as asked) or declines.\nTo change the prescription itself, correct it as a new version as well.",
+        "operationId": "resolve_change_request_api_v1_patients__patient_id__medication_change_requests__request_id___decision__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "decision",
+            "required": true,
+            "schema": {
+              "enum": [
+                "approve",
+                "decline"
+              ],
+              "title": "Decision",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRequestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Resolve Change Request",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
     "/api/v1/patients/{patient_id}/medications": {
       "get": {
+        "description": "All medicines: in use, paused, waiting to be set up, completed and discontinued.",
         "operationId": "list_medications_api_v1_patients__patient_id__medications_get",
         "parameters": [
           {
@@ -10074,7 +11349,7 @@
     },
     "/api/v1/patients/{patient_id}/medications/self-reported": {
       "post": {
-        "description": "A medicine the patient takes that no doctor prescribed here. Always labelled\npatient-reported.",
+        "description": "A medicine the patient takes that no doctor prescribed here. Always labelled\npatient-reported. The same medicine cannot be added twice while in use.",
         "operationId": "add_self_reported_api_v1_patients__patient_id__medications_self_reported_post",
         "parameters": [
           {
@@ -10126,6 +11401,64 @@
           }
         ],
         "summary": "Add Self Reported",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/medications/{medication_id}": {
+      "get": {
+        "operationId": "get_medication_api_v1_patients__patient_id__medications__medication_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "medication_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Medication Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Medication",
         "tags": [
           "medications"
         ]
@@ -10199,9 +11532,78 @@
         ]
       }
     },
+    "/api/v1/patients/{patient_id}/medications/{medication_id}/change-requests": {
+      "post": {
+        "description": "Ask a linked doctor to confirm a change to a prescribed medicine. Nothing changes\nuntil a doctor approves.",
+        "operationId": "request_change_api_v1_patients__patient_id__medications__medication_id__change_requests_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "medication_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Medication Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeRequestIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeRequestOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Request Change",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
     "/api/v1/patients/{patient_id}/medications/{medication_id}/confirm": {
       "post": {
-        "description": "Start a prescribed medicine by choosing reminder times. The prescription itself\nis not changed.",
+        "description": "Start a prescribed medicine by choosing reminder times. The dose and food relation\ncome from the prescription, which is not changed.",
         "operationId": "confirm_medication_api_v1_patients__patient_id__medications__medication_id__confirm_post",
         "parameters": [
           {
@@ -10268,8 +11670,139 @@
         ]
       }
     },
+    "/api/v1/patients/{patient_id}/medications/{medication_id}/history": {
+      "get": {
+        "operationId": "medication_history_api_v1_patients__patient_id__medications__medication_id__history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "medication_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Medication Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/EventOut"
+                  },
+                  "title": "Response Medication History Api V1 Patients  Patient Id  Medications  Medication Id  History Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Medication History",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/medications/{medication_id}/pause": {
+      "post": {
+        "operationId": "pause_medication_api_v1_patients__patient_id__medications__medication_id__pause_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "medication_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Medication Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PauseIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Pause Medication",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
     "/api/v1/patients/{patient_id}/medications/{medication_id}/reminder-times": {
       "put": {
+        "description": "Reminder times only. A different number of doses a day for a prescribed medicine\nneeds a clinician (use /schedule); warnings must be acknowledged.",
         "operationId": "change_reminder_times_api_v1_patients__patient_id__medications__medication_id__reminder_times_put",
         "parameters": [
           {
@@ -10336,9 +11869,205 @@
         ]
       }
     },
+    "/api/v1/patients/{patient_id}/medications/{medication_id}/resume": {
+      "post": {
+        "operationId": "resume_medication_api_v1_patients__patient_id__medications__medication_id__resume_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "medication_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Medication Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Resume Medication",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/medications/{medication_id}/schedule": {
+      "put": {
+        "description": "Change dose, times, frequency, days, food relation or dates. Clinically relevant\nchanges to a prescribed medicine need `advice` (the doctor or pharmacist who advised\nit) or a doctor's approval through a change request.",
+        "operationId": "change_schedule_api_v1_patients__patient_id__medications__medication_id__schedule_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "medication_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Medication Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleChangeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicationOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Change Schedule",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/medications/{medication_id}/schedule/check": {
+      "post": {
+        "description": "What confirming this schedule change would need (nothing is changed).",
+        "operationId": "check_schedule_api_v1_patients__patient_id__medications__medication_id__schedule_check_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "medication_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Medication Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduleIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Check Schedule",
+        "tags": [
+          "medications"
+        ]
+      }
+    },
     "/api/v1/patients/{patient_id}/medications/{medication_id}/stop": {
       "post": {
-        "description": "Only self-reported medicines. Prescribed medicines are changed by the doctor.",
+        "description": "Discontinue. For a prescribed medicine: acknowledge the warning and record who\nadvised it (doctor or pharmacist) or that it is your own decision. The prescription\nis unchanged.",
         "operationId": "stop_medication_api_v1_patients__patient_id__medications__medication_id__stop_post",
         "parameters": [
           {

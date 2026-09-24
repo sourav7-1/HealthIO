@@ -41,6 +41,7 @@ from app.modules.medications.models import (
     Medication,
     MedicationAdherence,
     MedicationDose,
+    MedicationOrigin,
     MedicationSchedule,
     MedicationSource,
     MedicationStatus,
@@ -364,6 +365,7 @@ async def test_medication_chain_and_dose_integrity(
             Medication(
                 patient_id=patient.id,
                 source=MedicationSource.PRESCRIPTION,
+                origin=MedicationOrigin.DOCTOR_PRESCRIPTION,
                 prescription_item_id=item_id,
                 name="Test Medicine A",
                 status=MedicationStatus.ACTIVE,
@@ -373,10 +375,16 @@ async def test_medication_chain_and_dose_integrity(
     med = Medication(
         patient_id=patient.id,
         source=MedicationSource.PRESCRIPTION,
+        origin=MedicationOrigin.DOCTOR_PRESCRIPTION,
         prescription_item_id=item_id,
         name="Test Medicine A",
     )
-    other = Medication(patient_id=patient.id, source=MedicationSource.SELF_REPORTED, name="B")
+    other = Medication(
+        patient_id=patient.id,
+        source=MedicationSource.SELF_REPORTED,
+        origin=MedicationOrigin.SELF_REPORTED,
+        name="B",
+    )
     session.add_all([med, other])
     await session.flush()
     schedule = MedicationSchedule(

@@ -20,6 +20,7 @@ from app.modules.appointments import service as appointments
 from app.modules.care_team import service as care_team
 from app.modules.medications import doses
 from app.modules.medications import service as medications
+from app.modules.medications.models import ActorRole, MedicationOrigin
 from app.modules.patients import service as patients
 from app.modules.prescriptions import service
 from app.modules.prescriptions.document import (
@@ -354,6 +355,8 @@ async def issue_prescription(
         patient_id=ctx.patient_id,
         start_date=rx.prescribed_on or date.today(),
         actor=ctx.actor_id,
+        origin=MedicationOrigin.DOCTOR_PRESCRIPTION,
+        actor_role=ActorRole.DOCTOR,
         lines=[
             medications.PrescribedLine(
                 item_id=i.id,

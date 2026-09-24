@@ -29,7 +29,9 @@ from app.modules.labs.models import Test, TestOrder, TestOrderItem, TestReport, 
 from app.modules.medications.models import (
     Medication,
     MedicationAdherence,
+    MedicationChangeRequest,
     MedicationDose,
+    MedicationEvent,
     MedicationSchedule,
 )
 from app.modules.notifications.models import Notification
@@ -59,7 +61,9 @@ __all__ = [
     "MedicalHistoryEntry",
     "Medication",
     "MedicationAdherence",
+    "MedicationChangeRequest",
     "MedicationDose",
+    "MedicationEvent",
     "MedicationSchedule",
     "Notification",
     "PatientProfile",

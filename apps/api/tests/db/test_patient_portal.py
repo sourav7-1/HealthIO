@@ -14,7 +14,6 @@ from app.modules.clinical.models import (
     ConditionVerificationStatus,
     MedicalCondition,
 )
-from app.modules.medications import doses as dose_service
 from app.modules.patients.models import PatientProfile
 from tests.db.conftest import TEST_PASSWORD, Builder, login
 from tests.db.test_doctor_portal import make_doctor
@@ -128,8 +127,10 @@ async def test_patient_cannot_change_or_stop_doctor_prescribed_medicine(
         json={"times_of_day": ["08:00"]},
         headers=ph,
     )
+    # Stopping a prescribed medicine is never silent: it needs the warning acknowledged
+    # and a doctor/pharmacist or the patient's own recorded decision (test_medications.py).
     stop = await api.post(f"{API}/patients/{pid}/medications/{med['id']}/stop", json={}, headers=ph)
-    assert stop.status_code == 403
+    assert stop.status_code == 409
     assert "doctor" in stop.json()["detail"]
     rx = (await api.get(f"{API}/patients/{pid}/prescriptions", headers=ph)).json()[0]
     edit = await api.put(
@@ -367,9 +368,14 @@ async def test_password_change_keeps_this_device_and_signs_out_others(
     assert (await api.get(f"{API}/me", headers=other_device)).status_code == 401
 
 
-def test_dose_times_helper_rejects_empty_schedule() -> None:
+def test_schedule_validation_rejects_empty_schedule() -> None:
     from app.core.errors import ValidationFailedError
+    from app.modules.medications.models import ScheduleType
+    from app.modules.medications.regimen import ScheduleSpec, validate_spec
 
     with pytest.raises(ValidationFailedError):
-        dose_service._validate_times([], is_prn=False)
-    assert dose_service._validate_times([time(8, 0, 30), time(8, 0)], is_prn=False) == [time(8, 0)]
+        validate_spec(ScheduleSpec(ScheduleType.FIXED_TIMES, times=()))
+    clean = validate_spec(
+        ScheduleSpec(ScheduleType.FIXED_TIMES, times=(time(8, 0, 30), time(8, 0)))
+    )
+    assert clean.times == (time(8, 0),)
