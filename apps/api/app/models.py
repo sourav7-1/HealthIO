@@ -35,6 +35,7 @@ from app.modules.medications.models import (
     MedicationSchedule,
 )
 from app.modules.notifications.models import Notification
+from app.modules.notifications.push_models import PushSubscription
 from app.modules.patients.models import PatientProfile
 from app.modules.prescriptions.models import Prescription, PrescriptionItem
 from app.modules.records.models import HealthDocument
@@ -70,6 +71,7 @@ __all__ = [
     "Prescription",
     "PrescriptionItem",
     "PrescriptionScan",
+    "PushSubscription",
     "RefreshToken",
     "ReminderPreference",
     "Test",

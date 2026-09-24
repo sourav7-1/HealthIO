@@ -1,0 +1,13 @@
+{
+  "name": "Health Io",
+  "short_name": "Health Io",
+  "description": "Medicines, reminders and health records",
+  "start_url": "/patient",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f7f7",
+  "theme_color": "#0c6b5d",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

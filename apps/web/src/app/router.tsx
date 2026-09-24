@@ -23,6 +23,7 @@ import { useMe } from "@/features/auth/session";
 import { CareLayout, CarePersonOutlet } from "@/features/care/CareLayout";
 import { ActivePatientProvider } from "@/features/patient/context";
 import { LoginPage } from "@/features/auth/LoginPage";
+import { ReminderPrompt } from "@/features/reminders/ReminderPrompt";
 
 import { RouteError } from "./RouteError";
 
@@ -76,6 +77,7 @@ function PatientShell() {
       >
         <Outlet />
       </PortalShell>
+      <ReminderPrompt />
     </ActivePatientProvider>
   );
 }

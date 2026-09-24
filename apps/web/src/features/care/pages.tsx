@@ -6,9 +6,11 @@ import { Link, useNavigate } from "react-router";
 import { PageHeader } from "@/components/layout/PortalShell";
 import { Alert, Badge, Button, Card, Checkbox, Dialog, EmptyState, Field, Input, Select, SkeletonList, ErrorState, useToast } from "@/components/ui";
 import { StatusBadge } from "@/features/chart/shared";
+import { TODO_DOSE } from "@/features/patient/api";
 import { DoseCard } from "@/features/patient/components";
 import { useActivePatient } from "@/features/patient/context";
 import { ReminderCard } from "@/features/patient/pages/ProfilePages";
+import { DevicePushCard } from "@/features/reminders/DevicePushCard";
 import { DEPENDANT_BASES, basisLabel, scopeLabel } from "@/features/patient/scopes";
 import { errorMessage, type Schemas } from "@/lib/api";
 import { formatDate, formatDateTime, formatTime, humanize, todayIso } from "@/lib/format";
@@ -104,7 +106,7 @@ function Section({ title, icon, children }: { title: string; icon: React.ReactNo
 /** One person's summary. Every section distinguishes "not shared" from "nothing to show". */
 export function PersonCard({ person, compact = false }: { person: PersonSummary; compact?: boolean }) {
   const can = (p: string) => person.permissions.includes(p);
-  const open = (person.today_doses ?? []).filter((d) => ["scheduled", "snoozed", "missed"].includes(d.status));
+  const open = (person.today_doses ?? []).filter((d) => TODO_DOSE.includes(d.status));
   const done = (person.today_doses ?? []).length - open.length;
   return (
     <Card
@@ -375,8 +377,9 @@ export function CareRemindersPage() {
   return (
     <>
       <PageHeader title="Reminder settings" description="How and when medicine reminders are sent for this person." />
-      <div className="max-w-2xl">
+      <div className="flex max-w-2xl flex-col gap-6">
         <ReminderCard patientId={patientId} />
+        <DevicePushCard />
       </div>
     </>
   );

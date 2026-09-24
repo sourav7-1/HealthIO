@@ -23,10 +23,19 @@ class Preferences:
     default_snooze_minutes: int = 10
     missed_after_minutes: int = 120
     notify_caregivers_on_missed: bool = True
+    remind_again_after_minutes: int | None = 15
 
     @property
     def missed_after(self) -> timedelta:
         return timedelta(minutes=self.missed_after_minutes)
+
+    def in_quiet_hours(self, local: time) -> bool:
+        """Quiet hours may wrap past midnight (22:00-07:00)."""
+        start, end = self.quiet_hours_start, self.quiet_hours_end
+        if start is None or end is None or start == end:
+            return False
+        t = local.replace(second=0, microsecond=0, tzinfo=None)
+        return start <= t < end if start < end else (t >= start or t < end)
 
 
 FIELDS = tuple(Preferences.__dataclass_fields__)
@@ -48,6 +57,10 @@ async def save(
         raise ValidationFailedError(
             f"Snooze must be one of {', '.join(map(str, SNOOZE_CHOICES))} minutes."
         )
+    if prefs.remind_again_after_minutes is not None and not (
+        5 <= prefs.remind_again_after_minutes <= 120
+    ):
+        raise ValidationFailedError("Remind again after 5 to 120 minutes, or not at all.")
     if (prefs.quiet_hours_start is None) != (prefs.quiet_hours_end is None):
         raise ValidationFailedError("Set both the start and end of quiet hours, or neither.")
     if prefs.reminders_enabled and not (

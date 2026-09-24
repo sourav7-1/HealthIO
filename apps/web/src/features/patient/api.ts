@@ -21,6 +21,10 @@ function useInvalidatePatient(pid: string) {
 
 // --- doses and medicines -------------------------------------------------------------------
 
+/** Dose statuses that still need something from the person. */
+export const OPEN_DOSE: string[] = ["scheduled", "notified", "snoozed"];
+export const TODO_DOSE: string[] = [...OPEN_DOSE, "missed"];
+
 export function useDoses(pid: string, days = 1) {
   return useQuery({
     queryKey: [...keys.section(pid, "doses"), days],

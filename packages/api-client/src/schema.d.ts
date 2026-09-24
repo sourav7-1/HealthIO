@@ -458,6 +458,111 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/me/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Notifications */
+        get: operations["my_notifications_api_v1_me_notifications_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notifications/read-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Read All */
+        post: operations["read_all_api_v1_me_notifications_read_all_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notifications/{notification_id}/read": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Read Notification */
+        post: operations["read_notification_api_v1_me_notifications__notification_id__read_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/push-subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Push Subscription
+         * @description Register this browser for reminder notifications.
+         */
+        post: operations["add_push_subscription_api_v1_me_push_subscriptions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/push-subscriptions/remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Remove Push Subscription */
+        post: operations["remove_push_subscription_api_v1_me_push_subscriptions_remove_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/push/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Push Config */
+        get: operations["push_config_api_v1_me_push_config_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/patients/{patient_id}/access": {
         parameters: {
             query?: never;
@@ -1505,6 +1610,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/patients/{patient_id}/reminders/due": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Due Reminders
+         * @description Doses to take now: due, reminded, or back from snooze. Works without a worker (the
+         *     app polls this), and alongside Web Push when a worker sends reminders.
+         */
+        get: operations["due_reminders_api_v1_patients__patient_id__reminders_due_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/reminders/missed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recent Missed
+         * @description Recently missed doses with the medicine's instructions as written and a pointer to
+         *     the doctor or pharmacist. Never advice on what to do.
+         */
+        get: operations["recent_missed_api_v1_patients__patient_id__reminders_missed_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/patients/{patient_id}/reports": {
         parameters: {
             query?: never;
@@ -2500,7 +2647,7 @@ export interface components {
          * DoseStatus
          * @enum {string}
          */
-        DoseStatus: "scheduled" | "snoozed" | "taken" | "skipped" | "missed" | "cancelled";
+        DoseStatus: "scheduled" | "notified" | "snoozed" | "taken" | "skipped" | "missed" | "cancelled";
         /** DownloadOut */
         DownloadOut: {
             /** Expires In */
@@ -2691,6 +2838,17 @@ export interface components {
          * @enum {string}
          */
         FollowUpStatus: "open" | "booked" | "completed" | "cancelled";
+        /** GuidanceOut */
+        GuidanceOut: {
+            /** Instructions As Written */
+            instructions_as_written: string | null;
+            /** Instructions Verified */
+            instructions_verified: boolean;
+            /** Message */
+            message: string;
+            /** Source Label */
+            source_label: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -2737,6 +2895,13 @@ export interface components {
              * @default 2026-09-en
              */
             notice_version: string;
+        };
+        /** InboxOut */
+        InboxOut: {
+            /** Items */
+            items: components["schemas"]["NotificationOut"][];
+            /** Unread */
+            unread: number;
         };
         /** InviteCaregiver */
         InviteCaregiver: {
@@ -2834,6 +2999,13 @@ export interface components {
             strength?: string | null;
             /** Times Per Day */
             times_per_day?: number | null;
+        };
+        /** KeysIn */
+        KeysIn: {
+            /** Auth */
+            auth: string;
+            /** P256Dh */
+            p256dh: string;
         };
         /** LoginRequest */
         LoginRequest: {
@@ -3036,6 +3208,37 @@ export interface components {
             /** Body */
             body: string;
             note_type?: components["schemas"]["NoteType"] | null;
+        };
+        /**
+         * NotificationCategory
+         * @enum {string}
+         */
+        NotificationCategory: "medication_reminder" | "missed_dose" | "refill" | "appointment" | "follow_up" | "prescription" | "lab_result" | "care_team" | "consent" | "security" | "emergency" | "system";
+        /** NotificationOut */
+        NotificationOut: {
+            /** Body */
+            body: string | null;
+            category: components["schemas"]["NotificationCategory"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            };
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Patient Id */
+            patient_id: string | null;
+            /** Read At */
+            read_at: string | null;
+            /** Title */
+            title: string | null;
         };
         /** OrderIn */
         OrderIn: {
@@ -3253,6 +3456,11 @@ export interface components {
             quiet_hours_end: string | null;
             /** Quiet Hours Start */
             quiet_hours_start: string | null;
+            /**
+             * Remind Again After Minutes
+             * @default 15
+             */
+            remind_again_after_minutes: (5 | 10 | 15 | 30 | 60) | null;
             /** Reminders Enabled */
             reminders_enabled: boolean;
             /** Show Medicine Names */
@@ -3503,6 +3711,13 @@ export interface components {
             /** Timezone */
             timezone?: string | null;
         };
+        /** PushConfigOut */
+        PushConfigOut: {
+            /** Enabled */
+            enabled: boolean;
+            /** Vapid Public Key */
+            vapid_public_key: string | null;
+        };
         /**
          * ReactionSeverity
          * @enum {string}
@@ -3561,6 +3776,47 @@ export interface components {
         RejectIn: {
             /** Reason */
             reason: string;
+        };
+        /** ReminderOut */
+        ReminderOut: {
+            /** Can Snooze */
+            can_snooze: boolean;
+            /** Default Snooze Minutes */
+            default_snooze_minutes: number;
+            /** Dose */
+            dose: string | null;
+            /**
+             * Dose Id
+             * Format: uuid
+             */
+            dose_id: string;
+            guidance?: components["schemas"]["GuidanceOut"] | null;
+            /** Instructions */
+            instructions: string | null;
+            /** Instructions Verified */
+            instructions_verified: boolean;
+            /** Meal */
+            meal: string | null;
+            /**
+             * Medication Id
+             * Format: uuid
+             */
+            medication_id: string;
+            /** Medicine */
+            medicine: string;
+            /** Origin */
+            origin: string;
+            /**
+             * Scheduled At
+             * Format: date-time
+             */
+            scheduled_at: string;
+            /** Snooze Count */
+            snooze_count: number;
+            /** Source Label */
+            source_label: string;
+            /** Status */
+            status: string;
         };
         /** ReminderTimesIn */
         ReminderTimesIn: {
@@ -4099,6 +4355,12 @@ export interface components {
             /** Reason */
             reason?: string | null;
         };
+        /** SubscriptionIn */
+        SubscriptionIn: {
+            /** Endpoint */
+            endpoint: string;
+            keys: components["schemas"]["KeysIn"];
+        };
         /**
          * TestOrderStatus
          * @enum {string}
@@ -4152,6 +4414,11 @@ export interface components {
              * @constant
              */
             token_type: "bearer";
+        };
+        /** UnsubscribeIn */
+        UnsubscribeIn: {
+            /** Endpoint */
+            endpoint: string;
         };
         /** UploadIn */
         UploadIn: {
@@ -5033,6 +5300,155 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    my_notifications_api_v1_me_notifications_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InboxOut"];
+                };
+            };
+        };
+    };
+    read_all_api_v1_me_notifications_read_all_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    read_notification_api_v1_me_notifications__notification_id__read_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                notification_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_push_subscription_api_v1_me_push_subscriptions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubscriptionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    remove_push_subscription_api_v1_me_push_subscriptions_remove_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnsubscribeIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    push_config_api_v1_me_push_config_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PushConfigOut"];
                 };
             };
         };
@@ -7262,6 +7678,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PreferencesModel"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    due_reminders_api_v1_patients__patient_id__reminders_due_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    recent_missed_api_v1_patients__patient_id__reminders_missed_get: {
+        parameters: {
+            query?: {
+                hours?: number;
+            };
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReminderOut"][];
                 };
             };
             /** @description Validation Error */

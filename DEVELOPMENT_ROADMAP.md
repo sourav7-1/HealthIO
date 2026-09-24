@@ -18,7 +18,8 @@ Related: [ARCHITECTURE.md](ARCHITECTURE.md) · [SECURITY_MODEL.md](SECURITY_MODE
 | 7 | Prescription management | ✅ Core done ([docs/phases/07-prescriptions.md](docs/phases/07-prescriptions.md)): full fields, immutable versions with corrections, document view, PDF export, audit. Signed PDF and step-up MFA remain |
 | 8 | AI prescription OCR | ✅ Core done ([docs/phases/08-ai-prescription-reading.md](docs/phases/08-ai-prescription-reading.md)): consented AI reading, per-field confidence and regions, review and correction, conversion, audit. Drug catalogue matching (Phase 14), live eval run and Tesseract in the image remain |
 | 9 | Medication management | ✅ Core done ([docs/phases/09-medication-management.md](docs/phases/09-medication-management.md)): origins, states, scheduling engine, clinician-gated changes, change requests, history, duplicate detection. Tapering, inventory and therapeutic duplicates remain |
-| 10–25 | | Planned |
+| 10 | Reminder engine | ✅ Core done ([docs/phases/10-reminders.md](docs/phases/10-reminders.md)): dose states incl. notified, timezone-aware recurring reminders, repeat reminder, snooze, quiet hours, missed-dose detection with non-advisory guidance, caregiver alerts, in-app inbox, Web Push + PWA, Celery beat jobs. SMS/email, refill and "smart" timing suggestions remain |
+| 11–25 | | Planned |
 
 ## Milestones
 | Milestone | Phases | Outcome |

@@ -21,6 +21,7 @@ import { Select } from "@/components/ui";
 import { RequireRole } from "@/features/auth/guards";
 import { useMe } from "@/features/auth/session";
 import { ActivePatientProvider, ModeProvider, useAccess } from "@/features/patient/context";
+import { ReminderPrompt } from "@/features/reminders/ReminderPrompt";
 
 import { useCaregiving } from "./api";
 
@@ -127,6 +128,7 @@ export function CarePersonOutlet() {
   return (
     <ActivePatientProvider key={patientId} patientId={patientId} mode="caregiver" base={`/care/${patientId}`}>
       <Outlet />
+      <ReminderPrompt />
     </ActivePatientProvider>
   );
 }

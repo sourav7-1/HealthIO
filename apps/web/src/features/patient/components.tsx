@@ -5,7 +5,9 @@ import { Alert, Badge, Button, Dialog, Field, Input, Textarea, cn, useToast } fr
 import { errorMessage } from "@/lib/api";
 import { formatTime, humanize, isInPast } from "@/lib/format";
 
-import { useDoseAction, type Dose } from "./api";
+import { MissedGuidance, type Guidance } from "@/features/reminders/MissedGuidance";
+
+import { OPEN_DOSE, useDoseAction, type Dose } from "./api";
 import { useMode } from "./context";
 
 /**
@@ -67,15 +69,26 @@ const DOSE_STATE: Record<string, { label: string; tone: string; icon: React.Reac
   missed: { label: "Missed", tone: "text-danger", icon: <X className="size-4" aria-hidden /> },
   snoozed: { label: "Snoozed", tone: "text-warning", icon: <AlarmClock className="size-4" aria-hidden /> },
   scheduled: { label: "To take", tone: "text-fg", icon: <Clock className="size-4" aria-hidden /> },
+  notified: { label: "Reminder sent", tone: "text-fg", icon: <Clock className="size-4" aria-hidden /> },
 };
 
-export function DoseCard({ dose, patientId, canAct = true }: { dose: Dose; patientId: string; canAct?: boolean }) {
+export function DoseCard({
+  dose,
+  patientId,
+  canAct = true,
+  guidance = null,
+}: {
+  dose: Dose;
+  patientId: string;
+  canAct?: boolean;
+  guidance?: Guidance | null;
+}) {
   const action = useDoseAction(patientId);
   const toast = useToast();
   const [skipping, setSkipping] = useState(false);
   const [reason, setReason] = useState("");
   const state = DOSE_STATE[dose.status] ?? DOSE_STATE.scheduled!;
-  const open = dose.status === "scheduled" || dose.status === "snoozed";
+  const open = OPEN_DOSE.includes(dose.status);
   const overdue = open && dose.scheduled_at !== null && isInPast(dose.scheduled_at);
 
   const run = async (kind: "take" | "skip" | "snooze", extra: { reason?: string } = {}) => {
@@ -123,6 +136,8 @@ export function DoseCard({ dose, patientId, canAct = true }: { dose: Dose; patie
           {dose.status === "taken" && dose.taken_at && ` at ${formatTime(dose.taken_at)}`}
         </p>
       </div>
+
+      {dose.status === "missed" && guidance && <MissedGuidance guidance={guidance} />}
 
       {canAct && (open || dose.status === "missed") && (
         <div className="mt-4 flex flex-wrap gap-2">

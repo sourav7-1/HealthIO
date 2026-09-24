@@ -5,13 +5,14 @@ import { Link } from "react-router";
 import { PageHeader } from "@/components/layout/PortalShell";
 import { Alert, Button, Card, Checkbox, Dialog, EmptyState, useToast } from "@/components/ui";
 import { useMe } from "@/features/auth/session";
+import { useMissedReminders } from "@/features/reminders/api";
 import { useAdherence, useAppointments, useFollowUps, useMedications, usePrescriptions, useReports } from "@/features/chart/api";
 import { QueryState, StatusBadge } from "@/features/chart/shared";
 import { DATA_CATEGORIES } from "@/features/chart/consent";
 import { errorMessage, type Schemas } from "@/lib/api";
 import { formatDate, formatDateTime, humanize, isInPast } from "@/lib/format";
 
-import { useDoctorRequests, useDoses, useRespondToDoctor, type ConnectionRequest } from "../api";
+import { TODO_DOSE, useDoctorRequests, useDoses, useRespondToDoctor, type ConnectionRequest } from "../api";
 import { DoseCard } from "../components";
 import { usePatientId } from "../context";
 
@@ -19,6 +20,8 @@ export function TodayPage() {
   const me = useMe();
   const pid = usePatientId();
   const doses = useDoses(pid);
+  const missed = useMissedReminders(pid);
+  const guidance = new Map((missed.data ?? []).flatMap((r) => (r.guidance ? [[r.dose_id, r.guidance] as const] : [])));
   const meds = useMedications(pid);
   const pending = (meds.data ?? []).filter((m) => m.status === "pending_confirmation");
   const firstName = me.display_name.split(" ")[0];
@@ -68,8 +71,8 @@ export function TodayPage() {
             }
           >
             {(list) => {
-              const todo = list.filter((d) => ["scheduled", "snoozed", "missed"].includes(d.status));
-              const done = list.filter((d) => !["scheduled", "snoozed", "missed"].includes(d.status));
+              const todo = list.filter((d) => TODO_DOSE.includes(d.status));
+              const done = list.filter((d) => !TODO_DOSE.includes(d.status));
               return (
                 <div className="flex flex-col gap-3">
                   {todo.length === 0 && (
@@ -80,7 +83,7 @@ export function TodayPage() {
                     </Alert>
                   )}
                   {todo.map((d) => (
-                    <DoseCard key={d.id} dose={d} patientId={pid} />
+                    <DoseCard key={d.id} dose={d} patientId={pid} guidance={guidance.get(d.id)} />
                   ))}
                   {done.length > 0 && (
                     <details className="rounded-xl border border-line bg-surface p-4">

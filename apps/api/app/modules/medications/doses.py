@@ -37,7 +37,7 @@ from app.modules.medications.schedules import (
 
 MAX_TIMES_PER_DAY = 8
 MAX_SNOOZES = 3
-OPEN = (DoseStatus.SCHEDULED, DoseStatus.SNOOZED)
+OPEN = (DoseStatus.SCHEDULED, DoseStatus.NOTIFIED, DoseStatus.SNOOZED)
 
 
 async def _medication(

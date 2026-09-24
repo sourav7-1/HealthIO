@@ -20,6 +20,7 @@ NOT_PATIENT_SCOPED = {
     "doctor_profiles",
     "patient_profiles",
     "tests",
+    "push_subscriptions",  # a user's devices, not patient data
 }
 MIGRATIONS = Path(__file__).resolve().parents[1] / "alembic" / "versions"
 
@@ -35,7 +36,7 @@ def _load_migration(name: str) -> ModuleType:
 
 def test_mappers_configure() -> None:
     configure_mappers()
-    assert len(TABLES) == 38
+    assert len(TABLES) == 39
 
 
 def test_every_table_has_uuid_primary_key_named_id() -> None:

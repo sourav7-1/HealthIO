@@ -11,6 +11,7 @@ import { DoseCard, SourceBadge } from "./components";
 
 const mutateAsync = vi.fn();
 vi.mock("./api", () => ({
+  OPEN_DOSE: ["scheduled", "notified", "snoozed"],
   useDoseAction: () => ({ mutateAsync, isPending: false }),
 }));
 
@@ -90,5 +91,32 @@ describe("DoseCard", () => {
     wrap(<DoseCard dose={dose({ status: "taken", taken_at: new Date().toISOString() })} patientId="p1" />);
     expect(screen.queryByRole("button", { name: "Taken" })).not.toBeInTheDocument();
     expect(screen.getByText(/Taken/)).toBeInTheDocument();
+  });
+});
+
+describe("DoseCard for a missed dose", () => {
+  it("shows the prescription's words and points to a doctor or pharmacist", () => {
+    wrap(
+      <DoseCard
+        dose={dose({ status: "missed" })}
+        patientId="p1"
+        guidance={{
+          instructions_as_written: "After food",
+          instructions_verified: true,
+          message: "Ask your doctor or pharmacist.",
+          source_label: "Prescribed by your doctor",
+        }}
+      />,
+    );
+    expect(screen.getByText("What the prescription says:", { exact: false })).toBeInTheDocument();
+    expect(screen.getByText("After food")).toBeInTheDocument();
+    expect(screen.getByText("Ask your doctor or pharmacist.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "I took it" })).toBeInTheDocument();
+  });
+
+  it("treats a notified dose as still to take", () => {
+    wrap(<DoseCard dose={dose({ status: "notified" })} patientId="p1" />);
+    expect(screen.getByRole("button", { name: "Taken" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Snooze" })).toBeInTheDocument();
   });
 });

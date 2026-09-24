@@ -274,6 +274,7 @@ class MedicationSchedule(Base, Entity, PatientOwned, OptimisticLock):
 
 class DoseStatus(StrEnum):
     SCHEDULED = "scheduled"
+    NOTIFIED = "notified"  # a reminder went out; waiting for an answer
     SNOOZED = "snoozed"
     TAKEN = "taken"
     SKIPPED = "skipped"
@@ -322,9 +323,13 @@ class MedicationDose(Base, Entity, PatientOwned):
         Index(
             "ix_medication_doses_open_due",
             "scheduled_at",
-            postgresql_where=text("status IN ('scheduled', 'snoozed')"),
+            postgresql_where=text("status IN ('scheduled', 'notified', 'snoozed')"),
         ),
         Index("ix_medication_doses_patient_scheduled", "patient_id", "scheduled_at"),
+        CheckConstraint("notify_count >= 0", name="notify_count_non_negative"),
+        CheckConstraint(
+            "status <> 'notified' OR notified_at IS NOT NULL", name="notified_has_time"
+        ),
         Index("ix_medication_doses_medication_scheduled", "medication_id", "scheduled_at"),
     )
 
@@ -344,6 +349,11 @@ class MedicationDose(Base, Entity, PatientOwned):
     recorded_by: Mapped[uuid.UUID | None] = user_fk()
     recorded_via: Mapped[DoseRecordedVia | None] = mapped_column(str_enum(DoseRecordedVia))
     skip_reason: Mapped[str | None] = mapped_column(String(200))
+    # Reminder delivery (the reminder engine only ever changes these and the status).
+    notified_at: Mapped[datetime | None]
+    notify_count: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=0, server_default="0"
+    )
 
 
 class MedicationAdherence(Base, Entity, PatientOwned):

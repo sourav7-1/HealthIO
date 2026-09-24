@@ -23,6 +23,7 @@ dependencies = [
     "reportlab>=4.2",
     "anthropic>=0.70",
     "pytesseract>=0.3.13",
+    "pywebpush>=2.0",
 ]
 
 [dependency-groups]
@@ -78,7 +79,7 @@ plugins = ["pydantic.mypy"]
 exclude = ["alembic/"]
 
 [[tool.mypy.overrides]]
-module = ["celery.*", "kombu.*", "asyncpg.*", "pytesseract.*"]
+module = ["celery.*", "kombu.*", "asyncpg.*", "pytesseract.*", "pywebpush.*", "py_vapid.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]

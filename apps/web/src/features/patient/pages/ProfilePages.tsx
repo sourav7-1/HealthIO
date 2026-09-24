@@ -8,6 +8,7 @@ import { Alert, Badge, Button, Card, Checkbox, Dialog, EmptyState, Field, Input,
 import { useSession, useMe } from "@/features/auth/session";
 import { useAdherence, useMedicalHistory, useMedications } from "@/features/chart/api";
 import { DefinitionList, NotShared, QueryState } from "@/features/chart/shared";
+import { DevicePushCard } from "@/features/reminders/DevicePushCard";
 import { errorMessage, type Schemas } from "@/lib/api";
 import { formatDate, formatDateTime, humanize, todayIso } from "@/lib/format";
 
@@ -609,6 +610,7 @@ export function SettingsPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <AccountCard />
         <ReminderCard patientId={pid} />
+        <DevicePushCard />
         <DisplayCard />
         <AiReadingCard patientId={pid} />
         <PasswordCard />
@@ -699,6 +701,20 @@ export function ReminderCard({ patientId }: { patientId: string }) {
                 {(p) => (
                   <Select {...p} value={form.default_snooze_minutes} onChange={(e) => set("default_snooze_minutes", Number(e.target.value) as ReminderPreferences["default_snooze_minutes"])}>
                     {[5, 10, 15, 30, 60].map((m) => <option key={m} value={m}>{m} minutes</option>)}
+                  </Select>
+                )}
+              </Field>
+              <Field label="If I don’t respond, remind me again after">
+                {(p) => (
+                  <Select
+                    {...p}
+                    value={form.remind_again_after_minutes ?? ""}
+                    onChange={(e) =>
+                      set("remind_again_after_minutes", e.target.value ? (Number(e.target.value) as 5 | 10 | 15 | 30 | 60) : null)
+                    }
+                  >
+                    {[5, 10, 15, 30, 60].map((m) => <option key={m} value={m}>{m} minutes</option>)}
+                    <option value="">Don’t remind again</option>
                   </Select>
                 )}
               </Field>

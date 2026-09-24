@@ -73,3 +73,66 @@ async def _process_prescription_scan(scan_id: uuid.UUID, patient_id: uuid.UUID) 
             return scan.status.value
     finally:
         await db.dispose()
+
+
+# --- reminder engine --------------------------------------------------------------------------
+
+
+async def _run_reminders(job: str) -> dict[str, int]:
+    from datetime import timedelta
+
+    from app.core.config import get_settings
+    from app.core.db import Database
+    from app.modules.notifications.push import build_push_sender
+    from app.modules.reminders import engine
+
+    settings = get_settings()
+    db = Database(settings)
+    now = datetime.now(UTC)
+    app_url = settings.cors_origins[0] if settings.cors_origins else ""
+    try:
+        async with db.sessionmaker() as session:
+            if job == "materialize":
+                created = await engine.materialize_all(
+                    session, now=now, horizon=timedelta(hours=settings.reminder_horizon_hours)
+                )
+                await session.commit()
+                return {"created": created}
+            sender = build_push_sender(settings)
+            if job == "dispatch":
+                report = await engine.dispatch_due(session, now=now, sender=sender, app_url=app_url)
+            else:
+                report = await engine.detect_missed(
+                    session, now=now, sender=sender, app_url=app_url
+                )
+            await session.commit()
+            return {"doses": report.doses, "in_app": report.in_app, "push": report.push}
+    finally:
+        await db.dispose()
+
+
+@celery_app.task(name="reminders.dispatch_due", acks_late=True)
+def reminders_dispatch_due() -> dict[str, int]:
+    import asyncio
+
+    result = asyncio.run(_run_reminders("dispatch"))
+    log.info("reminders_dispatched", **result)
+    return result
+
+
+@celery_app.task(name="reminders.detect_missed", acks_late=True)
+def reminders_detect_missed() -> dict[str, int]:
+    import asyncio
+
+    result = asyncio.run(_run_reminders("missed"))
+    log.info("reminders_missed_checked", **result)
+    return result
+
+
+@celery_app.task(name="reminders.materialize", acks_late=True)
+def reminders_materialize() -> dict[str, int]:
+    import asyncio
+
+    result = asyncio.run(_run_reminders("materialize"))
+    log.info("reminders_materialized", **result)
+    return result

@@ -31,6 +31,23 @@ celery_app.conf.update(
     worker_hijack_root_logger=False,
     beat_schedule={
         "heartbeat": {"task": "system.heartbeat", "schedule": 60.0},
-        # Phase 10: "reminders.dispatch_due" every minute.
+        # Reminder engine (app/modules/reminders/engine.py). Each job is idempotent and
+        # safe on several workers (SKIP LOCKED + idempotency keys); a late or repeated run
+        # never sends a reminder twice. Short expiry: a stale queued run is dropped.
+        "reminders-dispatch-due": {
+            "task": "reminders.dispatch_due",
+            "schedule": 60.0,
+            "options": {"expires": 55},
+        },
+        "reminders-detect-missed": {
+            "task": "reminders.detect_missed",
+            "schedule": 300.0,
+            "options": {"expires": 280},
+        },
+        "reminders-materialize": {
+            "task": "reminders.materialize",
+            "schedule": 900.0,
+            "options": {"expires": 850},
+        },
     },
 )

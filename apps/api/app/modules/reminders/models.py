@@ -23,6 +23,10 @@ class ReminderPreference(Base, Entity, PatientOwned, OptimisticLock):
         CheckConstraint(
             "(quiet_hours_start IS NULL) = (quiet_hours_end IS NULL)", name="quiet_hours_pair"
         ),
+        CheckConstraint(
+            "remind_again_after_minutes IS NULL OR remind_again_after_minutes BETWEEN 5 AND 120",
+            name="remind_again_range",
+        ),
     )
 
     reminders_enabled: Mapped[bool] = mapped_column(
@@ -47,4 +51,8 @@ class ReminderPreference(Base, Entity, PatientOwned, OptimisticLock):
     )
     notify_caregivers_on_missed: Mapped[bool] = mapped_column(
         nullable=False, default=True, server_default="true"
+    )
+    # One more reminder if a dose is not answered after this long (NULL: remind once).
+    remind_again_after_minutes: Mapped[int | None] = mapped_column(
+        SmallInteger, default=15, server_default="15"
     )

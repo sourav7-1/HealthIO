@@ -2274,6 +2274,7 @@
       "DoseStatus": {
         "enum": [
           "scheduled",
+          "notified",
           "snoozed",
           "taken",
           "skipped",
@@ -2815,6 +2816,41 @@
         "title": "FollowUpStatus",
         "type": "string"
       },
+      "GuidanceOut": {
+        "properties": {
+          "instructions_as_written": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions As Written"
+          },
+          "instructions_verified": {
+            "title": "Instructions Verified",
+            "type": "boolean"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "source_label": {
+            "title": "Source Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "message",
+          "instructions_as_written",
+          "instructions_verified",
+          "source_label"
+        ],
+        "title": "GuidanceOut",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -2926,6 +2962,27 @@
           "data_categories"
         ],
         "title": "InPersonConsent",
+        "type": "object"
+      },
+      "InboxOut": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NotificationOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "unread": {
+            "title": "Unread",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "unread",
+          "items"
+        ],
+        "title": "InboxOut",
         "type": "object"
       },
       "InviteCaregiver": {
@@ -3356,6 +3413,29 @@
           "sequence"
         ],
         "title": "ItemOut",
+        "type": "object"
+      },
+      "KeysIn": {
+        "additionalProperties": false,
+        "properties": {
+          "auth": {
+            "maxLength": 100,
+            "minLength": 10,
+            "title": "Auth",
+            "type": "string"
+          },
+          "p256dh": {
+            "maxLength": 200,
+            "minLength": 10,
+            "title": "P256Dh",
+            "type": "string"
+          }
+        },
+        "required": [
+          "p256dh",
+          "auth"
+        ],
+        "title": "KeysIn",
         "type": "object"
       },
       "LoginRequest": {
@@ -4060,6 +4140,104 @@
         "title": "NoteUpdate",
         "type": "object"
       },
+      "NotificationCategory": {
+        "enum": [
+          "medication_reminder",
+          "missed_dose",
+          "refill",
+          "appointment",
+          "follow_up",
+          "prescription",
+          "lab_result",
+          "care_team",
+          "consent",
+          "security",
+          "emergency",
+          "system"
+        ],
+        "title": "NotificationCategory",
+        "type": "string"
+      },
+      "NotificationOut": {
+        "properties": {
+          "body": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body"
+          },
+          "category": {
+            "$ref": "#/components/schemas/NotificationCategory"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "patient_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Patient Id"
+          },
+          "read_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Read At"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "id",
+          "category",
+          "title",
+          "body",
+          "data",
+          "patient_id",
+          "created_at",
+          "read_at"
+        ],
+        "title": "NotificationOut",
+        "type": "object"
+      },
       "OrderIn": {
         "additionalProperties": false,
         "properties": {
@@ -4747,6 +4925,25 @@
               }
             ],
             "title": "Quiet Hours Start"
+          },
+          "remind_again_after_minutes": {
+            "anyOf": [
+              {
+                "enum": [
+                  5,
+                  10,
+                  15,
+                  30,
+                  60
+                ],
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": 15,
+            "title": "Remind Again After Minutes"
           },
           "reminders_enabled": {
             "title": "Reminders Enabled",
@@ -5872,6 +6069,31 @@
         "title": "ProfileUpdate",
         "type": "object"
       },
+      "PushConfigOut": {
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "vapid_public_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vapid Public Key"
+          }
+        },
+        "required": [
+          "enabled",
+          "vapid_public_key"
+        ],
+        "title": "PushConfigOut",
+        "type": "object"
+      },
       "ReactionSeverity": {
         "enum": [
           "mild",
@@ -6032,6 +6254,118 @@
           "reason"
         ],
         "title": "RejectIn",
+        "type": "object"
+      },
+      "ReminderOut": {
+        "properties": {
+          "can_snooze": {
+            "title": "Can Snooze",
+            "type": "boolean"
+          },
+          "default_snooze_minutes": {
+            "title": "Default Snooze Minutes",
+            "type": "integer"
+          },
+          "dose": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dose"
+          },
+          "dose_id": {
+            "format": "uuid",
+            "title": "Dose Id",
+            "type": "string"
+          },
+          "guidance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GuidanceOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions"
+          },
+          "instructions_verified": {
+            "title": "Instructions Verified",
+            "type": "boolean"
+          },
+          "meal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meal"
+          },
+          "medication_id": {
+            "format": "uuid",
+            "title": "Medication Id",
+            "type": "string"
+          },
+          "medicine": {
+            "title": "Medicine",
+            "type": "string"
+          },
+          "origin": {
+            "title": "Origin",
+            "type": "string"
+          },
+          "scheduled_at": {
+            "format": "date-time",
+            "title": "Scheduled At",
+            "type": "string"
+          },
+          "snooze_count": {
+            "title": "Snooze Count",
+            "type": "integer"
+          },
+          "source_label": {
+            "title": "Source Label",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "dose_id",
+          "medication_id",
+          "medicine",
+          "dose",
+          "meal",
+          "instructions",
+          "instructions_verified",
+          "source_label",
+          "origin",
+          "scheduled_at",
+          "status",
+          "snooze_count",
+          "can_snooze",
+          "default_snooze_minutes"
+        ],
+        "title": "ReminderOut",
         "type": "object"
       },
       "ReminderTimesIn": {
@@ -7912,6 +8246,26 @@
         "title": "StopIn",
         "type": "object"
       },
+      "SubscriptionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "endpoint": {
+            "maxLength": 1000,
+            "minLength": 10,
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "keys": {
+            "$ref": "#/components/schemas/KeysIn"
+          }
+        },
+        "required": [
+          "endpoint",
+          "keys"
+        ],
+        "title": "SubscriptionIn",
+        "type": "object"
+      },
       "TestOrderStatus": {
         "enum": [
           "ordered",
@@ -8043,6 +8397,22 @@
           "expires_in"
         ],
         "title": "TokenResponse",
+        "type": "object"
+      },
+      "UnsubscribeIn": {
+        "additionalProperties": false,
+        "properties": {
+          "endpoint": {
+            "maxLength": 1000,
+            "minLength": 10,
+            "title": "Endpoint",
+            "type": "string"
+          }
+        },
+        "required": [
+          "endpoint"
+        ],
+        "title": "UnsubscribeIn",
         "type": "object"
       },
       "UploadIn": {
@@ -9514,6 +9884,197 @@
         "summary": "Respond To Doctor Request",
         "tags": [
           "care team"
+        ]
+      }
+    },
+    "/api/v1/me/notifications": {
+      "get": {
+        "operationId": "my_notifications_api_v1_me_notifications_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InboxOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "My Notifications",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/me/notifications/read-all": {
+      "post": {
+        "operationId": "read_all_api_v1_me_notifications_read_all_post",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read All",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/me/notifications/{notification_id}/read": {
+      "post": {
+        "operationId": "read_notification_api_v1_me_notifications__notification_id__read_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notification_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Notification Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Notification",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/me/push-subscriptions": {
+      "post": {
+        "description": "Register this browser for reminder notifications.",
+        "operationId": "add_push_subscription_api_v1_me_push_subscriptions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Push Subscription",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/me/push-subscriptions/remove": {
+      "post": {
+        "operationId": "remove_push_subscription_api_v1_me_push_subscriptions_remove_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnsubscribeIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Push Subscription",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/me/push/config": {
+      "get": {
+        "operationId": "push_config_api_v1_me_push_config_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PushConfigOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Push Config",
+        "tags": [
+          "notifications"
         ]
       }
     },
@@ -13475,6 +14036,122 @@
           }
         ],
         "summary": "Save Preferences",
+        "tags": [
+          "reminders"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/reminders/due": {
+      "get": {
+        "description": "Doses to take now: due, reminded, or back from snooze. Works without a worker (the\napp polls this), and alongside Web Push when a worker sends reminders.",
+        "operationId": "due_reminders_api_v1_patients__patient_id__reminders_due_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReminderOut"
+                  },
+                  "title": "Response Due Reminders Api V1 Patients  Patient Id  Reminders Due Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Due Reminders",
+        "tags": [
+          "reminders"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/reminders/missed": {
+      "get": {
+        "description": "Recently missed doses with the medicine's instructions as written and a pointer to\nthe doctor or pharmacist. Never advice on what to do.",
+        "operationId": "recent_missed_api_v1_patients__patient_id__reminders_missed_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hours",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "title": "Hours",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReminderOut"
+                  },
+                  "title": "Response Recent Missed Api V1 Patients  Patient Id  Reminders Missed Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Recent Missed",
         "tags": [
           "reminders"
         ]

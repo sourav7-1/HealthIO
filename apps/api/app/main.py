@@ -30,6 +30,7 @@ from app.modules.identity.router import router as auth_router
 from app.modules.identity.security import Passwords, TokenSigner
 from app.modules.labs.router import router as labs_router
 from app.modules.medications.router import router as medications_router
+from app.modules.notifications.router import router as notifications_router
 from app.modules.prescriptions.router import router as prescriptions_router
 from app.modules.records.router import router as records_router
 from app.modules.reminders.router import router as reminders_router
@@ -106,6 +107,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         emergency_router,
         extraction_router,
         reminders_router,
+        notifications_router,
     ):
         api.include_router(module_router)
     app.include_router(api)

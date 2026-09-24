@@ -82,6 +82,15 @@ class Settings(BaseSettings):
     # Run extraction inside the request (local dev without a worker) or on Celery.
     ai_jobs_inline: bool = True
 
+    # --- reminders and Web Push (app/modules/reminders/engine.py) ---
+    # VAPID keys for Web Push (generate: uv run python -m scripts.generate_vapid_keys).
+    # Without them, reminders are in-app only.
+    webpush_vapid_public_key: str | None = None
+    webpush_vapid_private_key: SecretStr | None = None
+    webpush_subject: str = "mailto:reminders@healthio.local"
+    # Doses are created this far ahead so reminders can go out on time.
+    reminder_horizon_hours: int = 48
+
     # --- authentication (app/modules/identity) ---
     # Ed25519 signing keys for access tokens: {key_id: base64(32-byte seed)}. Old key IDs
     # stay here during rotation so tokens they signed remain verifiable until expiry.
