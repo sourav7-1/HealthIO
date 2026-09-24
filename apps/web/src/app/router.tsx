@@ -24,6 +24,7 @@ import { CareLayout, CarePersonOutlet } from "@/features/care/CareLayout";
 import { ActivePatientProvider } from "@/features/patient/context";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { ReminderPrompt } from "@/features/reminders/ReminderPrompt";
+import { SplashPreviewPage } from "@/features/splash/SplashPreviewPage";
 
 import { RouteError } from "./RouteError";
 
@@ -178,6 +179,7 @@ export const router = createBrowserRouter([
       </RequireRole>
     ),
   },
+  { path: "/splash", element: <SplashPreviewPage /> },
   { path: "/", element: <Navigate to="/login" replace /> },
   { path: "*", element: <RouteError notFound /> },
 ]);

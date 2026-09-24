@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { Navigate, useLocation } from "react-router";
+import { Link, Navigate, useLocation } from "react-router";
 import { z } from "zod";
 
 import { Alert, Button, Field, Input, Logo } from "@/components/ui";
@@ -67,6 +67,14 @@ export function LoginPage() {
         <p className="mt-6 text-center text-xs text-muted">
           Health Io records and organises health information. It does not replace your doctor.
         </p>
+        <div className="mt-3 flex justify-center">
+          <Link
+            to="/splash"
+            className="text-xs text-muted hover:text-accent underline underline-offset-4 transition-colors"
+          >
+            Experience HealthIO opening animation
+          </Link>
+        </div>
       </div>
     </main>
   );
