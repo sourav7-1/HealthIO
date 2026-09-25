@@ -9,7 +9,7 @@ import uuid
 from datetime import date, datetime
 from enum import StrEnum
 
-from sqlalchemy import CheckConstraint, Date, ForeignKey, Index, String, Uuid, text
+from sqlalchemy import CheckConstraint, Date, ForeignKey, Index, String, Uuid, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.crypto import EncryptedString
@@ -307,3 +307,52 @@ class ClinicalNote(Base, Entity, PatientOwned, OptimisticLock):
     amendment_reason: Mapped[str | None] = mapped_column(String(300))
     # True when the text was drafted by the AI assistant and then edited/accepted.
     ai_assisted: Mapped[bool] = mapped_column(nullable=False, default=False, server_default="false")
+
+
+# --- symptoms ------------------------------------------------------------------------
+
+
+class SymptomSeverity(StrEnum):
+    MILD = "mild"
+    MODERATE = "moderate"
+    SEVERE = "severe"
+
+
+class SymptomStatus(StrEnum):
+    ONGOING = "ongoing"
+    RESOLVED = "resolved"
+    ENTERED_IN_ERROR = "entered_in_error"
+
+
+class SymptomReport(Base, Entity, PatientOwned, OptimisticLock):
+    """A symptom as the reporter described it (patient, caregiver or doctor), never
+    interpreted. Corrections are updates with a reason; the database keeps every earlier
+    version in `record_versions` (migration 0011), so nothing changes silently."""
+
+    __tablename__ = "symptom_reports"
+    __table_args__ = (
+        patient_scope_key(),
+        patient_scoped_fk(["visit_id"], "doctor_visits"),
+        CheckConstraint(
+            "resolved_on IS NULL OR onset_date IS NULL OR resolved_on >= onset_date",
+            name="resolved_after_onset",
+        ),
+        CheckConstraint(
+            "status <> 'resolved' OR resolved_on IS NOT NULL", name="resolved_has_date"
+        ),
+        Index("ix_symptom_reports_patient_reported", "patient_id", "reported_at"),
+    )
+
+    # Free text can reveal diagnoses, so it is encrypted like other clinical text.
+    symptom: Mapped[str] = mapped_column(EncryptedString("symptom_reports.symptom"), nullable=False)
+    body_site: Mapped[str | None] = mapped_column(String(100))
+    severity: Mapped[SymptomSeverity | None] = mapped_column(str_enum(SymptomSeverity))
+    status: Mapped[SymptomStatus] = mapped_column(
+        str_enum(SymptomStatus), nullable=False, default=SymptomStatus.ONGOING
+    )
+    onset_date: Mapped[date | None] = mapped_column(Date)
+    resolved_on: Mapped[date | None] = mapped_column(Date)
+    notes: Mapped[str | None] = mapped_column(EncryptedString("symptom_reports.notes"))
+    source: Mapped[RecordSource] = mapped_column(str_enum(RecordSource), nullable=False)
+    reported_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
+    visit_id: Mapped[uuid.UUID | None]

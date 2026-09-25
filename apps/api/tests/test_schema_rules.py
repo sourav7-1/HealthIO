@@ -36,7 +36,7 @@ def _load_migration(name: str) -> ModuleType:
 
 def test_mappers_configure() -> None:
     configure_mappers()
-    assert len(TABLES) == 39
+    assert len(TABLES) == 41
 
 
 def test_every_table_has_uuid_primary_key_named_id() -> None:
@@ -103,6 +103,8 @@ def test_free_text_clinical_columns_are_encrypted() -> None:
         ("prescriptions", "diagnosis_as_written"),
         ("notifications", "body"),
         ("audit_logs", "justification"),
+        ("symptom_reports", "symptom"),
+        ("symptom_reports", "notes"),
     }
     for table, column in must_encrypt:
         assert isinstance(TABLES[table].c[column].type, EncryptedString), f"{table}.{column}"

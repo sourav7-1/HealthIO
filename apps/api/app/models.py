@@ -14,6 +14,7 @@ from app.modules.clinical.models import (
     DoctorVisit,
     MedicalCondition,
     MedicalHistoryEntry,
+    SymptomReport,
 )
 from app.modules.consent.models import ConsentRecord
 from app.modules.emergency.models import EmergencyContact, EmergencyProfile
@@ -40,6 +41,7 @@ from app.modules.patients.models import PatientProfile
 from app.modules.prescriptions.models import Prescription, PrescriptionItem
 from app.modules.records.models import HealthDocument
 from app.modules.reminders.models import ReminderPreference
+from app.modules.timeline.models import RecordVersion
 
 __all__ = [
     "Allergy",
@@ -72,8 +74,10 @@ __all__ = [
     "PrescriptionItem",
     "PrescriptionScan",
     "PushSubscription",
+    "RecordVersion",
     "RefreshToken",
     "ReminderPreference",
+    "SymptomReport",
     "Test",
     "TestOrder",
     "TestOrderItem",
