@@ -3,6 +3,7 @@ import {
   ClipboardList,
   FileText,
   FlaskConical,
+  GanttChart,
   HeartHandshake,
   HeartPulse,
   History,
@@ -64,6 +65,7 @@ function PatientShell() {
         nav={[
           { to: "/patient", label: "Today", icon: <Sun className={icon} aria-hidden />, end: true },
           { to: "/patient/health", label: "My health", icon: <HeartPulse className={icon} aria-hidden /> },
+          { to: "/patient/timeline", label: "Timeline", icon: <GanttChart className={icon} aria-hidden /> },
           { to: "/patient/medications", label: "Medicines", icon: <Pill className={icon} aria-hidden /> },
           { to: "/patient/prescriptions", label: "Prescriptions", icon: <FileText className={icon} aria-hidden /> },
           { to: "/patient/history", label: "Medical history", icon: <History className={icon} aria-hidden /> },
@@ -89,6 +91,7 @@ const medications = () => import("@/features/patient/pages/MedicationsPage");
 const care = () => import("@/features/care/pages");
 const scans = () => import("@/features/scans/ScanReviewPage");
 const medDetail = () => import("@/features/meds/MedicationDetailPage");
+const timeline = () => import("@/features/timeline/TimelinePage");
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage />, errorElement: <RouteError /> },
@@ -127,6 +130,7 @@ export const router = createBrowserRouter([
       { path: "medications", lazy: async () => ({ Component: (await medications()).MedicationsPage }) },
       { path: "medications/:medicationId", lazy: async () => ({ Component: (await medDetail()).MedicationDetailPage }) },
       { path: "health", lazy: async () => ({ Component: (await profile()).MyHealthPage }) },
+      { path: "timeline", lazy: async () => ({ Component: (await timeline()).RecordTimelinePage }) },
       { path: "history", lazy: async () => ({ Component: (await records()).HistoryPage }) },
       { path: "visits", lazy: async () => ({ Component: (await records()).VisitsPage }) },
       { path: "visits/:visitId", lazy: async () => ({ Component: (await records()).VisitDetailPage }) },
@@ -155,10 +159,10 @@ export const router = createBrowserRouter([
           { path: "health", lazy: async () => ({ Component: (await profile()).MyHealthPage }) },
           { path: "medications", lazy: async () => ({ Component: (await medications()).MedicationsPage }) },
           { path: "medications/:medicationId", lazy: async () => ({ Component: (await medDetail()).MedicationDetailPage }) },
-      { path: "medications/:medicationId", lazy: async () => ({ Component: (await medDetail()).MedicationDetailPage }) },
+          { path: "timeline", lazy: async () => ({ Component: (await timeline()).RecordTimelinePage }) },
           { path: "prescriptions", lazy: async () => ({ Component: (await records()).PrescriptionsPage }) },
           { path: "prescriptions/scan/:scanId", lazy: async () => ({ Component: (await scans()).ScanReviewPage }) },
-      { path: "prescriptions/:prescriptionId", lazy: async () => ({ Component: (await records()).PrescriptionDetailPage }) },
+          { path: "prescriptions/:prescriptionId", lazy: async () => ({ Component: (await records()).PrescriptionDetailPage }) },
           { path: "history", lazy: async () => ({ Component: (await records()).HistoryPage }) },
           { path: "visits", lazy: async () => ({ Component: (await records()).VisitsPage }) },
           { path: "visits/:visitId", lazy: async () => ({ Component: (await records()).VisitDetailPage }) },

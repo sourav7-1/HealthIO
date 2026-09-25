@@ -65,6 +65,14 @@ services:
     image: axllent/mailpit:latest
     ports: ["8025:8025", "1025:1025"]
 
+  # Malware scanning for uploads (app/core/malware.py). Optional in development because
+  # it needs about 1.5 GB of memory; start it with `--profile scan` and set
+  # HIO_CLAMAV_HOST=localhost (or clamav inside compose).
+  clamav:
+    image: clamav/clamav:stable
+    profiles: ["scan"]
+    ports: ["3310:3310"]
+
   api:
     build: { context: ., dockerfile: infra/docker/api.Dockerfile }
     environment: *api-env

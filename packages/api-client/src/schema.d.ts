@@ -738,7 +738,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Documents */
+        /**
+         * List Documents
+         * @description Documents of the kinds the caller may see (a prescription photo needs prescription
+         *     access, a discharge summary needs visit access, and so on).
+         */
         get: operations["list_documents_api_v1_patients__patient_id__documents_get"];
         put?: never;
         post?: never;
@@ -757,12 +761,37 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Start Upload */
+        /**
+         * Start Upload
+         * @description Step 1 of an upload: a presigned form pinned to the file's type and size.
+         *     Reports (lab and imaging) must be PDF, JPEG or PNG.
+         */
         post: operations["start_upload_api_v1_patients__patient_id__documents_uploads_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/documents/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Correct Document
+         * @description Correct a document's details with a reason. The earlier details stay in its
+         *     history; the file itself is never replaced.
+         */
+        patch: operations["correct_document_api_v1_patients__patient_id__documents__document_id__patch"];
         trace?: never;
     };
     "/api/v1/patients/{patient_id}/documents/{document_id}/complete": {
@@ -774,7 +803,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Complete Upload */
+        /**
+         * Complete Upload
+         * @description Step 2: the file is checked (type, size, active content, malware) before use.
+         */
         post: operations["complete_upload_api_v1_patients__patient_id__documents__document_id__complete_post"];
         delete?: never;
         options?: never;
@@ -1652,6 +1684,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/patients/{patient_id}/report-shares/{share_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Revoke Share */
+        delete: operations["revoke_share_api_v1_patients__patient_id__report_shares__share_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/patients/{patient_id}/reports": {
         parameters: {
             query?: never;
@@ -1659,15 +1708,139 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List Reports */
+        /**
+         * List Reports
+         * @description All reports with tests-and-reports access; otherwise only reports the patient
+         *     shared with you.
+         */
         get: operations["list_reports_api_v1_patients__patient_id__reports_get"];
         put?: never;
         /**
          * Add Report
-         * @description A doctor records a report (file and/or values as printed); it is verified by them.
-         *     Patient and caregiver uploads go through a separate review flow (Phase 12).
+         * @description A doctor records a report (a file they uploaded or referenced, and/or values as
+         *     printed); it is verified by them. Patients and caregivers use /reports/uploaded.
          */
         post: operations["add_report_api_v1_patients__patient_id__reports_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/reports/uploaded": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Uploaded Report
+         * @description The patient or a caregiver adds a report file they uploaded. It is labelled as
+         *     uploaded by them and waits for a doctor's review.
+         */
+        post: operations["add_uploaded_report_api_v1_patients__patient_id__reports_uploaded_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/reports/{report_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Report */
+        get: operations["get_report_api_v1_patients__patient_id__reports__report_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/reports/{report_id}/entered-in-error": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Report In Error
+         * @description Withdraw a report added by mistake. It stays in the record, marked with the reason.
+         */
+        post: operations["report_in_error_api_v1_patients__patient_id__reports__report_id__entered_in_error_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/reports/{report_id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Report File
+         * @description A 60-second link to the report file; works for a report shared with you.
+         */
+        get: operations["report_file_api_v1_patients__patient_id__reports__report_id__file_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/reports/{report_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Review Report
+         * @description A doctor confirms an uploaded report belongs to this patient and its details match
+         *     the file, or rejects it with a reason. This is not an interpretation of the result.
+         */
+        post: operations["review_report_api_v1_patients__patient_id__reports__report_id__review_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/reports/{report_id}/shares": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Share Report
+         * @description Share this one report with a doctor on the patient's care team, optionally until
+         *     a date. The doctor sees only this report, not other tests and reports.
+         */
+        post: operations["share_report_api_v1_patients__patient_id__reports__report_id__shares_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1731,6 +1904,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/patients/{patient_id}/symptoms": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Symptoms */
+        get: operations["list_symptoms_api_v1_patients__patient_id__symptoms_get"];
+        put?: never;
+        /**
+         * Report Symptom
+         * @description The patient (or a caregiver allowed to report) describes a symptom in their words.
+         */
+        post: operations["report_symptom_api_v1_patients__patient_id__symptoms_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/symptoms/documented": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Document Symptom
+         * @description A doctor records symptoms as the patient presented them (optionally at a visit).
+         */
+        post: operations["document_symptom_api_v1_patients__patient_id__symptoms_documented_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/symptoms/{symptom_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Correct Symptom
+         * @description Correct an entry with a reason; the earlier version stays in its history.
+         *     Doctors need edit rights for clinical records; patients and caregivers need
+         *     permission to report health information.
+         */
+        patch: operations["correct_symptom_api_v1_patients__patient_id__symptoms__symptom_id__patch"];
+        trace?: never;
+    };
     "/api/v1/patients/{patient_id}/test-orders": {
         parameters: {
             query?: never;
@@ -1766,6 +2002,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/patients/{patient_id}/test-orders/{order_id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set Order Status
+         * @description Mark sample collected, partly resulted, completed, or entered in error (with a
+         *     note). Each change is kept in the order's history.
+         */
+        post: operations["set_order_status_api_v1_patients__patient_id__test_orders__order_id__status_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/patients/{patient_id}/timeline": {
         parameters: {
             query?: never;
@@ -1773,8 +2030,34 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get Timeline */
+        /**
+         * Get Timeline
+         * @description Everything the caller may see for this patient, in date order. Record types the
+         *     caller has no permission or consent for are left out entirely; `facets` are counted
+         *     over what the caller may see, before filters.
+         */
         get: operations["get_timeline_api_v1_patients__patient_id__timeline_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/timeline/{kind}/{resource_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get History
+         * @description Who created and changed this record, when, what changed and why. Records the
+         *     caller cannot see return 404.
+         */
+        get: operations["get_history_api_v1_patients__patient_id__timeline__kind___resource_id__history_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1903,6 +2186,16 @@ export interface components {
             preferred_language?: ("en" | "hi") | null;
             /** Timezone */
             timezone?: string | null;
+        };
+        /** ActorOut */
+        ActorOut: {
+            /** Name */
+            name: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "doctor" | "patient" | "caregiver" | "system";
         };
         /**
          * ActorRole
@@ -2529,6 +2822,26 @@ export interface components {
             /** Today Doses */
             today_doses: components["schemas"]["DoseOut"][] | null;
         };
+        /** DoctorFacet */
+        DoctorFacet: {
+            /** Count */
+            count: number;
+            /** Id */
+            id: string | null;
+            /** Name */
+            name: string | null;
+            /** Specialty */
+            specialty: string | null;
+        };
+        /** DoctorOut */
+        DoctorOut: {
+            /** Id */
+            id: string | null;
+            /** Name */
+            name: string | null;
+            /** Specialty */
+            specialty: string | null;
+        };
         /** DoctorVerificationOut */
         DoctorVerificationOut: {
             /**
@@ -2540,6 +2853,18 @@ export interface components {
             verification_status: string;
             /** Verified At */
             verified_at: string | null;
+        };
+        /** DocumentCorrectionIn */
+        DocumentCorrectionIn: {
+            /** Description */
+            description?: string | null;
+            /** Document Date */
+            document_date?: string | null;
+            document_type?: components["schemas"]["DocumentType"] | null;
+            /** Reason */
+            reason: string;
+            /** Title */
+            title?: string | null;
         };
         /** DocumentItemOut */
         DocumentItemOut: {
@@ -2572,6 +2897,8 @@ export interface components {
         };
         /** DocumentOut */
         DocumentOut: {
+            /** Added By My Side */
+            added_by_my_side: boolean;
             /** Content Type */
             content_type: string;
             /**
@@ -2579,6 +2906,8 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Description */
+            description: string | null;
             /** Document Date */
             document_date: string | null;
             document_type: components["schemas"]["DocumentType"];
@@ -2602,6 +2931,22 @@ export interface components {
          * @enum {string}
          */
         DocumentType: "prescription" | "lab_report" | "imaging_report" | "discharge_summary" | "consultation_note" | "vaccination_record" | "medical_certificate" | "insurance" | "other";
+        /** DocumentedSymptomIn */
+        DocumentedSymptomIn: {
+            /** Body Site */
+            body_site?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Onset Date */
+            onset_date?: string | null;
+            /** Resolved On */
+            resolved_on?: string | null;
+            severity?: components["schemas"]["SymptomSeverity"] | null;
+            /** Symptom */
+            symptom: string;
+            /** Visit Id */
+            visit_id?: string | null;
+        };
         /** DoseActionIn */
         DoseActionIn: {
             /** Minutes */
@@ -2783,6 +3128,35 @@ export interface components {
             /** Strength */
             strength?: string | null;
         };
+        /** FacetsOut */
+        FacetsOut: {
+            /** Doctors */
+            doctors: components["schemas"]["DoctorFacet"][];
+            /** Earliest */
+            earliest: string | null;
+            /** Kinds */
+            kinds: components["schemas"]["ValueCount"][];
+            /** Latest */
+            latest: string | null;
+            /** Specialties */
+            specialties: components["schemas"]["ValueCount"][];
+        };
+        /** FieldChangeOut */
+        FieldChangeOut: {
+            /** After */
+            after: string | null;
+            /** Before */
+            before: string | null;
+            /** Field */
+            field: string;
+        };
+        /** FileLinkOut */
+        FileLinkOut: {
+            /** Expires In */
+            expires_in: number;
+            /** Url */
+            url: string;
+        };
         /** FindingOut */
         FindingOut: {
             /** Clinical */
@@ -2862,6 +3236,26 @@ export interface components {
              */
             status: "ok";
         };
+        /** HistoryEntryOut */
+        HistoryEntryOut: {
+            /**
+             * Action
+             * @enum {string}
+             */
+            action: "created" | "changed" | "signed" | "amended" | "revised";
+            actor: components["schemas"]["ActorOut"];
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** Changes */
+            changes: components["schemas"]["FieldChangeOut"][];
+            /** Reason */
+            reason: string | null;
+            /** Version */
+            version: number | null;
+        };
         /** HistoryOut */
         HistoryOut: {
             /** Category */
@@ -2879,6 +3273,11 @@ export interface components {
             source: string;
             /** Title */
             title: string;
+        };
+        /** InErrorIn */
+        InErrorIn: {
+            /** Reason */
+            reason: string;
         };
         /** InPersonConsent */
         InPersonConsent: {
@@ -3242,7 +3641,10 @@ export interface components {
         };
         /** OrderIn */
         OrderIn: {
-            /** Clinical Indication */
+            /**
+             * Clinical Indication
+             * @description Reason for the test, as the doctor writes it
+             */
             clinical_indication?: string | null;
             /** Due By */
             due_by?: string | null;
@@ -3266,6 +3668,8 @@ export interface components {
              * Format: uuid
              */
             id: string;
+            /** Next Statuses */
+            next_statuses: components["schemas"]["TestOrderStatus"][];
             /**
              * Ordered At
              * Format: date-time
@@ -3279,11 +3683,23 @@ export interface components {
             /** Ordering Doctor Name */
             ordering_doctor_name: string | null;
             priority: components["schemas"]["TestPriority"];
+            /** Report Ids */
+            report_ids: string[];
             status: components["schemas"]["TestOrderStatus"];
             /** Tests */
             tests: string[];
             /** Visit Id */
             visit_id: string | null;
+        };
+        /** OrderStatusIn */
+        OrderStatusIn: {
+            /** Note */
+            note?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "sample_collected" | "partially_resulted" | "completed" | "entered_in_error";
         };
         /**
          * OrganDonorStatus
@@ -3747,6 +4163,21 @@ export interface components {
             /** Patient Name */
             patient_name: string | null;
         };
+        /** RecordHistoryOut */
+        RecordHistoryOut: {
+            /** Entries */
+            entries: components["schemas"]["HistoryEntryOut"][];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "visit" | "symptom" | "note" | "assessment" | "reported_condition" | "prescription" | "medication" | "test_order" | "report" | "appointment" | "follow_up" | "document";
+            /**
+             * Resource Id
+             * Format: uuid
+             */
+            resource_id: string;
+        };
         /** RegisterRequest */
         RegisterRequest: {
             /** Display Name */
@@ -3834,6 +4265,77 @@ export interface components {
              */
             timezone?: string | null;
         };
+        /** ReportDetailOut */
+        ReportDetailOut: {
+            /**
+             * Access
+             * @enum {string}
+             */
+            access: "full" | "shared";
+            /** Collected At */
+            collected_at: string | null;
+            /** Conclusion */
+            conclusion: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Document Id */
+            document_id: string | null;
+            file: components["schemas"]["ReportFileOut"] | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Lab Name */
+            lab_name: string | null;
+            /** Lab Reference */
+            lab_reference: string | null;
+            /** Notes */
+            notes: string | null;
+            /** Order Id */
+            order_id: string | null;
+            /** Ordering Doctor Name */
+            ordering_doctor_name: string | null;
+            /** Report Date */
+            report_date: string | null;
+            /** Reported At */
+            reported_at: string | null;
+            /** Results */
+            results: components["schemas"]["ResultOut"][];
+            /** Review Note */
+            review_note: string | null;
+            /** Reviewed At */
+            reviewed_at: string | null;
+            /** Share Targets */
+            share_targets: components["schemas"]["ShareTargetOut"][] | null;
+            /** Shares */
+            shares: components["schemas"]["ShareOut"][] | null;
+            /** Source */
+            source: string;
+            status: components["schemas"]["TestReportStatus"];
+            /** Test Name */
+            test_name: string | null;
+            /** Verified At */
+            verified_at: string | null;
+        };
+        /** ReportFileOut */
+        ReportFileOut: {
+            /** Available */
+            available: boolean;
+            /** Content Type */
+            content_type: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            scan_status: components["schemas"]["ScanStatus"];
+            /** Size Bytes */
+            size_bytes: number | null;
+        };
         /** ReportIn */
         ReportIn: {
             /** Collected At */
@@ -3847,15 +4349,28 @@ export interface components {
             document_id?: string | null;
             /** Lab Name */
             lab_name?: string | null;
+            /** Lab Reference */
+            lab_reference?: string | null;
+            /** Notes */
+            notes?: string | null;
             /** Order Id */
             order_id?: string | null;
+            /** Report Date */
+            report_date?: string | null;
             /** Reported At */
             reported_at?: string | null;
             /** Results */
             results?: components["schemas"]["ResultIn"][];
+            /** Test Name */
+            test_name?: string | null;
         };
         /** ReportOut */
         ReportOut: {
+            /**
+             * Access
+             * @enum {string}
+             */
+            access: "full" | "shared";
             /** Collected At */
             collected_at: string | null;
             /** Conclusion */
@@ -3867,6 +4382,7 @@ export interface components {
             created_at: string;
             /** Document Id */
             document_id: string | null;
+            file: components["schemas"]["ReportFileOut"] | null;
             /**
              * Id
              * Format: uuid
@@ -3874,17 +4390,41 @@ export interface components {
             id: string;
             /** Lab Name */
             lab_name: string | null;
+            /** Lab Reference */
+            lab_reference: string | null;
+            /** Notes */
+            notes: string | null;
             /** Order Id */
             order_id: string | null;
+            /** Ordering Doctor Name */
+            ordering_doctor_name: string | null;
+            /** Report Date */
+            report_date: string | null;
             /** Reported At */
             reported_at: string | null;
             /** Results */
             results: components["schemas"]["ResultOut"][];
+            /** Review Note */
+            review_note: string | null;
+            /** Reviewed At */
+            reviewed_at: string | null;
             /** Source */
             source: string;
             status: components["schemas"]["TestReportStatus"];
+            /** Test Name */
+            test_name: string | null;
             /** Verified At */
             verified_at: string | null;
+        };
+        /** ReportReviewIn */
+        ReportReviewIn: {
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "verify" | "reject";
+            /** Note */
+            note?: string | null;
         };
         /** ReportSummary */
         ReportSummary: {
@@ -4339,6 +4879,50 @@ export interface components {
          * @enum {string}
          */
         SexAtBirth: "female" | "male" | "intersex" | "unknown";
+        /** ShareIn */
+        ShareIn: {
+            /**
+             * Doctor Id
+             * Format: uuid
+             */
+            doctor_id: string;
+            /** Expires At */
+            expires_at?: string | null;
+        };
+        /** ShareOut */
+        ShareOut: {
+            /**
+             * Doctor Id
+             * Format: uuid
+             */
+            doctor_id: string;
+            /** Doctor Name */
+            doctor_name: string | null;
+            /** Expires At */
+            expires_at: string | null;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Shared At
+             * Format: date-time
+             */
+            shared_at: string;
+        };
+        /** ShareTargetOut */
+        ShareTargetOut: {
+            /**
+             * Doctor Id
+             * Format: uuid
+             */
+            doctor_id: string;
+            /** Name */
+            name: string;
+            /** Specialty */
+            specialty: string | null;
+        };
         /** StopIn */
         StopIn: {
             /**
@@ -4361,6 +4945,85 @@ export interface components {
             endpoint: string;
             keys: components["schemas"]["KeysIn"];
         };
+        /** SymptomCorrectionIn */
+        SymptomCorrectionIn: {
+            /** Body Site */
+            body_site?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Onset Date */
+            onset_date?: string | null;
+            /** Reason */
+            reason: string;
+            /** Resolved On */
+            resolved_on?: string | null;
+            severity?: components["schemas"]["SymptomSeverity"] | null;
+            status?: components["schemas"]["SymptomStatus"] | null;
+            /** Symptom */
+            symptom?: string | null;
+            /**
+             * Version
+             * @description The version you are correcting
+             */
+            version: number;
+        };
+        /** SymptomIn */
+        SymptomIn: {
+            /** Body Site */
+            body_site?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Onset Date */
+            onset_date?: string | null;
+            /** Resolved On */
+            resolved_on?: string | null;
+            severity?: components["schemas"]["SymptomSeverity"] | null;
+            /** Symptom */
+            symptom: string;
+        };
+        /** SymptomOut */
+        SymptomOut: {
+            /** Body Site */
+            body_site: string | null;
+            /** Corrected */
+            corrected: boolean;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Notes */
+            notes: string | null;
+            /** Onset Date */
+            onset_date: string | null;
+            /**
+             * Reported At
+             * Format: date-time
+             */
+            reported_at: string;
+            /** Resolved On */
+            resolved_on: string | null;
+            severity: components["schemas"]["SymptomSeverity"] | null;
+            /** Source */
+            source: string;
+            status: components["schemas"]["SymptomStatus"];
+            /** Symptom */
+            symptom: string;
+            /** Version */
+            version: number;
+            /** Visit Id */
+            visit_id: string | null;
+        };
+        /**
+         * SymptomSeverity
+         * @enum {string}
+         */
+        SymptomSeverity: "mild" | "moderate" | "severe";
+        /**
+         * SymptomStatus
+         * @enum {string}
+         */
+        SymptomStatus: "ongoing" | "resolved" | "entered_in_error";
         /**
          * TestOrderStatus
          * @enum {string}
@@ -4378,21 +5041,50 @@ export interface components {
         TestReportStatus: "pending_review" | "verified" | "rejected" | "entered_in_error";
         /** TimelineEventOut */
         TimelineEventOut: {
+            /** Amended */
+            amended: boolean;
             /**
              * At
              * Format: date-time
              */
             at: string;
+            /** Date Only */
+            date_only: boolean;
             /** Detail */
             detail: string | null;
-            /** Kind */
-            kind: string;
-            /** Resource Id */
-            resource_id: string | null;
+            doctor: components["schemas"]["DoctorOut"] | null;
+            /** Has History */
+            has_history: boolean;
+            /** Key */
+            key: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "visit" | "symptom" | "note" | "assessment" | "reported_condition" | "prescription" | "medication" | "test_order" | "report" | "appointment" | "follow_up" | "document";
+            /**
+             * Resource Id
+             * Format: uuid
+             */
+            resource_id: string;
+            /** Source */
+            source: string | null;
             /** Status */
             status: string | null;
             /** Title */
             title: string;
+            /** Visit Id */
+            visit_id: string | null;
+        };
+        /** TimelinePageOut */
+        TimelinePageOut: {
+            facets: components["schemas"]["FacetsOut"];
+            /** Items */
+            items: components["schemas"]["TimelineEventOut"][];
+            /** Next Cursor */
+            next_cursor: string | null;
+            /** Total */
+            total: number;
         };
         /** TokenRequest */
         TokenRequest: {
@@ -4424,6 +5116,8 @@ export interface components {
         UploadIn: {
             /** Content Type */
             content_type: string;
+            /** Description */
+            description?: string | null;
             /** Document Date */
             document_date?: string | null;
             document_type: components["schemas"]["DocumentType"];
@@ -4438,6 +5132,8 @@ export interface components {
         };
         /** UploadOut */
         UploadOut: {
+            /** Allowed Types */
+            allowed_types: string[];
             /**
              * Document Id
              * Format: uuid
@@ -4451,6 +5147,26 @@ export interface components {
             max_bytes: number;
             /** Upload Url */
             upload_url: string;
+        };
+        /** UploadedReportIn */
+        UploadedReportIn: {
+            /**
+             * Document Id
+             * Format: uuid
+             */
+            document_id: string;
+            /** Lab Name */
+            lab_name?: string | null;
+            /** Lab Reference */
+            lab_reference?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Order Id */
+            order_id?: string | null;
+            /** Report Date */
+            report_date?: string | null;
+            /** Test Name */
+            test_name?: string | null;
         };
         /**
          * UserStatus
@@ -4469,6 +5185,13 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** ValueCount */
+        ValueCount: {
+            /** Count */
+            count: number;
+            /** Value */
+            value: string;
         };
         /**
          * VerificationStatus
@@ -5898,6 +6621,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UploadOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    correct_document_api_v1_patients__patient_id__documents__document_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentCorrectionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
                 };
             };
             /** @description Validation Error */
@@ -7755,6 +8514,36 @@ export interface operations {
             };
         };
     };
+    revoke_share_api_v1_patients__patient_id__report_shares__share_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                share_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_reports_api_v1_patients__patient_id__reports_get: {
         parameters: {
             query?: never;
@@ -7808,6 +8597,213 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_uploaded_report_api_v1_patients__patient_id__reports_uploaded_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UploadedReportIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_report_api_v1_patients__patient_id__reports__report_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_in_error_api_v1_patients__patient_id__reports__report_id__entered_in_error_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InErrorIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_file_api_v1_patients__patient_id__reports__report_id__file_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FileLinkOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_report_api_v1_patients__patient_id__reports__report_id__review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReportReviewIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReportOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    share_report_api_v1_patients__patient_id__reports__report_id__shares_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                report_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ShareIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShareOut"];
                 };
             };
             /** @description Validation Error */
@@ -7922,6 +8918,143 @@ export interface operations {
             };
         };
     };
+    list_symptoms_api_v1_patients__patient_id__symptoms_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SymptomOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    report_symptom_api_v1_patients__patient_id__symptoms_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SymptomIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SymptomOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    document_symptom_api_v1_patients__patient_id__symptoms_documented_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentedSymptomIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SymptomOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    correct_symptom_api_v1_patients__patient_id__symptoms__symptom_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                symptom_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SymptomCorrectionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SymptomOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_orders_api_v1_patients__patient_id__test_orders_get: {
         parameters: {
             query?: never;
@@ -8024,9 +9157,55 @@ export interface operations {
             };
         };
     };
-    get_timeline_api_v1_patients__patient_id__timeline_get: {
+    set_order_status_api_v1_patients__patient_id__test_orders__order_id__status_post: {
         parameters: {
             query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                order_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderStatusIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_timeline_api_v1_patients__patient_id__timeline_get: {
+        parameters: {
+            query?: {
+                /** @description Record types to include */
+                kind?: ("visit" | "symptom" | "note" | "assessment" | "reported_condition" | "prescription" | "medication" | "test_order" | "report" | "appointment" | "follow_up" | "document")[] | null;
+                date_from?: string | null;
+                date_to?: string | null;
+                doctor_id?: string | null;
+                specialty?: string | null;
+                order?: "newest" | "oldest";
+                cursor?: string | null;
+                limit?: number;
+            };
             header?: never;
             path: {
                 patient_id: string;
@@ -8041,7 +9220,40 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["TimelineEventOut"][];
+                    "application/json": components["schemas"]["TimelinePageOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_history_api_v1_patients__patient_id__timeline__kind___resource_id__history_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                kind: "visit" | "symptom" | "note" | "assessment" | "reported_condition" | "prescription" | "medication" | "test_order" | "report" | "appointment" | "follow_up" | "document";
+                resource_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordHistoryOut"];
                 };
             };
             /** @description Validation Error */

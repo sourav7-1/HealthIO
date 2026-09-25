@@ -7,6 +7,8 @@ from typing import Literal
 from fastapi import APIRouter, Response, status
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.core.enums import RecordSource
+from app.core.errors import ForbiddenError
 from app.modules.access.context import PatientRequest, patient_request
 from app.modules.access.permissions import Permission
 from app.modules.care_team import service as care_team
@@ -22,6 +24,9 @@ from app.modules.clinical.models import (
     NoteType,
     ReactionSeverity,
     Severity,
+    SymptomReport,
+    SymptomSeverity,
+    SymptomStatus,
     VisitStatus,
     VisitType,
 )
@@ -547,3 +552,156 @@ async def remove_self_reported(
     await ctx.audit(f"{kind}.self_reported_removed", resource_type=kind, resource_id=entry_id)
     await ctx.session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# --- symptoms ----------------------------------------------------------------------------------
+
+
+class SymptomIn(_In):
+    symptom: str = Field(min_length=1, max_length=300)
+    body_site: str | None = Field(default=None, max_length=100)
+    severity: SymptomSeverity | None = None
+    onset_date: date | None = None
+    resolved_on: date | None = None
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+class DocumentedSymptomIn(SymptomIn):
+    visit_id: uuid.UUID | None = None
+
+
+class SymptomCorrectionIn(_In):
+    version: int = Field(ge=1, description="The version you are correcting")
+    reason: str = Field(min_length=3, max_length=300)
+    symptom: str | None = Field(default=None, min_length=1, max_length=300)
+    body_site: str | None = Field(default=None, max_length=100)
+    severity: SymptomSeverity | None = None
+    status: SymptomStatus | None = None
+    onset_date: date | None = None
+    resolved_on: date | None = None
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+class SymptomOut(BaseModel):
+    id: uuid.UUID
+    symptom: str
+    body_site: str | None
+    severity: SymptomSeverity | None
+    status: SymptomStatus
+    onset_date: date | None
+    resolved_on: date | None
+    notes: str | None
+    source: str
+    visit_id: uuid.UUID | None
+    reported_at: datetime
+    version: int
+    corrected: bool
+
+
+def _symptom_out(s: SymptomReport) -> SymptomOut:
+    return SymptomOut(
+        id=s.id,
+        symptom=s.symptom,
+        body_site=s.body_site,
+        severity=s.severity,
+        status=s.status,
+        onset_date=s.onset_date,
+        resolved_on=s.resolved_on,
+        notes=s.notes,
+        source=s.source.value,
+        visit_id=s.visit_id,
+        reported_at=s.reported_at,
+        version=s.version,
+        corrected=s.version > 1,
+    )
+
+
+@router.get("/patients/{patient_id}/symptoms", response_model=list[SymptomOut])
+async def list_symptoms(
+    patient_id: uuid.UUID, ctx: PatientRequest = _view_history
+) -> list[SymptomOut]:
+    rows = await service.list_symptoms(ctx.session, ctx.patient_id)
+    await ctx.audit("symptom.list", resource_type="symptom_report")
+    await ctx.session.commit()
+    return [_symptom_out(s) for s in rows]
+
+
+@router.post(
+    "/patients/{patient_id}/symptoms",
+    response_model=SymptomOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def report_symptom(
+    patient_id: uuid.UUID, body: SymptomIn, ctx: PatientRequest = _self_report
+) -> SymptomOut:
+    """The patient (or a caregiver allowed to report) describes a symptom in their words."""
+    row = await service.report_symptom(
+        ctx.session,
+        patient_id=ctx.patient_id,
+        actor=ctx.actor_id,
+        source=ctx.reporter_source,
+        **body.model_dump(),
+    )
+    await ctx.audit("symptom.report", resource_type="symptom_report", resource_id=row.id)
+    await ctx.session.commit()
+    return _symptom_out(row)
+
+
+@router.post(
+    "/patients/{patient_id}/symptoms/documented",
+    response_model=SymptomOut,
+    status_code=status.HTTP_201_CREATED,
+)
+async def document_symptom(
+    patient_id: uuid.UUID, body: DocumentedSymptomIn, ctx: PatientRequest = _edit
+) -> SymptomOut:
+    """A doctor records symptoms as the patient presented them (optionally at a visit)."""
+    await care_team.require_verified_doctor(ctx.session, ctx.actor_id)
+    row = await service.report_symptom(
+        ctx.session,
+        patient_id=ctx.patient_id,
+        actor=ctx.actor_id,
+        source=RecordSource.DOCTOR,
+        **body.model_dump(),
+    )
+    await ctx.audit("symptom.document", resource_type="symptom_report", resource_id=row.id)
+    await ctx.session.commit()
+    return _symptom_out(row)
+
+
+@router.patch("/patients/{patient_id}/symptoms/{symptom_id}", response_model=SymptomOut)
+async def correct_symptom(
+    patient_id: uuid.UUID,
+    symptom_id: uuid.UUID,
+    body: SymptomCorrectionIn,
+    ctx: PatientRequest = _view_history,
+) -> SymptomOut:
+    """Correct an entry with a reason; the earlier version stays in its history.
+    Doctors need edit rights for clinical records; patients and caregivers need
+    permission to report health information."""
+    is_doctor = "doctor" in ctx.access.via
+    if is_doctor:
+        if not ctx.allows(Permission.EDIT_CLINICAL_RECORDS):
+            raise ForbiddenError("You do not have permission to do this for this patient.")
+        await care_team.require_verified_doctor(ctx.session, ctx.actor_id)
+    elif not ctx.allows(Permission.REPORT_HEALTH_INFO):
+        raise ForbiddenError("You do not have permission to do this for this patient.")
+    changes = body.model_dump(exclude_unset=True, exclude={"version", "reason"})
+    row = await service.correct_symptom(
+        ctx.session,
+        patient_id=ctx.patient_id,
+        symptom_id=symptom_id,
+        actor=ctx.actor_id,
+        actor_is_doctor=is_doctor,
+        expected_version=body.version,
+        reason=body.reason,
+        changes=changes,
+    )
+    await ctx.audit(
+        "symptom.correct",
+        resource_type="symptom_report",
+        resource_id=row.id,
+        changed_fields=sorted(changes),
+    )
+    await ctx.session.commit()
+    return _symptom_out(row)

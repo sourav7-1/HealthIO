@@ -57,9 +57,13 @@ class Settings(BaseSettings):
     # Endpoint browsers use for presigned URLs (differs from s3_endpoint_url inside Docker).
     s3_public_endpoint_url: str | None = None
     upload_max_bytes: int = 15 * 1024 * 1024
-    # Until the ClamAV sidecar lands (roadmap Phase 1b/20), uploads are accepted after
-    # type/size/magic-byte checks. Set true to require an antivirus verdict instead.
+    # Malware scanning (app/core/malware.py). With `clamav_host` set, every upload is
+    # scanned by clamd before it can be used. Without it, uploads are accepted after
+    # type/size/magic-byte checks unless `upload_virus_scan_required` is true, in which
+    # case they wait for a verdict. Production sets both.
     upload_virus_scan_required: bool = False
+    clamav_host: str | None = None
+    clamav_port: int = 3310
 
     rate_limit_default_per_minute: int = 120
 

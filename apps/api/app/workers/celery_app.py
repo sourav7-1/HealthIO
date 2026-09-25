@@ -44,6 +44,12 @@ celery_app.conf.update(
             "schedule": 300.0,
             "options": {"expires": 280},
         },
+        # Malware verdicts for uploads that could not be scanned inline (no-op without clamd).
+        "records-scan-pending": {
+            "task": "records.scan_pending",
+            "schedule": 120.0,
+            "options": {"expires": 110},
+        },
         "reminders-materialize": {
             "task": "reminders.materialize",
             "schedule": 900.0,

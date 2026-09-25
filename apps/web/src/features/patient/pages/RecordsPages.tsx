@@ -21,6 +21,9 @@ import {
 import { PrescriptionView } from "@/features/chart/PrescriptionView";
 import { useScans } from "@/features/scans/api";
 import { AddPrescriptionPhoto } from "@/features/scans/AddPrescriptionPhoto";
+import { sourceLabel } from "@/features/reports/api";
+import { PatientUploadReportDialog } from "@/features/reports/PatientUploadReportDialog";
+import { ReportDetailDialog } from "@/features/reports/ReportDetailDialog";
 import { QueryState, StatusBadge } from "@/features/chart/shared";
 import { errorMessage, type Schemas } from "@/lib/api";
 import { bytes, formatDate, formatDateTime, humanize, isInPast, todayIso } from "@/lib/format";
@@ -475,12 +478,16 @@ export function PrescriptionDetailPage() {
 // --- Tests & reports ------------------------------------------------------------------------------
 
 export function TestsPage() {
-  const { patientId: pid, can } = useActivePatient();
+  const { patientId: pid, can, mode } = useActivePatient();
+  const self = mode === "self";
   const orders = useTestOrders(pid);
   const reports = useReports(pid);
   const documents = useDocuments(pid);
   const toast = useToast();
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState<"report" | "document" | null>(null);
+  const [viewing, setViewing] = useState<string | null>(null);
+  const openOrders = (orders.data ?? []).filter((o) => ["ordered", "sample_collected", "partially_resulted"].includes(o.status));
+  const reportDocs = new Set((reports.data ?? []).map((r) => r.document_id).filter(Boolean));
 
   const open = async (id: string) => {
     try {
@@ -494,7 +501,14 @@ export function TestsPage() {
     <>
       <PageHeader
         title="Tests & reports"
-        actions={can("upload_reports") && <Button icon={<Upload className="size-4" />} onClick={() => setUploading(true)}>Upload a document</Button>}
+        actions={
+          can("upload_reports") && (
+            <div className="flex flex-wrap gap-2">
+              <Button icon={<Upload className="size-4" />} onClick={() => setUploading("report")}>Upload a report</Button>
+              <Button variant="secondary" icon={<FileText className="size-4" />} onClick={() => setUploading("document")}>Other document</Button>
+            </div>
+          )
+        }
       />
       <div className="flex flex-col gap-6">
         <Card title="Tests your doctor ordered" bodyClassName="p-0">
@@ -502,12 +516,29 @@ export function TestsPage() {
             {(list) => (
               <ul className="divide-y divide-line">
                 {list.map((o) => (
-                  <li key={o.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-                    <div>
+                  <li key={o.id} className="flex flex-wrap items-start justify-between gap-2 px-4 py-3">
+                    <div className="min-w-0">
                       <p className="font-medium">{o.tests.join(", ")}</p>
-                      <p className="text-sm text-muted">Ordered {formatDate(o.ordered_at.slice(0, 10))} by {o.ordering_doctor_name ?? "your doctor"}{o.due_by ? ` · needed by ${formatDate(o.due_by)}` : ""}</p>
+                      <p className="text-sm text-muted">
+                        Ordered {formatDate(o.ordered_at.slice(0, 10))} by {o.ordering_doctor_name ?? "your doctor"}
+                        {o.due_by ? ` · needed by ${formatDate(o.due_by)}` : ""}
+                      </p>
+                      {o.clinical_indication && (
+                        <p className="text-sm">
+                          <span className="text-muted">Reason: </span>
+                          {o.clinical_indication}
+                        </p>
+                      )}
+                      {o.cancel_reason && <p className="text-sm text-muted">Cancelled: {o.cancel_reason}</p>}
                     </div>
-                    <StatusBadge status={o.status} />
+                    <div className="flex items-center gap-2">
+                      {o.report_ids.length > 0 && (
+                        <Badge tone="info">
+                          {o.report_ids.length} report{o.report_ids.length > 1 ? "s" : ""}
+                        </Badge>
+                      )}
+                      <StatusBadge status={o.status} />
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -519,66 +550,79 @@ export function TestsPage() {
             {(list) => (
               <ul className="divide-y divide-line">
                 {list.map((r) => (
-                  <li key={r.id} className="px-4 py-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <p className="font-medium">{r.lab_name ?? "Report"}</p>
-                        <p className="text-sm text-muted">{formatDate((r.collected_at ?? r.created_at).slice(0, 10))}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <SourceBadge source={r.source} />
-                        {r.document_id && <Button size="sm" variant="secondary" icon={<Download className="size-4" />} onClick={() => void open(r.document_id!)}>Open</Button>}
-                      </div>
+                  <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                    <div className="min-w-0">
+                      <p className="font-medium">{r.test_name ?? r.lab_name ?? "Report"}</p>
+                      <p className="text-sm text-muted">
+                        {formatDate(r.report_date ?? (r.collected_at ?? r.created_at).slice(0, 10))}
+                        {r.lab_name && r.test_name ? ` · ${r.lab_name}` : ""}
+                        {r.ordering_doctor_name ? ` · ordered by ${r.ordering_doctor_name}` : ""}
+                      </p>
                     </div>
-                    {r.results.length > 0 && (
-                      <div className="mt-3 overflow-x-auto">
-                        <table className="w-full min-w-[20rem] text-sm">
-                          <thead className="text-left text-muted"><tr><th scope="col" className="py-1 pr-3 font-medium">Test</th><th scope="col" className="py-1 pr-3 font-medium">Result</th><th scope="col" className="py-1 font-medium">Normal range</th></tr></thead>
-                          <tbody className="divide-y divide-line">
-                            {r.results.map((x) => (
-                              <tr key={x.id}>
-                                <td className="py-1.5 pr-3">{x.analyte_name}</td>
-                                <td className="py-1.5 pr-3 tabular-nums">{x.value_numeric != null ? Number(x.value_numeric) : x.value_text} {x.unit}</td>
-                                <td className="py-1.5 text-muted">{x.reference_text ?? (x.reference_low != null || x.reference_high != null ? `${x.reference_low ?? ""}–${x.reference_high ?? ""}` : "—")}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                        <p className="mt-2 text-xs text-muted">Values as printed on the report. Ask your doctor what they mean for you.</p>
-                      </div>
-                    )}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge tone={r.source === "doctor" ? "info" : "neutral"}>{sourceLabel(r.source, self)}</Badge>
+                      <StatusBadge status={r.status} label={r.status === "pending_review" ? "Awaiting review" : undefined} />
+                      <Button size="sm" variant="secondary" onClick={() => setViewing(r.id)}>
+                        View
+                      </Button>
+                    </div>
                   </li>
                 ))}
               </ul>
             )}
           </QueryState>
+          <p className="border-t border-line px-4 py-3 text-xs text-muted">
+            Reports are shown exactly as they were added. Health Io never interprets results: ask your doctor what they mean for you.
+          </p>
         </Card>
-        <Card title="My documents" bodyClassName="p-0">
-          <QueryState query={documents} what="Documents" isEmpty={(d) => d.length === 0} empty={<p className="p-4 text-sm text-muted">No documents yet. Upload reports or letters so they are all in one place.</p>}>
+        <Card title="Other documents" bodyClassName="p-0">
+          <QueryState
+            query={documents}
+            what="Documents"
+            isEmpty={(d) => d.filter((x) => !reportDocs.has(x.id)).length === 0}
+            empty={<p className="p-4 text-sm text-muted">No other documents yet. Add letters, discharge summaries or vaccination records so they are all in one place.</p>}
+          >
             {(list) => (
               <ul className="divide-y divide-line">
-                {list.map((d) => (
-                  <li key={d.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{d.title ?? humanize(d.document_type)}</p>
-                      <p className="text-sm text-muted">{formatDate(d.document_date ?? d.created_at.slice(0, 10))} · {bytes(d.size_bytes)}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <SourceBadge source={d.source} />
-                      {d.scan_status === "clean" ? (
-                        <Button size="sm" variant="secondary" icon={<Download className="size-4" />} onClick={() => void open(d.id)}>Open</Button>
-                      ) : (
-                        <Badge tone="warning">Checking</Badge>
-                      )}
-                    </div>
-                  </li>
-                ))}
+                {list
+                  .filter((d) => !reportDocs.has(d.id))
+                  .map((d) => (
+                    <li key={d.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{d.title ?? humanize(d.document_type)}</p>
+                        <p className="text-sm text-muted">
+                          {formatDate(d.document_date ?? d.created_at.slice(0, 10))} · {bytes(d.size_bytes)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <SourceBadge source={d.source} />
+                        {d.scan_status === "clean" ? (
+                          <Button size="sm" variant="secondary" icon={<Download className="size-4" />} onClick={() => void open(d.id)}>
+                            Open
+                          </Button>
+                        ) : (
+                          <Badge tone="warning">Checking</Badge>
+                        )}
+                      </div>
+                    </li>
+                  ))}
               </ul>
             )}
           </QueryState>
         </Card>
       </div>
-      {uploading && <UploadDialog patientId={pid} onClose={() => setUploading(false)} />}
+      {uploading === "report" && <PatientUploadReportDialog patientId={pid} orders={openOrders} onClose={() => setUploading(null)} />}
+      {uploading === "document" && <UploadDialog patientId={pid} onClose={() => setUploading(null)} />}
+      {viewing && (
+        <ReportDetailDialog
+          patientId={pid}
+          reportId={viewing}
+          viewer="patient"
+          self={self}
+          canWithdraw={can("upload_reports")}
+          onClose={() => setViewing(null)}
+        />
+      )}
     </>
   );
 }
@@ -589,7 +633,7 @@ function UploadDialog({ patientId, onClose }: { patientId: string; onClose: () =
   const qc = useQueryClient();
   const toast = useToast();
   const [file, setFile] = useState<File | null>(null);
-  const [type, setType] = useState<Schemas["DocumentType"]>("lab_report");
+  const [type, setType] = useState<Schemas["DocumentType"]>("discharge_summary");
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -622,7 +666,7 @@ function UploadDialog({ patientId, onClose }: { patientId: string; onClose: () =
       open
       onClose={onClose}
       title="Upload a document"
-      description="Stored privately. Your connected doctors can see it if you share documents with them."
+      description="Stored privately and checked for viruses. A doctor sees it only if what you share with them covers this kind of document. For test reports, use Upload a report."
       footer={<><Button variant="secondary" onClick={onClose}>Cancel</Button><Button onClick={() => void save()} loading={busy}>Upload</Button></>}
     >
       <div className="flex flex-col gap-4">
@@ -636,7 +680,6 @@ function UploadDialog({ patientId, onClose }: { patientId: string; onClose: () =
         <Field label="What is it?">
           {(p) => (
             <Select {...p} value={type} onChange={(e) => setType(e.target.value as Schemas["DocumentType"])}>
-              <option value="lab_report">Test report</option>
               <option value="prescription">Prescription from another doctor</option>
               <option value="discharge_summary">Hospital discharge summary</option>
               <option value="imaging_report">Scan or X-ray report</option>

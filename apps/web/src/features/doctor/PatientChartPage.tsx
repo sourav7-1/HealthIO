@@ -143,7 +143,7 @@ export function PatientChartPage() {
 
       <div className="mt-6">
         {active === "overview" && <OverviewSection patientId={patientId} overview={ov} />}
-        {active === "timeline" && <TimelineSection patientId={patientId} />}
+        {active === "timeline" && <TimelineSection patientId={patientId} overview={ov} />}
         {active === "visits" && <VisitsSection patientId={patientId} canRecord={can(ov, "edit_clinical_records")} onRecord={() => setAction("visit")} />}
         {active === "medications" && <MedicationsSection patientId={patientId} overview={ov} />}
         {active === "prescriptions" && <PrescriptionsSection patientId={patientId} canWrite={can(ov, "change_doctor_prescription")} onNew={() => setAction("prescription")} />}

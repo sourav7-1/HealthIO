@@ -28,6 +28,7 @@ VERSIONED_TABLES: dict[str, tuple[str, ...]] = {
     "test_reports": (),
     "appointments": (),
     "follow_ups": (),
+    "report_shares": (),  # added in migration 0012
 }
 BOOKKEEPING = ("updated_at", "updated_by", "version")
 
@@ -36,7 +37,11 @@ class RecordVersion(Base, Entity, PatientOwned):
     __tablename__ = "record_versions"
     __table_args__ = (
         Index(
-            "ix_record_versions_patient_record", "patient_id", "table_name", "record_id", "created_at"
+            "ix_record_versions_patient_record",
+            "patient_id",
+            "table_name",
+            "record_id",
+            "created_at",
         ),
     )
 

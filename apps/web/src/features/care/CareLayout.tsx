@@ -3,6 +3,7 @@ import {
   CalendarDays,
   FileText,
   FlaskConical,
+  GanttChart,
   HeartHandshake,
   HeartPulse,
   History,
@@ -31,6 +32,7 @@ const icon = "size-5";
 const PERSON_PAGES: { path: string; label: string; icon: ReactNode; needs: string | null }[] = [
   { path: "", label: "Overview", icon: <LayoutDashboard className={icon} aria-hidden />, needs: null },
   { path: "health", label: "Health summary", icon: <HeartPulse className={icon} aria-hidden />, needs: "view_profile" },
+  { path: "timeline", label: "Timeline", icon: <GanttChart className={icon} aria-hidden />, needs: null },
   { path: "medications", label: "Medicines", icon: <Pill className={icon} aria-hidden />, needs: "view_medications" },
   { path: "prescriptions", label: "Prescriptions", icon: <FileText className={icon} aria-hidden />, needs: "view_prescriptions" },
   { path: "history", label: "Medical history", icon: <History className={icon} aria-hidden />, needs: "view_medical_history" },

@@ -28,7 +28,7 @@ async def _process_prescription_scan(scan_id: uuid.UUID, patient_id: uuid.UUID) 
     from app.ai.providers import build_extractor
     from app.core.config import get_settings
     from app.core.db import Database
-    from app.core.storage import Storage
+    from app.core.storage import S3Storage
     from app.modules.audit.models import AuditOutcome
     from app.modules.audit.service import AuditEvent, record_event
     from app.modules.extraction import service
@@ -45,7 +45,7 @@ async def _process_prescription_scan(scan_id: uuid.UUID, patient_id: uuid.UUID) 
             await service.process(
                 session,
                 scan,
-                storage=Storage(settings),
+                storage=S3Storage(settings),
                 settings=settings,
                 extractor=build_extractor(settings),
                 ocr_engine=build_ocr(settings.ai_ocr_engine),
@@ -135,4 +135,56 @@ def reminders_materialize() -> dict[str, int]:
 
     result = asyncio.run(_run_reminders("materialize"))
     log.info("reminders_materialized", **result)
+    return result
+
+
+# --- malware scanning ---------------------------------------------------------------------
+
+
+async def _scan_pending() -> dict[str, int]:
+    from app.core.config import get_settings
+    from app.core.db import Database
+    from app.core.malware import build_scanner
+    from app.core.storage import S3Storage
+    from app.modules.audit.models import AuditOutcome
+    from app.modules.audit.service import AuditEvent, record_event
+    from app.modules.records import service
+
+    settings = get_settings()
+    scanner = build_scanner(settings)
+    if scanner is None:
+        return {"scanned": 0}
+    db = Database(settings)
+    try:
+        async with db.sessionmaker() as session:
+            done = await service.scan_pending(session, S3Storage(settings), scanner, settings)
+            for doc, result in done:
+                await record_event(
+                    session,
+                    AuditEvent(
+                        action="document.scanned",
+                        outcome=AuditOutcome.ALLOWED,
+                        actor_user_id=None,  # system
+                        patient_id=doc.patient_id,
+                        resource_type="health_document",
+                        resource_id=doc.id,
+                        context={
+                            "scan_status": doc.scan_status.value,
+                            "verdict": result.verdict.value if result else "object_mismatch",
+                        },
+                    ),
+                )
+            await session.commit()
+            return {"scanned": len(done)}
+    finally:
+        await db.dispose()
+
+
+@celery_app.task(name="records.scan_pending", acks_late=True)
+def records_scan_pending() -> dict[str, int]:
+    """Give a malware verdict to uploads waiting in PENDING_SCAN (scanner errors retry)."""
+    import asyncio
+
+    result = asyncio.run(_scan_pending())
+    log.info("documents_scanned", **result)
     return result

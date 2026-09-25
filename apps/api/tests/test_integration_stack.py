@@ -14,7 +14,7 @@ from app.core.cache import create_redis
 from app.core.config import Settings
 from app.core.db import Database
 from app.core.rate_limit import hit
-from app.core.storage import Storage
+from app.core.storage import S3Storage
 
 pytestmark = [
     pytest.mark.integration,
@@ -46,7 +46,7 @@ async def test_redis_rate_limit(live_settings: Settings) -> None:
 
 
 async def test_presigned_upload_and_download_round_trip(live_settings: Settings) -> None:
-    storage = Storage(live_settings)
+    storage = S3Storage(live_settings)
     await storage.ping()
     key = f"integration/{uuid.uuid4().hex}.txt"
     payload = b"synthetic test file"

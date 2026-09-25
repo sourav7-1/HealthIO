@@ -8,6 +8,7 @@ import { Alert, Button, Dialog, Field, Input, Select, Textarea } from "@/compone
 import { bytes, todayIso } from "@/lib/format";
 
 import { uploadDocument, useOrderTests, useRecordReport, type TestOrder } from "@/features/chart/api";
+import { REPORT_ACCEPT, checkReportFile } from "@/features/reports/api";
 import { useSubmit } from "@/features/chart/useSubmit";
 
 // --- Order tests -----------------------------------------------------------------------------
@@ -104,7 +105,7 @@ export function OrderTestsDialog({
         <Field label="Needed by">
           {(p) => <Input {...p} type="date" min={todayIso()} {...register("due_by")} />}
         </Field>
-        <Field label="Clinical indication" className="sm:col-span-2" error={formState.errors.clinical_indication?.message}>
+        <Field label="Reason for the test" className="sm:col-span-2" error={formState.errors.clinical_indication?.message}>
           {(p) => <Textarea {...p} rows={2} {...register("clinical_indication")} />}
         </Field>
       </form>
@@ -114,8 +115,6 @@ export function OrderTestsDialog({
 
 // --- Upload / record report --------------------------------------------------------------------
 
-const ACCEPT = "application/pdf,image/jpeg,image/png,image/webp,image/heic";
-const MAX_BYTES = 15 * 1024 * 1024;
 
 const resultSchema = z.object({
   analyte_name: z.string().trim().min(1, "Name required"),
@@ -125,6 +124,10 @@ const resultSchema = z.object({
   flag: z.enum(["unknown", "normal", "low", "high", "critical_low", "critical_high", "abnormal"]),
 });
 const reportSchema = z.object({
+  test_name: z.string().trim().max(200).optional(),
+  report_date: z.string().optional().refine((v) => !v || v <= todayIso(), "Cannot be in the future"),
+  lab_reference: z.string().trim().max(100).optional(),
+  notes: z.string().trim().max(2000).optional(),
   lab_name: z.string().trim().max(200).optional(),
   collected_on: z.string().optional().refine((v) => !v || v <= todayIso(), "Cannot be in the future"),
   order_id: z.string().optional(),
@@ -164,12 +167,9 @@ export function UploadReportDialog({
 
   const pickFile = (f: File | null) => {
     setFileError(null);
-    if (f && !ACCEPT.split(",").includes(f.type)) {
-      setFileError("Upload a PDF or an image (JPEG, PNG, WebP or HEIC).");
-      return setFile(null);
-    }
-    if (f && f.size > MAX_BYTES) {
-      setFileError("Files must be smaller than 15 MB.");
+    const problem = f ? checkReportFile(f) : null;
+    if (problem) {
+      setFileError(problem);
       return setFile(null);
     }
     setFile(f);
@@ -184,14 +184,18 @@ export function UploadReportDialog({
       const doc = file
         ? await uploadDocument(patientId, file, {
             document_type: "lab_report",
-            title: v.lab_name ? `Report from ${v.lab_name}` : undefined,
-            document_date: v.collected_on || undefined,
+            title: v.test_name || (v.lab_name ? `Report from ${v.lab_name}` : undefined),
+            document_date: v.report_date || v.collected_on || undefined,
           })
         : null;
       await record.mutateAsync({
         document_id: doc?.id ?? null,
         order_id: v.order_id || null,
         lab_name: v.lab_name || null,
+        test_name: v.test_name || null,
+        report_date: v.report_date || null,
+        lab_reference: v.lab_reference || null,
+        notes: v.notes || null,
         collected_at: v.collected_on ? new Date(`${v.collected_on}T00:00:00`).toISOString() : null,
         conclusion: v.conclusion || null,
         results: v.results.map((r) => {
@@ -235,11 +239,11 @@ export function UploadReportDialog({
         <div>
           <label className="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-line px-4 py-6 text-center hover:bg-surface-2">
             <Upload className="size-6 text-muted" aria-hidden />
-            <span className="text-sm font-medium">{file ? file.name : "Choose a PDF or image"}</span>
+            <span className="text-sm font-medium">{file ? file.name : "Choose a PDF, JPG or PNG"}</span>
             <span className="text-xs text-muted">{file ? bytes(file.size) : "Up to 15 MB"}</span>
             <input
               type="file"
-              accept={ACCEPT}
+              accept={REPORT_ACCEPT}
               className="sr-only"
               onChange={(ev) => pickFile(ev.target.files?.[0] ?? null)}
             />
@@ -252,6 +256,15 @@ export function UploadReportDialog({
         </div>
 
         <div className="grid gap-4 sm:grid-cols-3">
+          <Field label="Test name" className="sm:col-span-2" error={e.test_name?.message} hint="Taken from the order when left empty.">
+            {(p) => <Input {...p} {...register("test_name")} />}
+          </Field>
+          <Field label="Date on report" error={e.report_date?.message}>
+            {(p) => <Input {...p} type="date" max={todayIso()} {...register("report_date")} />}
+          </Field>
+          <Field label="Report number" error={e.lab_reference?.message}>
+            {(p) => <Input {...p} {...register("lab_reference")} />}
+          </Field>
           <Field label="Laboratory" error={e.lab_name?.message}>
             {(p) => <Input {...p} {...register("lab_name")} />}
           </Field>
@@ -319,6 +332,9 @@ export function UploadReportDialog({
 
         <Field label="Conclusion (as written on the report)" error={e.conclusion?.message}>
           {(p) => <Textarea {...p} rows={2} {...register("conclusion")} />}
+        </Field>
+        <Field label="Notes" error={e.notes?.message} hint="Administrative notes (where the test was done, sample issues). The patient can see them.">
+          {(p) => <Textarea {...p} rows={2} {...register("notes")} />}
         </Field>
       </form>
     </Dialog>

@@ -19,7 +19,9 @@ Related: [ARCHITECTURE.md](ARCHITECTURE.md) · [SECURITY_MODEL.md](SECURITY_MODE
 | 8 | AI prescription OCR | ✅ Core done ([docs/phases/08-ai-prescription-reading.md](docs/phases/08-ai-prescription-reading.md)): consented AI reading, per-field confidence and regions, review and correction, conversion, audit. Drug catalogue matching (Phase 14), live eval run and Tesseract in the image remain |
 | 9 | Medication management | ✅ Core done ([docs/phases/09-medication-management.md](docs/phases/09-medication-management.md)): origins, states, scheduling engine, clinician-gated changes, change requests, history, duplicate detection. Tapering, inventory and therapeutic duplicates remain |
 | 10 | Reminder engine | ✅ Core done ([docs/phases/10-reminders.md](docs/phases/10-reminders.md)): dose states incl. notified, timezone-aware recurring reminders, repeat reminder, snooze, quiet hours, missed-dose detection with non-advisory guidance, caregiver alerts, in-app inbox, Web Push + PWA, Celery beat jobs. SMS/email, refill and "smart" timing suggestions remain |
-| 11–25 | | Planned |
+| 11 | Medical record timeline | ✅ Core done ([docs/phases/11-record-timeline.md](docs/phases/11-record-timeline.md)): one chronological timeline across visits, symptoms, notes, assessments, prescriptions, medicines, tests, reports, appointments, follow-ups and documents; filters by date, doctor, specialty and type; cursor pagination; per-type permissions and consent; database-written record versions with reasons; patient and doctor views. FHIR mapping remains |
+| 12 | Tests and reports | ✅ Core done ([docs/phases/12-tests-and-reports.md](docs/phases/12-tests-and-reports.md)): orders with reason and status, doctor-recorded and patient-uploaded reports (PDF/JPG/PNG), review, report metadata, per-report sharing, storage and malware-scanner interfaces (ClamAV), audit; AI summary architecture only (disabled). Lab value extraction and trend charts remain |
+| 13–25 | | Planned |
 
 ## Milestones
 | Milestone | Phases | Outcome |

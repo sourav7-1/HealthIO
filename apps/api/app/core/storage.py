@@ -1,11 +1,14 @@
-"""S3-compatible object storage (MinIO locally, AWS S3 ap-south-1 in production).
+"""Object storage for health files (MinIO locally, AWS S3 ap-south-1 in production).
 
-Clients never receive long-lived access: uploads and downloads go through short-lived
-presigned URLs, and every object is encrypted at rest.
+`Storage` is the interface the rest of the app depends on; `S3Storage` implements it for
+any S3-compatible service. Clients never receive long-lived access: uploads and downloads
+go through short-lived presigned URLs, every object is encrypted at rest, and object keys
+never contain names or other personal data. The file bytes never pass through the API
+except when `read()` fetches them for validation, malware scanning or AI processing.
 """
 
 import asyncio
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol
 
 import boto3
 from botocore.config import Config
@@ -27,7 +30,23 @@ def _client(settings: Settings, endpoint: str | None) -> "S3Client":
     )
 
 
-class Storage:
+class Storage(Protocol):
+    def presign_upload(self, key: str, content_type: str, max_bytes: int) -> dict[str, Any]:
+        """A browser upload form pinned to `key`, `content_type` and at most `max_bytes`."""
+        ...
+
+    def presign_download(self, key: str, *, filename: str | None = None, ttl: int = 60) -> str:
+        """A short-lived download link (attachment, never rendered on the API origin)."""
+        ...
+
+    async def read(self, key: str, max_bytes: int) -> bytes | None:
+        """The whole object, or None if it is missing or larger than `max_bytes`."""
+        ...
+
+    async def ping(self) -> None: ...
+
+
+class S3Storage:
     def __init__(self, settings: Settings) -> None:
         self.bucket = settings.s3_bucket
         self.ttl = settings.s3_presign_ttl_seconds

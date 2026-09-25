@@ -1,5 +1,6 @@
-"""Patient chart: profile, overview and timeline. Sections the caller may not see are
-simply absent; `permissions` tells the UI which sections to offer."""
+"""Patient chart: profile and overview. Sections the caller may not see are simply
+absent; `permissions` tells the UI which sections to offer. The timeline lives in
+app.modules.timeline."""
 
 import uuid
 from datetime import UTC, date, datetime
@@ -11,7 +12,6 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.modules.access.context import PatientRequest, patient_request
 from app.modules.access.permissions import Permission
-from app.modules.care_team import service as care_team
 from app.modules.chart import service
 from app.modules.patients import service as patients
 from app.modules.patients.models import BloodGroup, PatientProfile, SexAtBirth
@@ -50,15 +50,6 @@ class OverviewOut(BaseModel):
     next_appointment: datetime | None
     next_follow_up: date | None
     last_visit: datetime | None
-
-
-class TimelineEventOut(BaseModel):
-    at: datetime
-    kind: str
-    title: str
-    detail: str | None
-    status: str | None
-    resource_id: uuid.UUID | None
 
 
 def display_name(p: PatientProfile) -> str:
@@ -171,13 +162,3 @@ async def get_overview(patient_id: uuid.UUID, ctx: PatientRequest = _any) -> Ove
         next_follow_up=ov.next_follow_up,
         last_visit=ov.last_visit,
     )
-
-
-@router.get("/patients/{patient_id}/timeline", response_model=list[TimelineEventOut])
-async def get_timeline(patient_id: uuid.UUID, ctx: PatientRequest = _any) -> list[TimelineEventOut]:
-    events = await service.timeline(
-        ctx.session, ctx.access, await care_team.doctor_id_for(ctx.session, ctx.actor_id)
-    )
-    await ctx.audit("patient.timeline_view", resource_type="patient_chart")
-    await ctx.session.commit()
-    return [TimelineEventOut(**e.__dict__) for e in events]

@@ -299,11 +299,12 @@ async def test_visit_notes_diagnosis_orders_prescription_follow_up(
     done = await api.post(f"{API}/patients/{pid}/visits/{vid}/complete", headers=h)
     assert done.json()["status"] == "completed"
 
-    kinds = {e["kind"] for e in (await api.get(f"{API}/patients/{pid}/timeline", headers=h)).json()}
+    page = (await api.get(f"{API}/patients/{pid}/timeline", headers=h)).json()
+    kinds = {e["kind"] for e in page["items"]}
     assert {
         "visit",
         "note",
-        "diagnosis",
+        "assessment",
         "test_order",
         "prescription",
         "medication",
@@ -554,8 +555,16 @@ async def test_consent_narrows_the_chart(
     h = await login(api, doctor.test_email)
     pid = await add_patient(api, h, ["medications", "prescriptions"])
     assert (await api.get(f"{API}/patients/{pid}/medications", headers=h)).status_code == 200
-    for path in ["profile", "visits", "medical-history", "reports", "appointments", "adherence"]:
+    for path in ["profile", "visits", "medical-history", "appointments", "adherence"]:
         assert (await api.get(f"{API}/patients/{pid}/{path}", headers=h)).status_code == 403, path
+    # Reports: only those the patient shares one by one (none yet).
+    assert (await api.get(f"{API}/patients/{pid}/reports", headers=h)).json() == []
+    assert (await api.get(f"{API}/patients/{pid}/test-orders", headers=h)).status_code == 403
+    kinds = {
+        e["kind"]
+        for e in (await api.get(f"{API}/patients/{pid}/timeline", headers=h)).json()["items"]
+    }
+    assert kinds <= {"prescription", "medication"}
     # Cannot write where consent does not reach.
     assert (
         await api.post(f"{API}/patients/{pid}/visits", json={"visit_type": "in_person"}, headers=h)

@@ -255,6 +255,21 @@ async def respond_to_request(
     return rel, doctor_user_id
 
 
+async def active_doctors(session: AsyncSession, patient_id: uuid.UUID) -> list[DoctorProfile]:
+    """Verified doctors with an ACTIVE link to the patient."""
+    rows = await session.scalars(
+        select(DoctorProfile)
+        .join(DoctorPatientRelationship, DoctorProfile.id == DoctorPatientRelationship.doctor_id)
+        .where(
+            DoctorPatientRelationship.patient_id == patient_id,
+            DoctorPatientRelationship.status == RelationshipStatus.ACTIVE,
+            DoctorProfile.verification_status == DoctorVerificationStatus.VERIFIED,
+        )
+        .order_by(DoctorProfile.display_name)
+    )
+    return list(rows.unique().all())
+
+
 async def doctor_names(session: AsyncSession, doctor_ids: set[uuid.UUID]) -> dict[uuid.UUID, str]:
     if not doctor_ids:
         return {}

@@ -61,6 +61,37 @@
         "title": "AccountUpdate",
         "type": "object"
       },
+      "ActorOut": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "role": {
+            "enum": [
+              "doctor",
+              "patient",
+              "caregiver",
+              "system"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "name"
+        ],
+        "title": "ActorOut",
+        "type": "object"
+      },
       "ActorRole": {
         "enum": [
           "patient",
@@ -1827,6 +1858,101 @@
         "title": "DependantSummary",
         "type": "object"
       },
+      "DoctorFacet": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "specialty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialty"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "specialty",
+          "count"
+        ],
+        "title": "DoctorFacet",
+        "type": "object"
+      },
+      "DoctorOut": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "specialty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialty"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "specialty"
+        ],
+        "title": "DoctorOut",
+        "type": "object"
+      },
       "DoctorVerificationOut": {
         "properties": {
           "doctor_profile_id": {
@@ -1857,6 +1983,68 @@
           "verified_at"
         ],
         "title": "DoctorVerificationOut",
+        "type": "object"
+      },
+      "DocumentCorrectionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "document_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Date"
+          },
+          "document_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DocumentType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "maxLength": 300,
+            "minLength": 3,
+            "title": "Reason",
+            "type": "string"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "DocumentCorrectionIn",
         "type": "object"
       },
       "DocumentItemOut": {
@@ -2004,6 +2192,10 @@
       },
       "DocumentOut": {
         "properties": {
+          "added_by_my_side": {
+            "title": "Added By My Side",
+            "type": "boolean"
+          },
           "content_type": {
             "title": "Content Type",
             "type": "string"
@@ -2012,6 +2204,17 @@
             "format": "date-time",
             "title": "Created At",
             "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
           },
           "document_date": {
             "anyOf": [
@@ -2079,13 +2282,15 @@
           "id",
           "document_type",
           "title",
+          "description",
           "document_date",
           "content_type",
           "size_bytes",
           "source",
           "scan_status",
           "visit_id",
-          "created_at"
+          "created_at",
+          "added_by_my_side"
         ],
         "title": "DocumentOut",
         "type": "object"
@@ -2104,6 +2309,92 @@
         ],
         "title": "DocumentType",
         "type": "string"
+      },
+      "DocumentedSymptomIn": {
+        "additionalProperties": false,
+        "properties": {
+          "body_site": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body Site"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "onset_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onset Date"
+          },
+          "resolved_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved On"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SymptomSeverity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "symptom": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Symptom",
+            "type": "string"
+          },
+          "visit_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visit Id"
+          }
+        },
+        "required": [
+          "symptom"
+        ],
+        "title": "DocumentedSymptomIn",
+        "type": "object"
       },
       "DoseActionIn": {
         "additionalProperties": false,
@@ -2652,6 +2943,119 @@
         "title": "ExistingMedicationIn",
         "type": "object"
       },
+      "FacetsOut": {
+        "properties": {
+          "doctors": {
+            "items": {
+              "$ref": "#/components/schemas/DoctorFacet"
+            },
+            "title": "Doctors",
+            "type": "array"
+          },
+          "earliest": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Earliest"
+          },
+          "kinds": {
+            "items": {
+              "$ref": "#/components/schemas/ValueCount"
+            },
+            "title": "Kinds",
+            "type": "array"
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest"
+          },
+          "specialties": {
+            "items": {
+              "$ref": "#/components/schemas/ValueCount"
+            },
+            "title": "Specialties",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kinds",
+          "doctors",
+          "specialties",
+          "earliest",
+          "latest"
+        ],
+        "title": "FacetsOut",
+        "type": "object"
+      },
+      "FieldChangeOut": {
+        "properties": {
+          "after": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before"
+          },
+          "field": {
+            "title": "Field",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "before",
+          "after"
+        ],
+        "title": "FieldChangeOut",
+        "type": "object"
+      },
+      "FileLinkOut": {
+        "properties": {
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "expires_in"
+        ],
+        "title": "FileLinkOut",
+        "type": "object"
+      },
       "FindingOut": {
         "properties": {
           "clinical": {
@@ -2878,6 +3282,68 @@
         "title": "HealthResponse",
         "type": "object"
       },
+      "HistoryEntryOut": {
+        "properties": {
+          "action": {
+            "enum": [
+              "created",
+              "changed",
+              "signed",
+              "amended",
+              "revised"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/ActorOut"
+          },
+          "at": {
+            "format": "date-time",
+            "title": "At",
+            "type": "string"
+          },
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/FieldChangeOut"
+            },
+            "title": "Changes",
+            "type": "array"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "required": [
+          "at",
+          "action",
+          "actor",
+          "reason",
+          "version",
+          "changes"
+        ],
+        "title": "HistoryEntryOut",
+        "type": "object"
+      },
       "HistoryOut": {
         "properties": {
           "category": {
@@ -2930,6 +3396,22 @@
           "source"
         ],
         "title": "HistoryOut",
+        "type": "object"
+      },
+      "InErrorIn": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "maxLength": 300,
+            "minLength": 3,
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "InErrorIn",
         "type": "object"
       },
       "InPersonConsent": {
@@ -4251,6 +4733,7 @@
                 "type": "null"
               }
             ],
+            "description": "Reason for the test, as the doctor writes it",
             "title": "Clinical Indication"
           },
           "due_by": {
@@ -4338,6 +4821,13 @@
             "title": "Id",
             "type": "string"
           },
+          "next_statuses": {
+            "items": {
+              "$ref": "#/components/schemas/TestOrderStatus"
+            },
+            "title": "Next Statuses",
+            "type": "array"
+          },
           "ordered_at": {
             "format": "date-time",
             "title": "Ordered At",
@@ -4361,6 +4851,14 @@
           },
           "priority": {
             "$ref": "#/components/schemas/TestPriority"
+          },
+          "report_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Report Ids",
+            "type": "array"
           },
           "status": {
             "$ref": "#/components/schemas/TestOrderStatus"
@@ -4396,9 +4894,43 @@
           "ordering_doctor_name",
           "visit_id",
           "tests",
-          "cancel_reason"
+          "cancel_reason",
+          "report_ids",
+          "next_statuses"
         ],
         "title": "OrderOut",
+        "type": "object"
+      },
+      "OrderStatusIn": {
+        "additionalProperties": false,
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "status": {
+            "enum": [
+              "sample_collected",
+              "partially_resulted",
+              "completed",
+              "entered_in_error"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "OrderStatusIn",
         "type": "object"
       },
       "OrganDonorStatus": {
@@ -6172,6 +6704,47 @@
         "title": "RecentPatient",
         "type": "object"
       },
+      "RecordHistoryOut": {
+        "properties": {
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/HistoryEntryOut"
+            },
+            "title": "Entries",
+            "type": "array"
+          },
+          "kind": {
+            "enum": [
+              "visit",
+              "symptom",
+              "note",
+              "assessment",
+              "reported_condition",
+              "prescription",
+              "medication",
+              "test_order",
+              "report",
+              "appointment",
+              "follow_up",
+              "document"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "resource_id": {
+            "format": "uuid",
+            "title": "Resource Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "resource_id",
+          "entries"
+        ],
+        "title": "RecordHistoryOut",
+        "type": "object"
+      },
       "RegisterRequest": {
         "additionalProperties": false,
         "properties": {
@@ -6411,6 +6984,308 @@
         "title": "ReminderTimesIn",
         "type": "object"
       },
+      "ReportDetailOut": {
+        "properties": {
+          "access": {
+            "enum": [
+              "full",
+              "shared"
+            ],
+            "title": "Access",
+            "type": "string"
+          },
+          "collected_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Collected At"
+          },
+          "conclusion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conclusion"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "document_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Id"
+          },
+          "file": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReportFileOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "lab_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lab Name"
+          },
+          "lab_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lab Reference"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "order_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Id"
+          },
+          "ordering_doctor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ordering Doctor Name"
+          },
+          "report_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Date"
+          },
+          "reported_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reported At"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/ResultOut"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "review_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "share_targets": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ShareTargetOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Share Targets"
+          },
+          "shares": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ShareOut"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shares"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TestReportStatus"
+          },
+          "test_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Test Name"
+          },
+          "verified_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified At"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "source",
+          "test_name",
+          "report_date",
+          "lab_name",
+          "lab_reference",
+          "notes",
+          "collected_at",
+          "reported_at",
+          "conclusion",
+          "document_id",
+          "file",
+          "order_id",
+          "ordering_doctor_name",
+          "verified_at",
+          "reviewed_at",
+          "review_note",
+          "created_at",
+          "results",
+          "access",
+          "shares",
+          "share_targets"
+        ],
+        "title": "ReportDetailOut",
+        "type": "object"
+      },
+      "ReportFileOut": {
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "scan_status": {
+            "$ref": "#/components/schemas/ScanStatus"
+          },
+          "size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size Bytes"
+          }
+        },
+        "required": [
+          "id",
+          "content_type",
+          "size_bytes",
+          "scan_status",
+          "available"
+        ],
+        "title": "ReportFileOut",
+        "type": "object"
+      },
       "ReportIn": {
         "additionalProperties": false,
         "properties": {
@@ -6463,6 +7338,30 @@
             ],
             "title": "Lab Name"
           },
+          "lab_reference": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lab Reference"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
           "order_id": {
             "anyOf": [
               {
@@ -6474,6 +7373,18 @@
               }
             ],
             "title": "Order Id"
+          },
+          "report_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Date"
           },
           "reported_at": {
             "anyOf": [
@@ -6494,6 +7405,18 @@
             "maxItems": 200,
             "title": "Results",
             "type": "array"
+          },
+          "test_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Test Name"
           }
         },
         "title": "ReportIn",
@@ -6501,6 +7424,14 @@
       },
       "ReportOut": {
         "properties": {
+          "access": {
+            "enum": [
+              "full",
+              "shared"
+            ],
+            "title": "Access",
+            "type": "string"
+          },
           "collected_at": {
             "anyOf": [
               {
@@ -6541,6 +7472,16 @@
             ],
             "title": "Document Id"
           },
+          "file": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReportFileOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "format": "uuid",
             "title": "Id",
@@ -6557,6 +7498,28 @@
             ],
             "title": "Lab Name"
           },
+          "lab_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lab Reference"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
           "order_id": {
             "anyOf": [
               {
@@ -6568,6 +7531,29 @@
               }
             ],
             "title": "Order Id"
+          },
+          "ordering_doctor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ordering Doctor Name"
+          },
+          "report_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Date"
           },
           "reported_at": {
             "anyOf": [
@@ -6588,12 +7574,46 @@
             "title": "Results",
             "type": "array"
           },
+          "review_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
           "source": {
             "title": "Source",
             "type": "string"
           },
           "status": {
             "$ref": "#/components/schemas/TestReportStatus"
+          },
+          "test_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Test Name"
           },
           "verified_at": {
             "anyOf": [
@@ -6612,17 +7632,56 @@
           "id",
           "status",
           "source",
+          "test_name",
+          "report_date",
           "lab_name",
+          "lab_reference",
+          "notes",
           "collected_at",
           "reported_at",
           "conclusion",
           "document_id",
+          "file",
           "order_id",
+          "ordering_doctor_name",
           "verified_at",
+          "reviewed_at",
+          "review_note",
           "created_at",
-          "results"
+          "results",
+          "access"
         ],
         "title": "ReportOut",
+        "type": "object"
+      },
+      "ReportReviewIn": {
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "enum": [
+              "verify",
+              "reject"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "required": [
+          "decision"
+        ],
+        "title": "ReportReviewIn",
         "type": "object"
       },
       "ReportSummary": {
@@ -8207,6 +9266,115 @@
         "title": "SexAtBirth",
         "type": "string"
       },
+      "ShareIn": {
+        "additionalProperties": false,
+        "properties": {
+          "doctor_id": {
+            "format": "uuid",
+            "title": "Doctor Id",
+            "type": "string"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          }
+        },
+        "required": [
+          "doctor_id"
+        ],
+        "title": "ShareIn",
+        "type": "object"
+      },
+      "ShareOut": {
+        "properties": {
+          "doctor_id": {
+            "format": "uuid",
+            "title": "Doctor Id",
+            "type": "string"
+          },
+          "doctor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Doctor Name"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "shared_at": {
+            "format": "date-time",
+            "title": "Shared At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "doctor_id",
+          "doctor_name",
+          "expires_at",
+          "shared_at"
+        ],
+        "title": "ShareOut",
+        "type": "object"
+      },
+      "ShareTargetOut": {
+        "properties": {
+          "doctor_id": {
+            "format": "uuid",
+            "title": "Doctor Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "specialty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialty"
+          }
+        },
+        "required": [
+          "doctor_id",
+          "name",
+          "specialty"
+        ],
+        "title": "ShareTargetOut",
+        "type": "object"
+      },
       "StopIn": {
         "additionalProperties": false,
         "properties": {
@@ -8266,6 +9434,320 @@
         "title": "SubscriptionIn",
         "type": "object"
       },
+      "SymptomCorrectionIn": {
+        "additionalProperties": false,
+        "properties": {
+          "body_site": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body Site"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "onset_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onset Date"
+          },
+          "reason": {
+            "maxLength": 300,
+            "minLength": 3,
+            "title": "Reason",
+            "type": "string"
+          },
+          "resolved_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved On"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SymptomSeverity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SymptomStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "symptom": {
+            "anyOf": [
+              {
+                "maxLength": 300,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symptom"
+          },
+          "version": {
+            "description": "The version you are correcting",
+            "minimum": 1.0,
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "reason"
+        ],
+        "title": "SymptomCorrectionIn",
+        "type": "object"
+      },
+      "SymptomIn": {
+        "additionalProperties": false,
+        "properties": {
+          "body_site": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body Site"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "onset_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onset Date"
+          },
+          "resolved_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved On"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SymptomSeverity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "symptom": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Symptom",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symptom"
+        ],
+        "title": "SymptomIn",
+        "type": "object"
+      },
+      "SymptomOut": {
+        "properties": {
+          "body_site": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Body Site"
+          },
+          "corrected": {
+            "title": "Corrected",
+            "type": "boolean"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "onset_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onset Date"
+          },
+          "reported_at": {
+            "format": "date-time",
+            "title": "Reported At",
+            "type": "string"
+          },
+          "resolved_on": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved On"
+          },
+          "severity": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SymptomSeverity"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SymptomStatus"
+          },
+          "symptom": {
+            "title": "Symptom",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          },
+          "visit_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visit Id"
+          }
+        },
+        "required": [
+          "id",
+          "symptom",
+          "body_site",
+          "severity",
+          "status",
+          "onset_date",
+          "resolved_on",
+          "notes",
+          "source",
+          "visit_id",
+          "reported_at",
+          "version",
+          "corrected"
+        ],
+        "title": "SymptomOut",
+        "type": "object"
+      },
+      "SymptomSeverity": {
+        "enum": [
+          "mild",
+          "moderate",
+          "severe"
+        ],
+        "title": "SymptomSeverity",
+        "type": "string"
+      },
+      "SymptomStatus": {
+        "enum": [
+          "ongoing",
+          "resolved",
+          "entered_in_error"
+        ],
+        "title": "SymptomStatus",
+        "type": "string"
+      },
       "TestOrderStatus": {
         "enum": [
           "ordered",
@@ -8299,10 +9781,18 @@
       },
       "TimelineEventOut": {
         "properties": {
+          "amended": {
+            "title": "Amended",
+            "type": "boolean"
+          },
           "at": {
             "format": "date-time",
             "title": "At",
             "type": "string"
+          },
+          "date_only": {
+            "title": "Date Only",
+            "type": "boolean"
           },
           "detail": {
             "anyOf": [
@@ -8315,21 +9805,57 @@
             ],
             "title": "Detail"
           },
+          "doctor": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DoctorOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "has_history": {
+            "title": "Has History",
+            "type": "boolean"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
           "kind": {
+            "enum": [
+              "visit",
+              "symptom",
+              "note",
+              "assessment",
+              "reported_condition",
+              "prescription",
+              "medication",
+              "test_order",
+              "report",
+              "appointment",
+              "follow_up",
+              "document"
+            ],
             "title": "Kind",
             "type": "string"
           },
           "resource_id": {
+            "format": "uuid",
+            "title": "Resource Id",
+            "type": "string"
+          },
+          "source": {
             "anyOf": [
               {
-                "format": "uuid",
                 "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Resource Id"
+            "title": "Source"
           },
           "status": {
             "anyOf": [
@@ -8345,17 +9871,73 @@
           "title": {
             "title": "Title",
             "type": "string"
+          },
+          "visit_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visit Id"
           }
         },
         "required": [
+          "key",
           "at",
+          "date_only",
           "kind",
           "title",
           "detail",
           "status",
-          "resource_id"
+          "resource_id",
+          "visit_id",
+          "source",
+          "doctor",
+          "amended",
+          "has_history"
         ],
         "title": "TimelineEventOut",
+        "type": "object"
+      },
+      "TimelinePageOut": {
+        "properties": {
+          "facets": {
+            "$ref": "#/components/schemas/FacetsOut"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/TimelineEventOut"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "total",
+          "facets"
+        ],
+        "title": "TimelinePageOut",
         "type": "object"
       },
       "TokenRequest": {
@@ -8422,6 +10004,18 @@
             "maxLength": 100,
             "title": "Content Type",
             "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
           },
           "document_date": {
             "anyOf": [
@@ -8490,6 +10084,13 @@
       },
       "UploadOut": {
         "properties": {
+          "allowed_types": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Allowed Types",
+            "type": "array"
+          },
           "document_id": {
             "format": "uuid",
             "title": "Document Id",
@@ -8515,9 +10116,97 @@
           "document_id",
           "upload_url",
           "fields",
-          "max_bytes"
+          "max_bytes",
+          "allowed_types"
         ],
         "title": "UploadOut",
+        "type": "object"
+      },
+      "UploadedReportIn": {
+        "additionalProperties": false,
+        "properties": {
+          "document_id": {
+            "format": "uuid",
+            "title": "Document Id",
+            "type": "string"
+          },
+          "lab_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lab Name"
+          },
+          "lab_reference": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lab Reference"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "order_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Order Id"
+          },
+          "report_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Date"
+          },
+          "test_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Test Name"
+          }
+        },
+        "required": [
+          "document_id"
+        ],
+        "title": "UploadedReportIn",
         "type": "object"
       },
       "UserStatus": {
@@ -8569,6 +10258,24 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "ValueCount": {
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "value": {
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "count"
+        ],
+        "title": "ValueCount",
         "type": "object"
       },
       "VerificationStatus": {
@@ -10729,6 +12436,7 @@
     },
     "/api/v1/patients/{patient_id}/documents": {
       "get": {
+        "description": "Documents of the kinds the caller may see (a prescription photo needs prescription\naccess, a discharge summary needs visit access, and so on).",
         "operationId": "list_documents_api_v1_patients__patient_id__documents_get",
         "parameters": [
           {
@@ -10781,6 +12489,7 @@
     },
     "/api/v1/patients/{patient_id}/documents/uploads": {
       "post": {
+        "description": "Step 1 of an upload: a presigned form pinned to the file's type and size.\nReports (lab and imaging) must be PDF, JPEG or PNG.",
         "operationId": "start_upload_api_v1_patients__patient_id__documents_uploads_post",
         "parameters": [
           {
@@ -10837,8 +12546,78 @@
         ]
       }
     },
+    "/api/v1/patients/{patient_id}/documents/{document_id}": {
+      "patch": {
+        "description": "Correct a document's details with a reason. The earlier details stay in its\nhistory; the file itself is never replaced.",
+        "operationId": "correct_document_api_v1_patients__patient_id__documents__document_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "document_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Document Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentCorrectionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Correct Document",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
     "/api/v1/patients/{patient_id}/documents/{document_id}/complete": {
       "post": {
+        "description": "Step 2: the file is checked (type, size, active content, malware) before use.",
         "operationId": "complete_upload_api_v1_patients__patient_id__documents__document_id__complete_post",
         "parameters": [
           {
@@ -14157,8 +15936,60 @@
         ]
       }
     },
+    "/api/v1/patients/{patient_id}/report-shares/{share_id}": {
+      "delete": {
+        "operationId": "revoke_share_api_v1_patients__patient_id__report_shares__share_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "share_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Share Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Revoke Share",
+        "tags": [
+          "tests and reports"
+        ]
+      }
+    },
     "/api/v1/patients/{patient_id}/reports": {
       "get": {
+        "description": "All reports with tests-and-reports access; otherwise only reports the patient\nshared with you.",
         "operationId": "list_reports_api_v1_patients__patient_id__reports_get",
         "parameters": [
           {
@@ -14209,7 +16040,7 @@
         ]
       },
       "post": {
-        "description": "A doctor records a report (file and/or values as printed); it is verified by them.\nPatient and caregiver uploads go through a separate review flow (Phase 12).",
+        "description": "A doctor records a report (a file they uploaded or referenced, and/or values as\nprinted); it is verified by them. Patients and caregivers use /reports/uploaded.",
         "operationId": "add_report_api_v1_patients__patient_id__reports_post",
         "parameters": [
           {
@@ -14261,6 +16092,389 @@
           }
         ],
         "summary": "Add Report",
+        "tags": [
+          "tests and reports"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/reports/uploaded": {
+      "post": {
+        "description": "The patient or a caregiver adds a report file they uploaded. It is labelled as\nuploaded by them and waits for a doctor's review.",
+        "operationId": "add_uploaded_report_api_v1_patients__patient_id__reports_uploaded_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadedReportIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Uploaded Report",
+        "tags": [
+          "tests and reports"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/reports/{report_id}": {
+      "get": {
+        "operationId": "get_report_api_v1_patients__patient_id__reports__report_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Report",
+        "tags": [
+          "tests and reports"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/reports/{report_id}/entered-in-error": {
+      "post": {
+        "description": "Withdraw a report added by mistake. It stays in the record, marked with the reason.",
+        "operationId": "report_in_error_api_v1_patients__patient_id__reports__report_id__entered_in_error_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InErrorIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Report In Error",
+        "tags": [
+          "tests and reports"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/reports/{report_id}/file": {
+      "get": {
+        "description": "A 60-second link to the report file; works for a report shared with you.",
+        "operationId": "report_file_api_v1_patients__patient_id__reports__report_id__file_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileLinkOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Report File",
+        "tags": [
+          "tests and reports"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/reports/{report_id}/review": {
+      "post": {
+        "description": "A doctor confirms an uploaded report belongs to this patient and its details match\nthe file, or rejects it with a reason. This is not an interpretation of the result.",
+        "operationId": "review_report_api_v1_patients__patient_id__reports__report_id__review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportReviewIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Review Report",
+        "tags": [
+          "tests and reports"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/reports/{report_id}/shares": {
+      "post": {
+        "description": "Share this one report with a doctor on the patient's care team, optionally until\na date. The doctor sees only this report, not other tests and reports.",
+        "operationId": "share_report_api_v1_patients__patient_id__reports__report_id__shares_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "report_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Report Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Share Report",
         "tags": [
           "tests and reports"
         ]
@@ -14448,6 +16662,243 @@
         ]
       }
     },
+    "/api/v1/patients/{patient_id}/symptoms": {
+      "get": {
+        "operationId": "list_symptoms_api_v1_patients__patient_id__symptoms_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SymptomOut"
+                  },
+                  "title": "Response List Symptoms Api V1 Patients  Patient Id  Symptoms Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Symptoms",
+        "tags": [
+          "clinical"
+        ]
+      },
+      "post": {
+        "description": "The patient (or a caregiver allowed to report) describes a symptom in their words.",
+        "operationId": "report_symptom_api_v1_patients__patient_id__symptoms_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SymptomIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SymptomOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Report Symptom",
+        "tags": [
+          "clinical"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/symptoms/documented": {
+      "post": {
+        "description": "A doctor records symptoms as the patient presented them (optionally at a visit).",
+        "operationId": "document_symptom_api_v1_patients__patient_id__symptoms_documented_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentedSymptomIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SymptomOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Document Symptom",
+        "tags": [
+          "clinical"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/symptoms/{symptom_id}": {
+      "patch": {
+        "description": "Correct an entry with a reason; the earlier version stays in its history.\nDoctors need edit rights for clinical records; patients and caregivers need\npermission to report health information.",
+        "operationId": "correct_symptom_api_v1_patients__patient_id__symptoms__symptom_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "symptom_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Symptom Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SymptomCorrectionIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SymptomOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Correct Symptom",
+        "tags": [
+          "clinical"
+        ]
+      }
+    },
     "/api/v1/patients/{patient_id}/test-orders": {
       "get": {
         "operationId": "list_orders_api_v1_patients__patient_id__test_orders_get",
@@ -14624,8 +17075,78 @@
         ]
       }
     },
+    "/api/v1/patients/{patient_id}/test-orders/{order_id}/status": {
+      "post": {
+        "description": "Mark sample collected, partly resulted, completed, or entered in error (with a\nnote). Each change is kept in the order's history.",
+        "operationId": "set_order_status_api_v1_patients__patient_id__test_orders__order_id__status_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Order Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderStatusIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Order Status",
+        "tags": [
+          "tests and reports"
+        ]
+      }
+    },
     "/api/v1/patients/{patient_id}/timeline": {
       "get": {
+        "description": "Everything the caller may see for this patient, in date order. Record types the\ncaller has no permission or consent for are left out entirely; `facets` are counted\nover what the caller may see, before filters.",
         "operationId": "get_timeline_api_v1_patients__patient_id__timeline_get",
         "parameters": [
           {
@@ -14637,6 +17158,152 @@
               "title": "Patient Id",
               "type": "string"
             }
+          },
+          {
+            "description": "Record types to include",
+            "in": "query",
+            "name": "kind",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "enum": [
+                      "visit",
+                      "symptom",
+                      "note",
+                      "assessment",
+                      "reported_condition",
+                      "prescription",
+                      "medication",
+                      "test_order",
+                      "report",
+                      "appointment",
+                      "follow_up",
+                      "document"
+                    ],
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Record types to include",
+              "title": "Kind"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date From"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Date To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "doctor_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Doctor Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "specialty",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Specialty"
+            }
+          },
+          {
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "default": "newest",
+              "enum": [
+                "newest",
+                "oldest"
+              ],
+              "title": "Order",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 400,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
           }
         ],
         "responses": {
@@ -14644,11 +17311,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "items": {
-                    "$ref": "#/components/schemas/TimelineEventOut"
-                  },
-                  "title": "Response Get Timeline Api V1 Patients  Patient Id  Timeline Get",
-                  "type": "array"
+                  "$ref": "#/components/schemas/TimelinePageOut"
                 }
               }
             },
@@ -14672,7 +17335,89 @@
         ],
         "summary": "Get Timeline",
         "tags": [
-          "patient chart"
+          "timeline"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/timeline/{kind}/{resource_id}/history": {
+      "get": {
+        "description": "Who created and changed this record, when, what changed and why. Records the\ncaller cannot see return 404.",
+        "operationId": "get_history_api_v1_patients__patient_id__timeline__kind___resource_id__history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "enum": [
+                "visit",
+                "symptom",
+                "note",
+                "assessment",
+                "reported_condition",
+                "prescription",
+                "medication",
+                "test_order",
+                "report",
+                "appointment",
+                "follow_up",
+                "document"
+              ],
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "resource_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Resource Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordHistoryOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get History",
+        "tags": [
+          "timeline"
         ]
       }
     },

@@ -191,6 +191,10 @@ class TestReport(Base, Entity, PatientOwned, OptimisticLock):
             name="reported_after_collected",
         ),
         Index("ix_test_reports_patient_collected", "patient_id", "collected_at"),
+        CheckConstraint(
+            "status NOT IN ('rejected', 'entered_in_error') OR review_note IS NOT NULL",
+            name="closed_has_reason",
+        ),
     )
 
     order_id: Mapped[uuid.UUID | None]
@@ -205,6 +209,16 @@ class TestReport(Base, Entity, PatientOwned, OptimisticLock):
     conclusion: Mapped[str | None] = mapped_column(EncryptedString("test_reports.conclusion"))
     verified_at: Mapped[datetime | None]
     verified_by: Mapped[uuid.UUID | None] = user_fk()
+    # Metadata (migration 0012). Test names can reveal conditions, so notes are encrypted;
+    # the test name is kept plain like order items so reports can be matched to orders.
+    test_name: Mapped[str | None] = mapped_column(String(200))
+    report_date: Mapped[date | None] = mapped_column(Date)
+    lab_reference: Mapped[str | None] = mapped_column(String(100))  # accession / report no.
+    notes: Mapped[str | None] = mapped_column(EncryptedString("test_reports.notes"))
+    # Review of an uploaded report (verified, rejected) or its withdrawal.
+    reviewed_at: Mapped[datetime | None]
+    reviewed_by: Mapped[uuid.UUID | None] = user_fk()
+    review_note: Mapped[str | None] = mapped_column(String(300))
 
 
 class ResultFlag(StrEnum):
@@ -250,3 +264,30 @@ class TestResult(Base, Entity, PatientOwned):
     flag: Mapped[ResultFlag] = mapped_column(
         str_enum(ResultFlag), nullable=False, default=ResultFlag.UNKNOWN
     )
+
+
+class ReportShare(Base, Entity, PatientOwned):
+    """A patient shares one report with one of their doctors whose consent does not cover
+    tests and reports. Revoking ends it; an expired or revoked share grants nothing."""
+
+    __tablename__ = "report_shares"
+    __table_args__ = (
+        patient_scoped_fk(["report_id"], "test_reports"),
+        Index(
+            "uq_report_shares_live",
+            "report_id",
+            "doctor_id",
+            unique=True,
+            postgresql_where=text("revoked_at IS NULL"),
+        ),
+        Index("ix_report_shares_patient_doctor", "patient_id", "doctor_id"),
+        CheckConstraint("revoked_at IS NULL OR revoked_by IS NOT NULL", name="revoked_has_actor"),
+    )
+
+    report_id: Mapped[uuid.UUID] = mapped_column(nullable=False, index=True)
+    doctor_id: Mapped[uuid.UUID] = mapped_column(
+        Uuid, ForeignKey("doctor_profiles.id", ondelete="RESTRICT"), nullable=False
+    )
+    expires_at: Mapped[datetime | None]
+    revoked_at: Mapped[datetime | None]
+    revoked_by: Mapped[uuid.UUID | None] = user_fk()

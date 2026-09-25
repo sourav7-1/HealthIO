@@ -1,16 +1,12 @@
 import {
   CalendarClock,
   CalendarDays,
-  ClipboardPlus,
-  FileText,
-  FlaskConical,
   History,
   NotebookPen,
-  Pill,
   Stethoscope,
-  TestTube,
+  Thermometer,
 } from "lucide-react";
-import { useMemo, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "react-router";
 
 import { Badge, Button, Card, EmptyState, useToast } from "@/components/ui";
@@ -22,11 +18,14 @@ import {
   useCloseFollowUp,
   useFollowUps,
   useMedicalHistory,
-  useTimeline,
   useVisits,
   type Overview,
-  type TimelineEvent,
 } from "@/features/chart/api";
+import { doctorLink } from "@/features/timeline/links";
+import { useRecentActivity } from "@/features/timeline/api";
+import { KINDS } from "@/features/timeline/kinds";
+import { AddSymptomDialog } from "@/features/timeline/SymptomDialogs";
+import { TimelineView } from "@/features/timeline/TimelineView";
 import { DiagnosisDialog } from "../forms/visit";
 import { DefinitionList, QueryState, SourceLabel, StatusBadge } from "@/features/chart/shared";
 
@@ -140,12 +139,12 @@ export function OverviewSection({ patientId, overview }: { patientId: string; ov
 }
 
 function RecentActivity({ patientId }: { patientId: string }) {
-  const timeline = useTimeline(patientId);
+  const recent = useRecentActivity(patientId);
   return (
     <QueryState
-      query={timeline}
+      query={recent}
       what="Activity"
-      isEmpty={(t) => t.length === 0}
+      isEmpty={(t) => t.items.length === 0}
       empty={
         <EmptyState
           icon={<History className="size-5" />}
@@ -154,134 +153,59 @@ function RecentActivity({ patientId }: { patientId: string }) {
         />
       }
     >
-      {(t) => <TimelineList events={t.slice(0, 6)} patientId={patientId} />}
+      {(t) => (
+        <ol className="divide-y divide-line">
+          {t.items.map((e) => {
+            const meta = KINDS[e.kind];
+            const to = doctorLink(e, patientId);
+            return (
+              <li key={e.key} className="flex items-start justify-between gap-3 py-2.5">
+                <div className="flex min-w-0 gap-3">
+                  <span className={`mt-0.5 grid size-7 shrink-0 place-items-center rounded-full ${meta.tone}`} aria-hidden>
+                    <meta.icon className="size-3.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-medium">{to ? <Link to={to} className="hover:underline">{e.title}</Link> : e.title}</p>
+                    {e.detail && <p className="line-clamp-1 text-sm text-muted">{e.detail}</p>}
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <StatusBadge status={e.status} />
+                  <time dateTime={e.at} className="text-xs text-muted tabular-nums">
+                    {e.date_only ? formatDate(e.at.slice(0, 10)) : formatDateTime(e.at)}
+                  </time>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      )}
     </QueryState>
   );
 }
 
 // --- Timeline ----------------------------------------------------------------------------------
 
-const KIND: Record<string, { label: string; icon: ReactNode }> = {
-  visit: { label: "Visits", icon: <Stethoscope className="size-4" /> },
-  note: { label: "Notes", icon: <FileText className="size-4" /> },
-  diagnosis: { label: "Assessments", icon: <NotebookPen className="size-4" /> },
-  prescription: { label: "Prescriptions", icon: <ClipboardPlus className="size-4" /> },
-  medication: { label: "Medicines", icon: <Pill className="size-4" /> },
-  test_order: { label: "Test orders", icon: <FlaskConical className="size-4" /> },
-  report: { label: "Reports", icon: <TestTube className="size-4" /> },
-  appointment: { label: "Appointments", icon: <CalendarDays className="size-4" /> },
-  follow_up: { label: "Follow-ups", icon: <CalendarClock className="size-4" /> },
-};
-
-function eventLink(e: TimelineEvent, patientId: string): string | null {
-  const base = `/doctor/patients/${patientId}`;
-  switch (e.kind) {
-    case "visit":
-    case "note":
-      return e.resource_id ? `${base}/visits/${e.resource_id}` : null;
-    case "prescription":
-      return `${base}/prescriptions`;
-    case "medication":
-      return `${base}/medications`;
-    case "test_order":
-      return `${base}/tests`;
-    case "report":
-      return `${base}/reports`;
-    case "appointment":
-      return `${base}/appointments`;
-    case "follow_up":
-      return `${base}/follow-ups`;
-    default:
-      return null;
-  }
-}
-
-function TimelineList({ events, patientId }: { events: TimelineEvent[]; patientId: string }) {
+export function TimelineSection({ patientId, overview }: { patientId: string; overview: Overview }) {
+  const [recording, setRecording] = useState(false);
+  const canEdit = overview.permissions.includes("edit_clinical_records");
   return (
-    <ol className="relative flex flex-col gap-4 border-l border-line pl-6">
-      {events.map((e, i) => {
-        const kind = KIND[e.kind];
-        const to = eventLink(e, patientId);
-        const body = (
-          <>
-            <p className="font-medium">{e.title}</p>
-            {e.detail && <p className="mt-0.5 line-clamp-2 text-sm text-muted">{e.detail}</p>}
-          </>
-        );
-        return (
-          <li key={`${e.kind}-${e.resource_id ?? i}-${e.at}`} className="relative">
-            <span className="absolute -left-[2.05rem] flex size-7 items-center justify-center rounded-full border border-line bg-surface text-muted" aria-hidden>
-              {kind?.icon}
-            </span>
-            <div className="flex flex-wrap items-start justify-between gap-2">
-              <div className="min-w-0">{to ? <Link to={to} className="hover:underline">{body}</Link> : body}</div>
-              <div className="flex shrink-0 items-center gap-2">
-                <StatusBadge status={e.status} />
-                <time dateTime={e.at} className="text-xs text-muted tabular-nums">
-                  {e.kind === "follow_up" ? formatDate(e.at.slice(0, 10)) : formatDateTime(e.at)}
-                </time>
-              </div>
-            </div>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
-
-export function TimelineSection({ patientId }: { patientId: string }) {
-  const timeline = useTimeline(patientId);
-  const [filter, setFilter] = useState<string | null>(null);
-  const kinds = useMemo(() => Array.from(new Set((timeline.data ?? []).map((e) => e.kind))), [timeline.data]);
-
-  return (
-    <Card>
-      <QueryState
-        query={timeline}
-        what="Timeline"
-        rows={6}
-        isEmpty={(t) => t.length === 0}
-        empty={
-          <EmptyState
-            icon={<History className="size-5" />}
-            title="The timeline is empty"
-            description="Everything recorded for this patient that you are allowed to see appears here in date order."
-          />
+    <>
+      <TimelineView
+        patientId={patientId}
+        variant="doctor"
+        linkFor={(e) => doctorLink(e, patientId)}
+        correctable={canEdit ? ["doctor"] : []}
+        actions={
+          canEdit && (
+            <Button size="sm" variant="secondary" icon={<Thermometer className="size-4" />} onClick={() => setRecording(true)}>
+              Record a symptom
+            </Button>
+          )
         }
-      >
-        {(t) => (
-          <>
-            {kinds.length > 1 && (
-              <div className="mb-5 flex flex-wrap gap-2" role="group" aria-label="Filter timeline">
-                <FilterChip active={filter === null} onClick={() => setFilter(null)}>All</FilterChip>
-                {kinds.map((k) => (
-                  <FilterChip key={k} active={filter === k} onClick={() => setFilter(k)}>
-                    {KIND[k]?.label ?? humanize(k)}
-                  </FilterChip>
-                ))}
-              </div>
-            )}
-            <TimelineList events={filter ? t.filter((e) => e.kind === filter) : t} patientId={patientId} />
-          </>
-        )}
-      </QueryState>
-    </Card>
-  );
-}
-
-function FilterChip({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={
-        "min-h-9 rounded-full border px-3 text-sm " +
-        (active ? "border-accent bg-accent text-accent-fg" : "border-line text-muted hover:text-fg")
-      }
-    >
-      {children}
-    </button>
+      />
+      {recording && <AddSymptomDialog patientId={patientId} as="document" onClose={() => setRecording(false)} />}
+    </>
   );
 }
 

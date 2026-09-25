@@ -2,7 +2,7 @@ import { ClipboardPlus, Download, FileText, FlaskConical, Pill, TestTube } from 
 import { useState } from "react";
 import { Link } from "react-router";
 
-import { Alert, Badge, Button, Card, Dialog, EmptyState, Field, Textarea, useToast } from "@/components/ui";
+import { Alert, Badge, Button, Card, Dialog, EmptyState, Field, Select, Textarea, useToast } from "@/components/ui";
 import { errorMessage } from "@/lib/api";
 import { bytes, formatDate, formatDateTime, humanize } from "@/lib/format";
 
@@ -24,6 +24,8 @@ import { useScans } from "@/features/scans/api";
 import { useChangeRequests, useResolveRequest } from "@/features/meds/api";
 import { OriginBadge, scheduleText } from "@/features/meds/labels";
 import { ModeProvider } from "@/features/patient/context";
+import { sourceLabel, useOrderStatus, type OrderStatus } from "@/features/reports/api";
+import { ReportDetailDialog } from "@/features/reports/ReportDetailDialog";
 import { PrescriptionDialog, RecordMedicationDialog } from "../forms/prescription";
 import { QueryState, SourceLabel, StatusBadge } from "@/features/chart/shared";
 
@@ -466,8 +468,19 @@ export function PrescriptionsSection({ patientId, canWrite, onNew }: { patientId
 export function TestsSection({ patientId, canOrder, onOrder }: { patientId: string; canOrder: boolean; onOrder: () => void }) {
   const orders = useTestOrders(patientId);
   const cancel = useCancelOrder(patientId);
+  const setStatus = useOrderStatus(patientId);
   const toast = useToast();
   const [cancelling, setCancelling] = useState<string | null>(null);
+  const [inError, setInError] = useState<string | null>(null);
+  const move = async (order_id: string, status: OrderStatus) => {
+    if (status === "entered_in_error") return setInError(order_id);
+    try {
+      await setStatus.mutateAsync({ order_id, status: status as Exclude<OrderStatus, "ordered" | "cancelled"> });
+      toast.success(`Marked ${humanize(status).toLowerCase()}`);
+    } catch (err) {
+      toast.error(errorMessage(err));
+    }
+  };
   return (
     <Card title="Test orders" bodyClassName="p-0" action={canOrder && <Button size="sm" variant="secondary" onClick={onOrder}>Order tests</Button>}>
       <QueryState
@@ -493,13 +506,30 @@ export function TestsSection({ patientId, canOrder, onOrder }: { patientId: stri
                     Ordered {formatDateTime(order.ordered_at)} by {order.ordering_doctor_name ?? "a doctor"}
                     {order.due_by && ` · needed by ${formatDate(order.due_by)}`}
                   </p>
-                  {order.clinical_indication && <p className="text-sm">Indication: {order.clinical_indication}</p>}
+                  {order.clinical_indication && <p className="text-sm"><span className="text-muted">Reason: </span>{order.clinical_indication}</p>}
+                  {order.report_ids.length > 0 && <p className="text-sm text-muted">{order.report_ids.length} report{order.report_ids.length > 1 ? "s" : ""} attached</p>}
                   {order.cancel_reason && <p className="text-sm text-muted">Cancelled: {order.cancel_reason}</p>}
                 </div>
                 <div className="flex items-center gap-2">
                   {order.priority !== "routine" && <Badge tone="danger">{humanize(order.priority)}</Badge>}
                   <StatusBadge status={order.status} />
-                  {canOrder && order.status === "ordered" && (
+                  {canOrder && order.next_statuses.length > 0 && (
+                    <Select
+                      aria-label={`Update status of ${order.tests.join(", ")}`}
+                      className="min-h-9 w-auto py-1 text-sm"
+                      value=""
+                      disabled={setStatus.isPending}
+                      onChange={(e) => void move(order.id, e.target.value as OrderStatus)}
+                    >
+                      <option value="">Update status…</option>
+                      {order.next_statuses.map((st) => (
+                        <option key={st} value={st}>
+                          {st === "entered_in_error" ? "Entered in error…" : humanize(st)}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
+                  {canOrder && (order.status === "ordered" || order.status === "sample_collected") && (
                     <Button size="sm" variant="ghost" onClick={() => setCancelling(order.id)}>Cancel</Button>
                   )}
                 </div>
@@ -520,6 +550,18 @@ export function TestsSection({ patientId, canOrder, onOrder }: { patientId: stri
         }}
         onClose={() => setCancelling(null)}
       />
+      <ReasonDialog
+        open={inError !== null}
+        title="Mark this order as entered in error?"
+        description="The order stays in the record, marked as entered in error, with your reason in its history."
+        confirmLabel="Mark entered in error"
+        danger
+        onConfirm={async (reason) => {
+          if (inError) await setStatus.mutateAsync({ order_id: inError, status: "entered_in_error", note: reason });
+          toast.success("Order marked as entered in error");
+        }}
+        onClose={() => setInError(null)}
+      />
     </Card>
   );
 }
@@ -530,6 +572,8 @@ export function ReportsSection({ patientId, canUpload, onUpload }: { patientId: 
   const reports = useReports(patientId);
   const documents = useDocuments(patientId);
   const toast = useToast();
+  const [viewing, setViewing] = useState<string | null>(null);
+  const waiting = (reports.data ?? []).filter((r) => r.status === "pending_review").length;
 
   const open = async (documentId: string) => {
     try {
@@ -541,7 +585,12 @@ export function ReportsSection({ patientId, canUpload, onUpload }: { patientId: 
 
   return (
     <div className="grid gap-6">
-      <Card title="Reports" bodyClassName="p-0" action={canUpload && <Button size="sm" variant="secondary" onClick={onUpload}>Upload report</Button>}>
+      {waiting > 0 && canUpload && (
+        <Alert tone="warning">
+          {waiting} uploaded report{waiting > 1 ? "s are" : " is"} waiting for review. Check that each file is this patient's report and its details match.
+        </Alert>
+      )}
+      <Card title="Reports" bodyClassName="p-0" action={canUpload && <Button size="sm" variant="secondary" onClick={onUpload}>Record a report</Button>}>
         <QueryState
           query={reports}
           what="Reports"
@@ -560,19 +609,27 @@ export function ReportsSection({ patientId, canUpload, onUpload }: { patientId: 
               {r.map((rep) => (
                 <li key={rep.id} className="px-4 py-4">
                   <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <p className="font-medium">{rep.lab_name ?? "Report"}</p>
+                    <div className="min-w-0">
+                      <p className="font-medium">{rep.test_name ?? rep.lab_name ?? "Report"}</p>
                       <p className="text-sm text-muted">
-                        {rep.collected_at ? `Collected ${formatDate(rep.collected_at.slice(0, 10))}` : `Added ${formatDate(rep.created_at.slice(0, 10))}`}
+                        {rep.report_date
+                          ? `Dated ${formatDate(rep.report_date)}`
+                          : rep.collected_at
+                            ? `Collected ${formatDate(rep.collected_at.slice(0, 10))}`
+                            : `Added ${formatDate(rep.created_at.slice(0, 10))}`}
+                        {rep.lab_name && rep.test_name ? ` · ${rep.lab_name}` : ""}
+                        {rep.lab_reference ? ` · No. ${rep.lab_reference}` : ""}
+                        {rep.ordering_doctor_name ? ` · ordered by ${rep.ordering_doctor_name}` : ""}
                       </p>
+                      {rep.notes && <p className="text-sm"><span className="text-muted">Notes: </span>{rep.notes}</p>}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {rep.access === "shared" && <Badge tone="info">Shared with you</Badge>}
+                      {rep.source !== "doctor" && <Badge tone="warning">{sourceLabel(rep.source, false)}</Badge>}
                       <StatusBadge status={rep.status} />
-                      {rep.document_id && (
-                        <Button size="sm" variant="secondary" icon={<Download className="size-4" />} onClick={() => void open(rep.document_id!)}>
-                          File
-                        </Button>
-                      )}
+                      <Button size="sm" variant={rep.status === "pending_review" && canUpload ? "primary" : "secondary"} onClick={() => setViewing(rep.id)}>
+                        {rep.status === "pending_review" && canUpload ? "Review" : "Details"}
+                      </Button>
                     </div>
                   </div>
                   {rep.results.length > 0 && (
@@ -644,6 +701,9 @@ export function ReportsSection({ patientId, canUpload, onUpload }: { patientId: 
           )}
         </QueryState>
       </Card>
+      {viewing && (
+        <ReportDetailDialog patientId={patientId} reportId={viewing} viewer="doctor" canReview={canUpload} onClose={() => setViewing(null)} />
+      )}
     </div>
   );
 }

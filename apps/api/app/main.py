@@ -10,12 +10,13 @@ from app.core.db import Database
 from app.core.errors import register_error_handlers
 from app.core.logging import configure_logging, get_logger
 from app.core.mail import create_mailer
+from app.core.malware import build_scanner
 from app.core.middleware import (
     REQUEST_ID_HEADER,
     RequestContextMiddleware,
     SecurityHeadersMiddleware,
 )
-from app.core.storage import Storage
+from app.core.storage import S3Storage
 from app.modules.access.router import router as access_router
 from app.modules.appointments.router import router as appointments_router
 from app.modules.care_team.router import router as care_team_router
@@ -35,6 +36,7 @@ from app.modules.prescriptions.router import router as prescriptions_router
 from app.modules.records.router import router as records_router
 from app.modules.reminders.router import router as reminders_router
 from app.modules.system.router import router as system_router
+from app.modules.timeline.router import router as timeline_router
 
 log = get_logger(__name__)
 
@@ -51,7 +53,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if not hasattr(app.state, "redis"):
             app.state.redis = create_redis(settings)
         if not hasattr(app.state, "storage"):
-            app.state.storage = Storage(settings)
+            app.state.storage = S3Storage(settings)
+        if not hasattr(app.state, "scanner"):
+            app.state.scanner = build_scanner(settings)
         log.info("startup", env=settings.env.value)
         try:
             yield
@@ -103,6 +107,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         medications_router,
         labs_router,
         records_router,
+        timeline_router,
         appointments_router,
         emergency_router,
         extraction_router,

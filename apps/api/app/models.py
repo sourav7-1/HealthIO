@@ -26,7 +26,14 @@ from app.modules.identity.models import (
     UserActionToken,
     UserRole,
 )
-from app.modules.labs.models import Test, TestOrder, TestOrderItem, TestReport, TestResult
+from app.modules.labs.models import (
+    ReportShare,
+    Test,
+    TestOrder,
+    TestOrderItem,
+    TestReport,
+    TestResult,
+)
 from app.modules.medications.models import (
     Medication,
     MedicationAdherence,
@@ -77,6 +84,7 @@ __all__ = [
     "RecordVersion",
     "RefreshToken",
     "ReminderPreference",
+    "ReportShare",
     "SymptomReport",
     "Test",
     "TestOrder",
