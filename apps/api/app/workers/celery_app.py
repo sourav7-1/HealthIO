@@ -50,6 +50,12 @@ celery_app.conf.update(
             "schedule": 120.0,
             "options": {"expires": 110},
         },
+        # Delete assistant chats past their owner's retention period.
+        "assistant-purge-expired": {
+            "task": "assistant.purge_expired",
+            "schedule": 3600.0,
+            "options": {"expires": 3500},
+        },
         "reminders-materialize": {
             "task": "reminders.materialize",
             "schedule": 900.0,

@@ -188,3 +188,31 @@ def records_scan_pending() -> dict[str, int]:
     result = asyncio.run(_scan_pending())
     log.info("documents_scanned", **result)
     return result
+
+
+# --- assistant ----------------------------------------------------------------------------
+
+
+async def _purge_assistant() -> int:
+    from app.core.config import get_settings
+    from app.core.db import Database
+    from app.modules.assistant import service
+
+    db = Database(get_settings())
+    try:
+        async with db.sessionmaker() as session:
+            count = await service.purge_expired(session)
+            await session.commit()
+            return count
+    finally:
+        await db.dispose()
+
+
+@celery_app.task(name="assistant.purge_expired", acks_late=True)
+def assistant_purge_expired() -> int:
+    """Delete assistant conversations whose owner's retention period has passed."""
+    import asyncio
+
+    count = asyncio.run(_purge_assistant())
+    log.info("assistant_chats_purged", count=count)
+    return count

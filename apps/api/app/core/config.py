@@ -80,6 +80,9 @@ class Settings(BaseSettings):
     ai_provider: Literal["disabled", "anthropic"] = "disabled"
     anthropic_api_key: SecretStr | None = None
     ai_vision_model: str = "claude-sonnet-5"
+    # Health assistant (app/modules/assistant). Without a provider it runs in offline mode:
+    # it only quotes matching record items and library passages.
+    ai_assistant_model: str = "claude-sonnet-5"
     ai_request_timeout_seconds: float = 60.0
     # OCR engine used alongside the vision model: "none", or "tesseract" (binary required).
     ai_ocr_engine: Literal["none", "tesseract"] = "none"

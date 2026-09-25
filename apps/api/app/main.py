@@ -19,6 +19,7 @@ from app.core.middleware import (
 from app.core.storage import S3Storage
 from app.modules.access.router import router as access_router
 from app.modules.appointments.router import router as appointments_router
+from app.modules.assistant.router import router as assistant_router
 from app.modules.care_team.router import router as care_team_router
 from app.modules.caregivers.dashboard import router as caregiver_dashboard_router
 from app.modules.caregivers.router import router as caregivers_router
@@ -108,6 +109,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         labs_router,
         records_router,
         timeline_router,
+        assistant_router,
         appointments_router,
         emergency_router,
         extraction_router,

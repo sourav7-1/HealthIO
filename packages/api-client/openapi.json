@@ -469,6 +469,70 @@
         "title": "AmendmentIn",
         "type": "object"
       },
+      "AnswerOut": {
+        "properties": {
+          "declined": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Declined"
+          },
+          "disclaimer": {
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "emergency": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Emergency",
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "ai",
+              "offline",
+              "emergency"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "questions_for_doctor": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Questions For Doctor",
+            "type": "array"
+          },
+          "segments": {
+            "items": {
+              "$ref": "#/components/schemas/SegmentOut"
+            },
+            "title": "Segments",
+            "type": "array"
+          },
+          "urgent": {
+            "title": "Urgent",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "segments",
+          "urgent",
+          "emergency",
+          "declined",
+          "questions_for_doctor",
+          "mode",
+          "disclaimer"
+        ],
+        "title": "AnswerOut",
+        "type": "object"
+      },
       "AppointmentIn": {
         "additionalProperties": false,
         "properties": {
@@ -659,6 +723,79 @@
           }
         },
         "title": "AsNeededIn",
+        "type": "object"
+      },
+      "AskIn": {
+        "additionalProperties": false,
+        "properties": {
+          "conversation_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
+          },
+          "history": {
+            "description": "Private mode only",
+            "items": {
+              "$ref": "#/components/schemas/Turn"
+            },
+            "maxItems": 12,
+            "title": "History",
+            "type": "array"
+          },
+          "question": {
+            "maxLength": 2000,
+            "minLength": 2,
+            "title": "Question",
+            "type": "string"
+          },
+          "save": {
+            "default": true,
+            "description": "False: private, nothing is stored",
+            "title": "Save",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "question"
+        ],
+        "title": "AskIn",
+        "type": "object"
+      },
+      "AskOut": {
+        "properties": {
+          "conversation_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
+          },
+          "message": {
+            "$ref": "#/components/schemas/MessageOut"
+          },
+          "saved": {
+            "title": "Saved",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "conversation_id",
+          "saved",
+          "message"
+        ],
+        "title": "AskOut",
         "type": "object"
       },
       "BloodGroup": {
@@ -1446,6 +1583,104 @@
           "notify_on_sos"
         ],
         "title": "ContactOut",
+        "type": "object"
+      },
+      "ConversationDetailOut": {
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_message_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Message At"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/MessageOut"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "last_message_at",
+          "expires_at",
+          "messages"
+        ],
+        "title": "ConversationDetailOut",
+        "type": "object"
+      },
+      "ConversationOut": {
+        "properties": {
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_message_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Message At"
+          },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "last_message_at",
+          "expires_at"
+        ],
+        "title": "ConversationOut",
         "type": "object"
       },
       "DashboardAppointment": {
@@ -4405,6 +4640,70 @@
         "title": "MedicationStatus",
         "type": "string"
       },
+      "MessageOut": {
+        "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnswerOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question"
+          },
+          "role": {
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "created_at"
+        ],
+        "title": "MessageOut",
+        "type": "object"
+      },
       "NewPatientIn": {
         "additionalProperties": false,
         "properties": {
@@ -5400,6 +5699,46 @@
         "title": "PauseIn",
         "type": "object"
       },
+      "PreferencesIn": {
+        "additionalProperties": false,
+        "properties": {
+          "history_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "History Days"
+          },
+          "save_by_default": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Save By Default"
+          },
+          "use_records": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Use Records"
+          }
+        },
+        "title": "PreferencesIn",
+        "type": "object"
+      },
       "PreferencesModel": {
         "additionalProperties": false,
         "properties": {
@@ -5499,6 +5838,37 @@
           "notify_caregivers_on_missed"
         ],
         "title": "PreferencesModel",
+        "type": "object"
+      },
+      "PreferencesOut": {
+        "properties": {
+          "history_day_choices": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "History Day Choices",
+            "type": "array"
+          },
+          "history_days": {
+            "title": "History Days",
+            "type": "integer"
+          },
+          "save_by_default": {
+            "title": "Save By Default",
+            "type": "boolean"
+          },
+          "use_records": {
+            "title": "Use Records",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "history_days",
+          "save_by_default",
+          "use_records",
+          "history_day_choices"
+        ],
+        "title": "PreferencesOut",
         "type": "object"
       },
       "PrescribedOut": {
@@ -9027,6 +9397,37 @@
         "title": "ScheduleType",
         "type": "string"
       },
+      "SegmentOut": {
+        "properties": {
+          "kind": {
+            "enum": [
+              "record",
+              "general",
+              "uncertain"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/SourceOut"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "text",
+          "sources"
+        ],
+        "title": "SegmentOut",
+        "type": "object"
+      },
       "SelfReportedIn": {
         "additionalProperties": false,
         "properties": {
@@ -9373,6 +9774,69 @@
           "specialty"
         ],
         "title": "ShareTargetOut",
+        "type": "object"
+      },
+      "SourceOut": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "record",
+              "library"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "publisher": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publisher"
+          },
+          "reviewed_on": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed On"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "label",
+          "publisher",
+          "url",
+          "reviewed_on"
+        ],
+        "title": "SourceOut",
         "type": "object"
       },
       "StopIn": {
@@ -9979,6 +10443,31 @@
           "expires_in"
         ],
         "title": "TokenResponse",
+        "type": "object"
+      },
+      "Turn": {
+        "additionalProperties": false,
+        "properties": {
+          "content": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          },
+          "role": {
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role",
+            "type": "string"
+          }
+        },
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "Turn",
         "type": "object"
       },
       "UnsubscribeIn": {
@@ -11354,6 +11843,77 @@
         ]
       }
     },
+    "/api/v1/me/assistant/preferences": {
+      "get": {
+        "operationId": "get_preferences_api_v1_me_assistant_preferences_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Preferences",
+        "tags": [
+          "assistant"
+        ]
+      },
+      "put": {
+        "description": "Shortening how long chats are kept also applies to chats already saved.",
+        "operationId": "update_preferences_api_v1_me_assistant_preferences_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreferencesIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Preferences",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
     "/api/v1/me/caregiving": {
       "get": {
         "description": "People I care for, and invitations waiting for me.",
@@ -12093,6 +12653,264 @@
         "summary": "Book Appointment",
         "tags": [
           "appointments"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/assistant/ask": {
+      "post": {
+        "description": "Ask about this person's medicines, prescriptions, appointments or record, or a\ngeneral health question. Answers say which parts come from the record, which from the\nreviewed library, and what is uncertain. Symptoms that could be an emergency get\nurgent-care guidance straight away.",
+        "operationId": "ask_api_v1_patients__patient_id__assistant_ask_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AskIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AskOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Ask",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/assistant/conversations": {
+      "delete": {
+        "operationId": "delete_all_conversations_api_v1_patients__patient_id__assistant_conversations_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete All Conversations",
+        "tags": [
+          "assistant"
+        ]
+      },
+      "get": {
+        "description": "Your own saved chats about this person (never anyone else's).",
+        "operationId": "list_conversations_api_v1_patients__patient_id__assistant_conversations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ConversationOut"
+                  },
+                  "title": "Response List Conversations Api V1 Patients  Patient Id  Assistant Conversations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Conversations",
+        "tags": [
+          "assistant"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/assistant/conversations/{conversation_id}": {
+      "delete": {
+        "operationId": "delete_conversation_api_v1_patients__patient_id__assistant_conversations__conversation_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Delete Conversation",
+        "tags": [
+          "assistant"
+        ]
+      },
+      "get": {
+        "operationId": "get_conversation_api_v1_patients__patient_id__assistant_conversations__conversation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationDetailOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Conversation",
+        "tags": [
+          "assistant"
         ]
       }
     },

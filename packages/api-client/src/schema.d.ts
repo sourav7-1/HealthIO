@@ -346,6 +346,27 @@ export interface paths {
         patch: operations["update_me_api_v1_me_patch"];
         trace?: never;
     };
+    "/api/v1/me/assistant/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Preferences */
+        get: operations["get_preferences_api_v1_me_assistant_preferences_get"];
+        /**
+         * Update Preferences
+         * @description Shortening how long chats are kept also applies to chats already saved.
+         */
+        put: operations["update_preferences_api_v1_me_assistant_preferences_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/caregiving": {
         parameters: {
             query?: never;
@@ -637,6 +658,68 @@ export interface paths {
          */
         post: operations["book_appointment_api_v1_patients__patient_id__appointments_post"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/assistant/ask": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask
+         * @description Ask about this person's medicines, prescriptions, appointments or record, or a
+         *     general health question. Answers say which parts come from the record, which from the
+         *     reviewed library, and what is uncertain. Symptoms that could be an emergency get
+         *     urgent-care guidance straight away.
+         */
+        post: operations["ask_api_v1_patients__patient_id__assistant_ask_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/assistant/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Conversations
+         * @description Your own saved chats about this person (never anyone else's).
+         */
+        get: operations["list_conversations_api_v1_patients__patient_id__assistant_conversations_get"];
+        put?: never;
+        post?: never;
+        /** Delete All Conversations */
+        delete: operations["delete_all_conversations_api_v1_patients__patient_id__assistant_conversations_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/assistant/conversations/{conversation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Conversation */
+        get: operations["get_conversation_api_v1_patients__patient_id__assistant_conversations__conversation_id__get"];
+        put?: never;
+        post?: never;
+        /** Delete Conversation */
+        delete: operations["delete_conversation_api_v1_patients__patient_id__assistant_conversations__conversation_id__delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2324,6 +2407,26 @@ export interface components {
             /** Reason */
             reason: string;
         };
+        /** AnswerOut */
+        AnswerOut: {
+            /** Declined */
+            declined: string | null;
+            /** Disclaimer */
+            disclaimer: string;
+            /** Emergency */
+            emergency: string[];
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "ai" | "offline" | "emergency";
+            /** Questions For Doctor */
+            questions_for_doctor: string[];
+            /** Segments */
+            segments: components["schemas"]["SegmentOut"][];
+            /** Urgent */
+            urgent: boolean;
+        };
         /** AppointmentIn */
         AppointmentIn: {
             /**
@@ -2392,6 +2495,32 @@ export interface components {
         AsNeededIn: {
             /** Taken At */
             taken_at?: string | null;
+        };
+        /** AskIn */
+        AskIn: {
+            /** Conversation Id */
+            conversation_id?: string | null;
+            /**
+             * History
+             * @description Private mode only
+             */
+            history?: components["schemas"]["Turn"][];
+            /** Question */
+            question: string;
+            /**
+             * Save
+             * @description False: private, nothing is stored
+             * @default true
+             */
+            save: boolean;
+        };
+        /** AskOut */
+        AskOut: {
+            /** Conversation Id */
+            conversation_id: string | null;
+            message: components["schemas"]["MessageOut"];
+            /** Saved */
+            saved: boolean;
         };
         /**
          * BloodGroup
@@ -2672,6 +2801,42 @@ export interface components {
             priority: number;
             /** Relationship Label */
             relationship_label: string | null;
+        };
+        /** ConversationDetailOut */
+        ConversationDetailOut: {
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Message At */
+            last_message_at: string | null;
+            /** Messages */
+            messages: components["schemas"]["MessageOut"][];
+            /** Title */
+            title: string | null;
+        };
+        /** ConversationOut */
+        ConversationOut: {
+            /**
+             * Expires At
+             * Format: date-time
+             */
+            expires_at: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Last Message At */
+            last_message_at: string | null;
+            /** Title */
+            title: string | null;
         };
         /** DashboardAppointment */
         DashboardAppointment: {
@@ -3536,6 +3701,21 @@ export interface components {
          * @enum {string}
          */
         MedicationStatus: "pending_confirmation" | "active" | "paused" | "completed" | "stopped" | "entered_in_error";
+        /** MessageOut */
+        MessageOut: {
+            answer?: components["schemas"]["AnswerOut"] | null;
+            /** Created At */
+            created_at: string | null;
+            /** Id */
+            id: string | null;
+            /** Question */
+            question?: string | null;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+        };
         /** NewPatientIn */
         NewPatientIn: {
             consent: components["schemas"]["InPersonConsent"];
@@ -3851,6 +4031,15 @@ export interface components {
             /** Resume On */
             resume_on?: string | null;
         };
+        /** PreferencesIn */
+        PreferencesIn: {
+            /** History Days */
+            history_days?: number | null;
+            /** Save By Default */
+            save_by_default?: boolean | null;
+            /** Use Records */
+            use_records?: boolean | null;
+        };
         /** PreferencesModel */
         PreferencesModel: {
             /** Channel Email */
@@ -3881,6 +4070,17 @@ export interface components {
             reminders_enabled: boolean;
             /** Show Medicine Names */
             show_medicine_names: boolean;
+        };
+        /** PreferencesOut */
+        PreferencesOut: {
+            /** History Day Choices */
+            history_day_choices: number[];
+            /** History Days */
+            history_days: number;
+            /** Save By Default */
+            save_by_default: boolean;
+            /** Use Records */
+            use_records: boolean;
         };
         /**
          * PrescribedOut
@@ -4800,6 +5000,18 @@ export interface components {
          * @enum {string}
          */
         ScheduleType: "fixed_times" | "interval" | "as_needed";
+        /** SegmentOut */
+        SegmentOut: {
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "record" | "general" | "uncertain";
+            /** Sources */
+            sources: components["schemas"]["SourceOut"][];
+            /** Text */
+            text: string;
+        };
         /** SelfReportedIn */
         SelfReportedIn: {
             /**
@@ -4922,6 +5134,24 @@ export interface components {
             name: string;
             /** Specialty */
             specialty: string | null;
+        };
+        /** SourceOut */
+        SourceOut: {
+            /** Id */
+            id: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "record" | "library";
+            /** Label */
+            label: string;
+            /** Publisher */
+            publisher: string | null;
+            /** Reviewed On */
+            reviewed_on: string | null;
+            /** Url */
+            url: string | null;
         };
         /** StopIn */
         StopIn: {
@@ -5106,6 +5336,16 @@ export interface components {
              * @constant
              */
             token_type: "bearer";
+        };
+        /** Turn */
+        Turn: {
+            /** Content */
+            content: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
         };
         /** UnsubscribeIn */
         UnsubscribeIn: {
@@ -5871,6 +6111,59 @@ export interface operations {
             };
         };
     };
+    get_preferences_api_v1_me_assistant_preferences_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesOut"];
+                };
+            };
+        };
+    };
+    update_preferences_api_v1_me_assistant_preferences_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PreferencesIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     my_caregiving_api_v1_me_caregiving_get: {
         parameters: {
             query?: never;
@@ -6358,6 +6651,163 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AppointmentOut"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ask_api_v1_patients__patient_id__assistant_ask_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AskIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AskOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_conversations_api_v1_patients__patient_id__assistant_conversations_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_all_conversations_api_v1_patients__patient_id__assistant_conversations_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_conversation_api_v1_patients__patient_id__assistant_conversations__conversation_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationDetailOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_conversation_api_v1_patients__patient_id__assistant_conversations__conversation_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

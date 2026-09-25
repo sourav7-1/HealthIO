@@ -5,6 +5,13 @@ Application code should import models from their own module, not from here.
 
 from app.core.models import Base
 from app.modules.appointments.models import Appointment, FollowUp
+from app.modules.assistant.models import (
+    AssistantConversation,
+    AssistantMessage,
+    AssistantPreference,
+    KnowledgeChunk,
+    KnowledgeDocument,
+)
 from app.modules.audit.models import AuditLog
 from app.modules.care_team.models import DoctorPatientRelationship, DoctorProfile
 from app.modules.caregivers.models import CaregiverPermission, CaregiverRelationship
@@ -53,6 +60,9 @@ from app.modules.timeline.models import RecordVersion
 __all__ = [
     "Allergy",
     "Appointment",
+    "AssistantConversation",
+    "AssistantMessage",
+    "AssistantPreference",
     "AuditLog",
     "AuthSession",
     "Base",
@@ -67,6 +77,8 @@ __all__ = [
     "EmergencyProfile",
     "FollowUp",
     "HealthDocument",
+    "KnowledgeChunk",
+    "KnowledgeDocument",
     "MedicalCondition",
     "MedicalHistoryEntry",
     "Medication",

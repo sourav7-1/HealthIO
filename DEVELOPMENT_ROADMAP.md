@@ -21,7 +21,8 @@ Related: [ARCHITECTURE.md](ARCHITECTURE.md) · [SECURITY_MODEL.md](SECURITY_MODE
 | 10 | Reminder engine | ✅ Core done ([docs/phases/10-reminders.md](docs/phases/10-reminders.md)): dose states incl. notified, timezone-aware recurring reminders, repeat reminder, snooze, quiet hours, missed-dose detection with non-advisory guidance, caregiver alerts, in-app inbox, Web Push + PWA, Celery beat jobs. SMS/email, refill and "smart" timing suggestions remain |
 | 11 | Medical record timeline | ✅ Core done ([docs/phases/11-record-timeline.md](docs/phases/11-record-timeline.md)): one chronological timeline across visits, symptoms, notes, assessments, prescriptions, medicines, tests, reports, appointments, follow-ups and documents; filters by date, doctor, specialty and type; cursor pagination; per-type permissions and consent; database-written record versions with reasons; patient and doctor views. FHIR mapping remains |
 | 12 | Tests and reports | ✅ Core done ([docs/phases/12-tests-and-reports.md](docs/phases/12-tests-and-reports.md)): orders with reason and status, doctor-recorded and patient-uploaded reports (PDF/JPG/PNG), review, report metadata, per-report sharing, storage and malware-scanner interfaces (ClamAV), audit; AI summary architecture only (disabled). Lab value extraction and trend charts remain |
-| 13–25 | | Planned |
+| 13 | AI health assistant | ✅ Core done ([docs/phases/13-ai-assistant.md](docs/phases/13-ai-assistant.md)): red-flag triage before any model call, permission-checked record context without identifiers, trusted library (allow-listed publishers, reviewed imports, full-text retrieval), structured answers split into record, general and uncertain parts, and output checks (sources, numbers, forbidden advice). Also: prompt-injection filtering of uploaded text, private mode, retention and deletion controls. Hindi answers, streaming and live-model evals remain |
+| 14–25 | | Planned |
 
 ## Milestones
 | Milestone | Phases | Outcome |

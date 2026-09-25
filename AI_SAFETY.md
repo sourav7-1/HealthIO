@@ -82,6 +82,13 @@ queued ─► running ─► proposed ─► needs_review ─┬─► verified 
 - **Refusals** are specific and helpful ("I can't tell you whether to change your dose. Your prescription from Dr. X says … If you have concerns, you can message Dr. X or book a follow-up.").
 - **Caregivers** can use it only with the `use_ai_assistant` scope, and only for the dependant they are acting for.
 
+- **Implementation (Phase 13):** see [docs/phases/13-ai-assistant.md](docs/phases/13-ai-assistant.md).
+  - `app/modules/assistant/safety.py`: triage, answer checks.
+  - `app/ai/injection.py`: untrusted-text filtering.
+  - `app/modules/assistant/knowledge.py`: trusted library.
+  - Answers are split into *from the record*, *general information* and *not sure*.
+  - Chats are owner-only, encrypted, optionally private, and deleted after the owner's retention period.
+
 ### 7.2 Doctor assistant
 - **Capabilities:** pre-visit summary, lab trend synthesis, adherence overview, note drafting from the doctor's bullet points, extraction of history from uploads.
 - **Every output is marked "AI draft"**, cites the records it used, and is **not saved to the chart until the doctor edits or accepts and signs it**.
