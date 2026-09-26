@@ -26,6 +26,7 @@ import { OriginBadge, scheduleText } from "@/features/meds/labels";
 import { ModeProvider } from "@/features/patient/context";
 import { sourceLabel, useOrderStatus, type OrderStatus } from "@/features/reports/api";
 import { ReportDetailDialog } from "@/features/reports/ReportDetailDialog";
+import { IssueWithSafetyCheck, SafetyWarningsCard } from "@/features/safety/SafetyWarnings";
 import { PrescriptionDialog, RecordMedicationDialog } from "../forms/prescription";
 import { QueryState, SourceLabel, StatusBadge } from "@/features/chart/shared";
 
@@ -182,6 +183,9 @@ export function MedicationsSection({ patientId, overview }: { patientId: string;
   return (
     <ModeProvider mode="doctor">
     <div className="grid gap-6 lg:grid-cols-3">
+      <div className="lg:col-span-3">
+        <SafetyWarningsCard patientId={patientId} viewer="doctor" />
+      </div>
       <ChangeRequests patientId={patientId} canResolve={canRecord} />
       <Card
         title="Medicines"
@@ -358,17 +362,16 @@ function PrescriptionCard({ rx, patientId, canWrite }: { rx: Prescription; patie
       )}
       <PrescriptionDialog patientId={patientId} draft={rx} open={dialog === "edit"} onClose={() => setDialog(null)} />
       <PrescriptionDialog patientId={patientId} correcting={rx} open={dialog === "correct"} onClose={() => setDialog(null)} />
-      <ReasonDialog
+      <IssueWithSafetyCheck
+        patientId={patientId}
+        prescriptionId={rx.id}
         open={dialog === "issue"}
-        title="Issue this prescription?"
         description={
           rx.revision > 1
             ? `This correction becomes version ${rx.revision} and replaces the current version, which stays in the record marked as superseded. Medicines from the previous version stop, and the patient confirms the corrected ones.`
             : "Once issued it cannot be edited (only corrected as a new version). Its medicines are added to the patient's list, and nothing starts until the patient confirms the schedule."
         }
-        confirmLabel="Issue prescription"
-        requireReason={false}
-        onConfirm={async () => {
+        onIssue={async () => {
           await issue.mutateAsync(rx.id);
           toast.success("Prescription issued");
         }}

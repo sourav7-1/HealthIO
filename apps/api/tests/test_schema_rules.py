@@ -24,6 +24,11 @@ NOT_PATIENT_SCOPED = {
     "assistant_preferences",  # a user's own settings
     "knowledge_documents",  # reference library, no patient data
     "knowledge_chunks",
+    "reference_datasets",  # drug reference data, no patient data
+    "drug_products",
+    "drug_interactions",
+    "drug_contraindications",
+    "allergy_class_members",
 }
 MIGRATIONS = Path(__file__).resolve().parents[1] / "alembic" / "versions"
 
@@ -39,7 +44,7 @@ def _load_migration(name: str) -> ModuleType:
 
 def test_mappers_configure() -> None:
     configure_mappers()
-    assert len(TABLES) == 47
+    assert len(TABLES) == 53
 
 
 def test_every_table_has_uuid_primary_key_named_id() -> None:
@@ -110,6 +115,8 @@ def test_free_text_clinical_columns_are_encrypted() -> None:
         ("symptom_reports", "notes"),
         ("assistant_messages", "content"),
         ("assistant_conversations", "title"),
+        ("safety_warnings", "patient_detail"),
+        ("safety_warnings", "clinician_detail"),
     }
     for table, column in must_encrypt:
         assert isinstance(TABLES[table].c[column].type, EncryptedString), f"{table}.{column}"

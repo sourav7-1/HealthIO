@@ -32,6 +32,7 @@ from app.modules.extraction.models import (
 )
 from app.modules.medications import service as medications
 from app.modules.medications.models import ActorRole, MedicationOrigin
+from app.modules.safety import service as safety
 
 router = APIRouter(tags=["prescription scans"])
 
@@ -508,6 +509,7 @@ async def confirm_scan(
             "verification": done.prescription.verification_status.value,
         },
     )
+    await safety.recheck(ctx.session, ctx.patient_id, trigger="confirm_scan", actor=ctx.actor_id)
     await ctx.session.commit()
     return ConfirmOut(scan=_scan_out(done.scan), prescription_id=done.prescription.id)
 

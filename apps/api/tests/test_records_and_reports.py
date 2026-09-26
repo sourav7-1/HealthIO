@@ -126,6 +126,7 @@ def test_versioned_tables_match_the_migrations() -> None:
         spec.loader.exec_module(module)
         found |= getattr(module, "VERSIONED", {})
     found["report_shares"] = ()  # 0012 adds its trigger directly
+    found["safety_warnings"] = ("last_checked_at",)  # 0014 adds its trigger directly
     assert found == VERSIONED_TABLES
 
 

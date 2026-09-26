@@ -19,6 +19,7 @@ import { OriginBadge, StatusPill, courseText, scheduleText } from "@/features/me
 
 import { SafetyNote, SourceBadge, TimesPicker } from "../components";
 import { useActivePatient } from "../context";
+import { SafetyWarningsCard } from "@/features/safety/SafetyWarnings";
 
 type Meal = Schemas["MealRelation"];
 
@@ -42,6 +43,9 @@ export function MedicationsPage() {
           )
         }
       />
+      <div className="mb-6">
+        <SafetyWarningsCard patientId={pid} viewer="patient" />
+      </div>
       <QueryState
         query={meds}
         what="Medicines"

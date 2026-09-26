@@ -36,6 +36,7 @@ from app.modules.notifications.router import router as notifications_router
 from app.modules.prescriptions.router import router as prescriptions_router
 from app.modules.records.router import router as records_router
 from app.modules.reminders.router import router as reminders_router
+from app.modules.safety.router import router as safety_router
 from app.modules.system.router import router as system_router
 from app.modules.timeline.router import router as timeline_router
 
@@ -110,6 +111,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         records_router,
         timeline_router,
         assistant_router,
+        safety_router,
         appointments_router,
         emergency_router,
         extraction_router,

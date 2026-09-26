@@ -55,10 +55,19 @@ from app.modules.patients.models import PatientProfile
 from app.modules.prescriptions.models import Prescription, PrescriptionItem
 from app.modules.records.models import HealthDocument
 from app.modules.reminders.models import ReminderPreference
+from app.modules.safety.models import (
+    AllergyClassMember,
+    DrugContraindication,
+    DrugInteraction,
+    DrugProduct,
+    ReferenceDataset,
+    SafetyWarning,
+)
 from app.modules.timeline.models import RecordVersion
 
 __all__ = [
     "Allergy",
+    "AllergyClassMember",
     "Appointment",
     "AssistantConversation",
     "AssistantMessage",
@@ -73,6 +82,9 @@ __all__ = [
     "DoctorPatientRelationship",
     "DoctorProfile",
     "DoctorVisit",
+    "DrugContraindication",
+    "DrugInteraction",
+    "DrugProduct",
     "EmergencyContact",
     "EmergencyProfile",
     "FollowUp",
@@ -94,9 +106,11 @@ __all__ = [
     "PrescriptionScan",
     "PushSubscription",
     "RecordVersion",
+    "ReferenceDataset",
     "RefreshToken",
     "ReminderPreference",
     "ReportShare",
+    "SafetyWarning",
     "SymptomReport",
     "Test",
     "TestOrder",

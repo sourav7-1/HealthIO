@@ -33,6 +33,7 @@ from app.modules.prescriptions.document import (
 )
 from app.modules.prescriptions.models import Prescription, PrescriptionSource, PrescriptionStatus
 from app.modules.prescriptions.pdf import RENDERERS
+from app.modules.safety import service as safety
 
 router = APIRouter(tags=["prescriptions"])
 
@@ -390,6 +391,9 @@ async def issue_prescription(
         changed_fields=["status", "issued_at", "content_sha256"],
         context={"items": str(len(row.items)), "revision": str(rx.revision)},
     )
+    await safety.recheck(
+        ctx.session, ctx.patient_id, trigger="issue_prescription", actor=ctx.actor_id
+    )
     await ctx.session.commit()
     return (await _out(ctx, [row]))[0]
 
@@ -435,6 +439,9 @@ async def cancel_prescription(
         resource_type="prescription",
         resource_id=prescription_id,
         changed_fields=["status", "cancelled_at", "cancel_reason"],
+    )
+    await safety.recheck(
+        ctx.session, ctx.patient_id, trigger="cancel_prescription", actor=ctx.actor_id
     )
     await ctx.session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)

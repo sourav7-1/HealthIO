@@ -74,6 +74,11 @@ queued ─► running ─► proposed ─► needs_review ─┬─► verified 
 - **Patient-facing wording** of a warning always ends with a referral: "Talk to your doctor or pharmacist before making any change. Do not stop a prescribed medicine on your own."
 - The LLM may **rephrase** an existing warning in plain language (English or Hindi). The rephrased text is checked against the original warning to make sure the meaning did not change.
 
+- **Implementation (Phase 14):** see [docs/phases/14-medication-safety.md](docs/phases/14-medication-safety.md).
+  - `app/modules/safety/engine.py`: rules; no model is involved.
+  - Datasets are imported with provenance; none is shipped, so no interaction is invented.
+  - Warnings are headed "Potential issue detected. Please confirm with a doctor/pharmacist."
+
 ## 7. Conversational assistants
 ### 7.1 Patient assistant
 - **Scope:** the patient's own documented data (through read-only, policy-checked tools), app help, and general information from the knowledge base.

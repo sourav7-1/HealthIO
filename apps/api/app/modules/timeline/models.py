@@ -29,6 +29,7 @@ VERSIONED_TABLES: dict[str, tuple[str, ...]] = {
     "appointments": (),
     "follow_ups": (),
     "report_shares": (),  # added in migration 0012
+    "safety_warnings": ("last_checked_at",),  # added in migration 0014
 }
 BOOKKEEPING = ("updated_at", "updated_by", "version")
 

@@ -1686,6 +1686,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/patients/{patient_id}/prescriptions/{prescription_id}/safety-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check Prescription
+         * @description Potential issues with a (draft) prescription against current medicines, allergies
+         *     and conditions, before it is issued. Nothing is stored.
+         */
+        post: operations["check_prescription_api_v1_patients__patient_id__prescriptions__prescription_id__safety_check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/patients/{patient_id}/profile": {
         parameters: {
             query?: never;
@@ -1924,6 +1945,64 @@ export interface paths {
          *     a date. The doctor sees only this report, not other tests and reports.
          */
         post: operations["share_report_api_v1_patients__patient_id__reports__report_id__shares_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/safety-warnings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Warnings */
+        get: operations["list_warnings_api_v1_patients__patient_id__safety_warnings_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/safety-warnings/recheck": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Recheck
+         * @description Run the checks again now (they also run automatically after changes).
+         */
+        post: operations["recheck_api_v1_patients__patient_id__safety_warnings_recheck_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/patients/{patient_id}/safety-warnings/{warning_id}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Review Warning
+         * @description Doctor: mark reviewed with a note. Patient or caregiver: acknowledge having seen it.
+         *     Reviewing never changes a medicine.
+         */
+        post: operations["review_warning_api_v1_patients__patient_id__safety_warnings__warning_id__review_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2212,6 +2291,27 @@ export interface paths {
         put?: never;
         /** Add Note */
         post: operations["add_note_api_v1_patients__patient_id__visits__visit_id__notes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/safety/reference-datasets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Reference Datasets
+         * @description Which trusted datasets the checks currently use (empty: only record comparison and
+         *     prescription consistency checks run).
+         */
+        get: operations["reference_datasets_api_v1_safety_reference_datasets_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -2924,6 +3024,21 @@ export interface components {
          * @enum {string}
          */
         DataCategory: "demographics" | "conditions" | "allergies" | "medications" | "prescriptions" | "visits_and_notes" | "tests_and_reports" | "documents" | "adherence" | "appointments" | "emergency";
+        /** DatasetOut */
+        DatasetOut: {
+            /** Key */
+            key: string;
+            /** License */
+            license: string;
+            /** Name */
+            name: string;
+            /** Reviewed On */
+            reviewed_on: string;
+            /** Url */
+            url: string;
+            /** Version */
+            version: string;
+        };
         /**
          * DependantBasis
          * @description Why someone may manage another person's health record (their declaration).
@@ -4785,6 +4900,39 @@ export interface components {
          * @enum {string}
          */
         Role: "admin" | "doctor" | "patient" | "caregiver";
+        /** SafetyCheckOut */
+        SafetyCheckOut: {
+            /** Datasets */
+            datasets: string[];
+            /** Findings */
+            findings: components["schemas"]["SafetyFindingOut"][];
+            /** Unknown Ingredients */
+            unknown_ingredients: string[];
+        };
+        /** SafetyFindingOut */
+        SafetyFindingOut: {
+            /** Detail */
+            detail: string;
+            /** Headline */
+            headline: string;
+            /** Kind */
+            kind: string;
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "info" | "caution" | "serious";
+            /** Source Name */
+            source_name: string;
+            /** Source Severity */
+            source_severity: string | null;
+            /** Source Version */
+            source_version: string | null;
+            /** Subjects */
+            subjects: string[];
+            /** Title */
+            title: string;
+        };
         /** ScanFieldOut */
         ScanFieldOut: {
             ai: components["schemas"]["AiReadingOut"] | null;
@@ -5518,6 +5666,70 @@ export interface components {
          * @enum {string}
          */
         VisitType: "in_person" | "teleconsult" | "home_visit" | "emergency";
+        /** WarningOut */
+        WarningOut: {
+            /** Detail */
+            detail: string;
+            /**
+             * Detected At
+             * Format: date-time
+             */
+            detected_at: string;
+            /** Headline */
+            headline: string;
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Kind */
+            kind: string;
+            /**
+             * Last Checked At
+             * Format: date-time
+             */
+            last_checked_at: string;
+            /** Resolved At */
+            resolved_at: string | null;
+            /** Review Note */
+            review_note: string | null;
+            /**
+             * Review Status
+             * @enum {string}
+             */
+            review_status: "unreviewed" | "acknowledged" | "reviewed";
+            /** Reviewed At */
+            reviewed_at: string | null;
+            /** Reviewer Role */
+            reviewer_role: string | null;
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "info" | "caution" | "serious";
+            /** Source Name */
+            source_name: string;
+            /** Source Severity */
+            source_severity: string | null;
+            /** Source Type */
+            source_type: string;
+            /** Source Version */
+            source_version: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "open" | "resolved";
+            /** Subjects */
+            subjects: string[];
+            /** Title */
+            title: string;
+        };
+        /** WarningReviewIn */
+        WarningReviewIn: {
+            /** Note */
+            note?: string | null;
+        };
     };
     responses: never;
     parameters: never;
@@ -8768,6 +8980,38 @@ export interface operations {
             };
         };
     };
+    check_prescription_api_v1_patients__patient_id__prescriptions__prescription_id__safety_check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                prescription_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SafetyCheckOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_profile_api_v1_patients__patient_id__profile_get: {
         parameters: {
             query?: never;
@@ -9254,6 +9498,106 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ShareOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_warnings_api_v1_patients__patient_id__safety_warnings_get: {
+        parameters: {
+            query?: {
+                include_resolved?: boolean;
+            };
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WarningOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    recheck_api_v1_patients__patient_id__safety_warnings_recheck_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WarningOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    review_warning_api_v1_patients__patient_id__safety_warnings__warning_id__review_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                patient_id: string;
+                warning_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WarningReviewIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WarningOut"];
                 };
             };
             /** @description Validation Error */
@@ -9879,6 +10223,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reference_datasets_api_v1_safety_reference_datasets_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DatasetOut"][];
                 };
             };
         };

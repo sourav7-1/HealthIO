@@ -30,6 +30,7 @@ from app.modules.clinical.models import (
     VisitStatus,
     VisitType,
 )
+from app.modules.safety import service as safety
 
 router = APIRouter(tags=["clinical"])
 
@@ -458,6 +459,9 @@ async def document_condition(
     await ctx.audit(
         "condition.document", resource_type="medical_condition", resource_id=condition.id
     )
+    await safety.recheck(
+        ctx.session, ctx.patient_id, trigger="document_condition", actor=ctx.actor_id
+    )
     await ctx.session.commit()
     return _condition_out(condition)
 
@@ -500,6 +504,7 @@ async def report_allergy(
         source=ctx.reporter_source,
     )
     await ctx.audit("allergy.self_reported", resource_type="allergy", resource_id=a.id)
+    await safety.recheck(ctx.session, ctx.patient_id, trigger="report_allergy", actor=ctx.actor_id)
     await ctx.session.commit()
     return AllergyOut(
         id=a.id,
@@ -531,6 +536,9 @@ async def report_condition(
         source=ctx.reporter_source,
     )
     await ctx.audit("condition.self_reported", resource_type="medical_condition", resource_id=c.id)
+    await safety.recheck(
+        ctx.session, ctx.patient_id, trigger="report_condition", actor=ctx.actor_id
+    )
     await ctx.session.commit()
     return _condition_out(c)
 
@@ -550,6 +558,9 @@ async def remove_self_reported(
         ctx.session, patient_id=ctx.patient_id, kind=kind, entry_id=entry_id, actor=ctx.actor_id
     )
     await ctx.audit(f"{kind}.self_reported_removed", resource_type=kind, resource_id=entry_id)
+    await safety.recheck(
+        ctx.session, ctx.patient_id, trigger="remove_self_reported", actor=ctx.actor_id
+    )
     await ctx.session.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

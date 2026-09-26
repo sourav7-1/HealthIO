@@ -1903,6 +1903,44 @@
         "title": "DataCategory",
         "type": "string"
       },
+      "DatasetOut": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "license": {
+            "title": "License",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "reviewed_on": {
+            "title": "Reviewed On",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "name",
+          "version",
+          "url",
+          "license",
+          "reviewed_on"
+        ],
+        "title": "DatasetOut",
+        "type": "object"
+      },
       "DependantBasis": {
         "description": "Why someone may manage another person's health record (their declaration).\n\nMinors: a parent or legal guardian consents for them (DPDP Act s.9).\nAdults: a lawful guardian or attorney, or the person's own agreement to be helped.",
         "enum": [
@@ -8670,6 +8708,113 @@
         "title": "Role",
         "type": "string"
       },
+      "SafetyCheckOut": {
+        "properties": {
+          "datasets": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Datasets",
+            "type": "array"
+          },
+          "findings": {
+            "items": {
+              "$ref": "#/components/schemas/SafetyFindingOut"
+            },
+            "title": "Findings",
+            "type": "array"
+          },
+          "unknown_ingredients": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unknown Ingredients",
+            "type": "array"
+          }
+        },
+        "required": [
+          "findings",
+          "unknown_ingredients",
+          "datasets"
+        ],
+        "title": "SafetyCheckOut",
+        "type": "object"
+      },
+      "SafetyFindingOut": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "info",
+              "caution",
+              "serious"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "source_name": {
+            "title": "Source Name",
+            "type": "string"
+          },
+          "source_severity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Severity"
+          },
+          "source_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Version"
+          },
+          "subjects": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Subjects",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "headline",
+          "kind",
+          "severity",
+          "source_severity",
+          "title",
+          "detail",
+          "source_name",
+          "source_version",
+          "subjects"
+        ],
+        "title": "SafetyFindingOut",
+        "type": "object"
+      },
       "ScanFieldOut": {
         "properties": {
           "ai": {
@@ -11039,6 +11184,192 @@
         ],
         "title": "VisitType",
         "type": "string"
+      },
+      "WarningOut": {
+        "properties": {
+          "detail": {
+            "title": "Detail",
+            "type": "string"
+          },
+          "detected_at": {
+            "format": "date-time",
+            "title": "Detected At",
+            "type": "string"
+          },
+          "headline": {
+            "title": "Headline",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "last_checked_at": {
+            "format": "date-time",
+            "title": "Last Checked At",
+            "type": "string"
+          },
+          "resolved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Resolved At"
+          },
+          "review_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review Note"
+          },
+          "review_status": {
+            "enum": [
+              "unreviewed",
+              "acknowledged",
+              "reviewed"
+            ],
+            "title": "Review Status",
+            "type": "string"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          },
+          "reviewer_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Role"
+          },
+          "severity": {
+            "enum": [
+              "info",
+              "caution",
+              "serious"
+            ],
+            "title": "Severity",
+            "type": "string"
+          },
+          "source_name": {
+            "title": "Source Name",
+            "type": "string"
+          },
+          "source_severity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Severity"
+          },
+          "source_type": {
+            "title": "Source Type",
+            "type": "string"
+          },
+          "source_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Version"
+          },
+          "status": {
+            "enum": [
+              "open",
+              "resolved"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "subjects": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Subjects",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "headline",
+          "kind",
+          "severity",
+          "source_severity",
+          "title",
+          "detail",
+          "source_type",
+          "source_name",
+          "source_version",
+          "subjects",
+          "status",
+          "detected_at",
+          "last_checked_at",
+          "resolved_at",
+          "review_status",
+          "reviewed_at",
+          "reviewer_role",
+          "review_note"
+        ],
+        "title": "WarningOut",
+        "type": "object"
+      },
+      "WarningReviewIn": {
+        "additionalProperties": false,
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "title": "WarningReviewIn",
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -16429,6 +16760,65 @@
         ]
       }
     },
+    "/api/v1/patients/{patient_id}/prescriptions/{prescription_id}/safety-check": {
+      "post": {
+        "description": "Potential issues with a (draft) prescription against current medicines, allergies\nand conditions, before it is issued. Nothing is stored.",
+        "operationId": "check_prescription_api_v1_patients__patient_id__prescriptions__prescription_id__safety_check_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "prescription_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Prescription Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SafetyCheckOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Check Prescription",
+        "tags": [
+          "medication safety"
+        ]
+      }
+    },
     "/api/v1/patients/{patient_id}/profile": {
       "get": {
         "operationId": "get_profile_api_v1_patients__patient_id__profile_get",
@@ -17295,6 +17685,190 @@
         "summary": "Share Report",
         "tags": [
           "tests and reports"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/safety-warnings": {
+      "get": {
+        "operationId": "list_warnings_api_v1_patients__patient_id__safety_warnings_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_resolved",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Resolved",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WarningOut"
+                  },
+                  "title": "Response List Warnings Api V1 Patients  Patient Id  Safety Warnings Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Warnings",
+        "tags": [
+          "medication safety"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/safety-warnings/recheck": {
+      "post": {
+        "description": "Run the checks again now (they also run automatically after changes).",
+        "operationId": "recheck_api_v1_patients__patient_id__safety_warnings_recheck_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WarningOut"
+                  },
+                  "title": "Response Recheck Api V1 Patients  Patient Id  Safety Warnings Recheck Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Recheck",
+        "tags": [
+          "medication safety"
+        ]
+      }
+    },
+    "/api/v1/patients/{patient_id}/safety-warnings/{warning_id}/review": {
+      "post": {
+        "description": "Doctor: mark reviewed with a note. Patient or caregiver: acknowledge having seen it.\nReviewing never changes a medicine.",
+        "operationId": "review_warning_api_v1_patients__patient_id__safety_warnings__warning_id__review_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "patient_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Patient Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "warning_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Warning Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WarningReviewIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WarningOut"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Review Warning",
+        "tags": [
+          "medication safety"
         ]
       }
     },
@@ -18528,6 +19102,37 @@
         "summary": "Add Note",
         "tags": [
           "clinical"
+        ]
+      }
+    },
+    "/api/v1/safety/reference-datasets": {
+      "get": {
+        "description": "Which trusted datasets the checks currently use (empty: only record comparison and\nprescription consistency checks run).",
+        "operationId": "reference_datasets_api_v1_safety_reference_datasets_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/DatasetOut"
+                  },
+                  "title": "Response Reference Datasets Api V1 Safety Reference Datasets Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Reference Datasets",
+        "tags": [
+          "medication safety"
         ]
       }
     },

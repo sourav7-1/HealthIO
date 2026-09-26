@@ -52,6 +52,7 @@ from app.modules.patients import service as patients
 from app.modules.prescriptions import service as prescriptions
 from app.modules.prescriptions.models import Prescription, PrescriptionItem
 from app.modules.reminders import service as reminders
+from app.modules.safety import service as safety
 
 router = APIRouter(tags=["medications"])
 
@@ -367,6 +368,9 @@ async def record_existing_medication(
         is_prn=body.is_prn,
     )
     await ctx.audit("medication.record_existing", resource_type="medication", resource_id=med.id)
+    await safety.recheck(
+        ctx.session, ctx.patient_id, trigger="record_existing_medication", actor=ctx.actor_id
+    )
     await ctx.session.commit()
     return _out(med)
 
@@ -595,6 +599,9 @@ async def add_self_reported(
     await ctx.audit(
         "medication.self_reported", resource_type="medication", resource_id=applied.medication.id
     )
+    await safety.recheck(
+        ctx.session, ctx.patient_id, trigger="add_self_reported", actor=ctx.actor_id
+    )
     await ctx.session.commit()
     return await _one(ctx, applied.medication.id)
 
@@ -625,6 +632,9 @@ async def confirm_medication(
         resource_type="medication",
         resource_id=applied.medication.id,
         changed_fields=["status"],
+    )
+    await safety.recheck(
+        ctx.session, ctx.patient_id, trigger="confirm_medication", actor=ctx.actor_id
     )
     await ctx.session.commit()
     return await _one(ctx, applied.medication.id)
@@ -796,6 +806,7 @@ async def stop_medication(
         changed_fields=["status"],
         context={"own_decision": str(body.own_decision), "advised": "yes" if body.advice else "no"},
     )
+    await safety.recheck(ctx.session, ctx.patient_id, trigger="stop_medication", actor=ctx.actor_id)
     await ctx.session.commit()
     return await _one(ctx, medication_id)
 
@@ -908,6 +919,9 @@ async def resolve_change_request(
         f"medication.change_{'approved' if decision == 'approve' else 'declined'}",
         resource_type="medication_change_request",
         resource_id=req.id,
+    )
+    await safety.recheck(
+        ctx.session, ctx.patient_id, trigger="resolve_change_request", actor=ctx.actor_id
     )
     await ctx.session.commit()
     return request_out(req, (await _names(ctx)).get(req.medication_id, ""))
